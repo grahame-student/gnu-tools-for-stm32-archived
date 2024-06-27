@@ -41,3 +41,4 @@ Prepare for calculation of cyclomatic complexity                     | Provides 
 Include librdimon-v2m.a in delivery for both Newlib variants         | Support rdimon on Cortex-A by including librdimon-v2m.a for the Newlib-nano. |
 Added -nostdlibc++                                                   | Added flag to disable linkage of libstdc++. |
 Honor limit for backwards threader                                   | Backported patch to properly handle backwards threader limitation. This reduces the code size with -Os for certain input constructions. |
+Security fix for CVE-2024-0151                                       | Backported patches for CVE-2024-0151 that do proper zero/sign extend for non-secure callable functions with arguments/return value that are less than 32-bit. |
