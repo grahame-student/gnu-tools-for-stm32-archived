@@ -68,12 +68,6 @@ gdb_select (int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
   num_ready = 0;
   num_handles = 0;
   num_scbs = 0;
-  if  (0 == n && timeout)
-    {
-      Sleep(timeout->tv_sec * 1000 + timeout->tv_usec / 1000);
-      return 0;
-    }
-
   for (fd = 0; fd < n; ++fd)
     {
       HANDLE read = NULL, except = NULL;

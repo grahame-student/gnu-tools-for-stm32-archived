@@ -646,6 +646,22 @@ time ${TAR} czf $PACKAGEDIR/${PACKAGE_NAME_NATIVE}-build.tar.gz --owner=0 --grou
 time ${TAR} czf $PACKAGEDIR/${PACKAGE_NAME_NATIVE}-install.tar.gz --owner=0 --group=0 install-native/
 popd
 
+# Validate binaries on macos
+if [ "x$BUILD" == "xx86_64-apple-darwin10" ]; then
+    echo Task [III-14] /Validate tool dependencies/
+    invalid=()
+    while read line; do
+      if objdump -macho --dylibs-used "$line" | grep -q '/usr/local/'; then
+        invalid+=($line)
+      fi
+    done <<< $(find $INSTALLDIR_NATIVE/ -type f |  xargs file | grep "Mach-O " | cut -d: -f1)
+
+    if [ ${#invalid[@]} -ne 0 ]; then
+      echo -e "Illegal dependency detected!${invalid[@]/#/\\n}\nAborting..."
+      exit 1
+    fi
+fi
+
 # skip building mingw32 toolchain if "--skip_mingw32" specified
 # this huge if statement controls all $BUILDDIR_MINGW tasks till "task [IV-8]"
 if [ "x$skip_mingw32" != "xyes" ] ; then
@@ -796,7 +812,8 @@ copy_dir $BUILDDIR_MINGW/tools-$OBJ_SUFFIX_NATIVE/lib/gcc/arm-none-eabi $INSTALL
 rm -rf $INSTALLDIR_MINGW/arm-none-eabi/usr
 rm -rf $INSTALLDIR_MINGW/lib/gcc/arm-none-eabi/*/plugin
 find $INSTALLDIR_MINGW -executable -and -not -type d -and -not -name \*.exe \
-  -and -not -name liblto_plugin-0.dll -exec rm -f \{\} \;
+  -and -not -name liblto_plugin-0.dll -exec rm -fv \{\} \;
+find $INSTALLDIR_MINGW -name 'liblto_plugin.so*' -exec rm -vf \{\} \;
 restoreenv
 
 echo Task [IV-4] /$HOST_MINGW/gdb/
