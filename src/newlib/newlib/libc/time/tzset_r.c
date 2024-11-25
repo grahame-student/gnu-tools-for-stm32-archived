@@ -115,9 +115,9 @@ _tzset_unlocked_r (struct _reent *reent_ptr)
 	    return;
 	  
 	  tz->__tzrule[i].ch = 'M';
-	  tz->__tzrule[i].month = m;
-	  tz->__tzrule[i].week = w;
-	  tz->__tzrule[i].day = d;
+	  tz->__tzrule[i].m = m;
+	  tz->__tzrule[i].n = w;
+	  tz->__tzrule[i].d = d;
 	  
 	  tzenv += n;
 	}
@@ -142,22 +142,22 @@ _tzset_unlocked_r (struct _reent *reent_ptr)
 	      if (i == 0)
 		{
 		  tz->__tzrule[0].ch = 'M';
-		  tz->__tzrule[0].month = 3;
-		  tz->__tzrule[0].week = 2;
-		  tz->__tzrule[0].day = 0;
+		  tz->__tzrule[0].m = 3;
+		  tz->__tzrule[0].n = 2;
+		  tz->__tzrule[0].d = 0;
 		}
 	      else
 		{
 		  tz->__tzrule[1].ch = 'M';
-		  tz->__tzrule[1].month = 11;
-		  tz->__tzrule[1].week = 1;
-		  tz->__tzrule[1].day = 0;
+		  tz->__tzrule[1].m = 11;
+		  tz->__tzrule[1].n = 1;
+		  tz->__tzrule[1].d = 0;
 		}
 	    }
 	  else
 	    {
 	      tz->__tzrule[i].ch = ch;
-	      tz->__tzrule[i].day = d;
+	      tz->__tzrule[i].d = d;
 	    }
 	  
 	  tzenv = end;
@@ -172,7 +172,7 @@ _tzset_unlocked_r (struct _reent *reent_ptr)
       if (*tzenv == '/')
 	sscanf (tzenv, "/%hu%n:%hu%n:%hu%n", &hh, &n, &mm, &n, &ss, &n);
 
-      tz->__tzrule[i].secs = ss + SECSPERMIN * mm + SECSPERHOUR  * hh;
+      tz->__tzrule[i].s = ss + SECSPERMIN * mm + SECSPERHOUR  * hh;
       
       tzenv += n;
     }

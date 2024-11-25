@@ -34,13 +34,13 @@ __tzcalc_limits (int year)
       if (tz->__tzrule[i].ch == 'J')
 	{
 	  /* The Julian day n (1 <= n <= 365). */
-	  days = year_days + tz->__tzrule[i].day +
-	    (isleap(year) && tz->__tzrule[i].day >= 60);
+	  days = year_days + tz->__tzrule[i].d +
+	    (isleap(year) && tz->__tzrule[i].d >= 60);
 	  /* Convert to yday */
 	  --days;
 	}
       else if (tz->__tzrule[i].ch == 'D')
-	days = year_days + tz->__tzrule[i].day;
+	days = year_days + tz->__tzrule[i].d;
       else
 	{
 	  const int yleap = isleap(year);
@@ -49,15 +49,15 @@ __tzcalc_limits (int year)
 
 	  days = year_days;
 
-	  for (j = 1; j < tz->__tzrule[i].month; ++j)
+	  for (j = 1; j < tz->__tzrule[i].m; ++j)
 	    days += ip[j-1];
 
 	  m_wday = (EPOCH_WDAY + days) % DAYSPERWEEK;
 
-	  wday_diff = tz->__tzrule[i].day - m_wday;
+	  wday_diff = tz->__tzrule[i].d - m_wday;
 	  if (wday_diff < 0)
 	    wday_diff += DAYSPERWEEK;
-	  m_day = (tz->__tzrule[i].week - 1) * DAYSPERWEEK + wday_diff;
+	  m_day = (tz->__tzrule[i].n - 1) * DAYSPERWEEK + wday_diff;
 
 	  while (m_day >= ip[j-1])
 	    m_day -= DAYSPERWEEK;
@@ -67,7 +67,7 @@ __tzcalc_limits (int year)
 
       /* store the change-over time in GMT form by adding offset */
       tz->__tzrule[i].change = days * SECSPERDAY +
-      tz->__tzrule[i].secs + tz->__tzrule[i].offset;
+      tz->__tzrule[i].s + tz->__tzrule[i].offset;
     }
 
   tz->__tznorth = (tz->__tzrule[0].change < tz->__tzrule[1].change);

@@ -1,3 +1,24 @@
+2020-04-09  Richard Sandiford  <richard.sandiford@arm.com>
+
+	* doc/sourcebuild.texi (check-function-bodies): Treat the third
+	parameter as a list of option regexps and require each regexp
+	to match.
+
+2020-01-23  Richard Sandiford  <richard.sandiford@arm.com>
+
+	* doc/sourcebuild.texi (check-function-bodies): Add an
+	optional target/xfail selector.
+
+2019-07-29  Richard Sandiford  <richard.sandiford@arm.com>
+
+	* doc/sourcebuild.texi (check-function-bodies): Document.
+
+2020-03-24  Christophe Lyon  <christophe.lyon@linaro.org>
+
+	* doc/sourcebuild.texi (ARM-specific attributes): Add
+	arm_fp_dp_ok.
+	(Features for dg-add-options): Add arm_fp_dp.
+
 2020-04-07  Will Schmidt  <will_schmidt@vnet.ibm.com>
 
 Backport from mainline.

@@ -16,6 +16,7 @@
 #include "cygerrno.h"
 #include "sync.h"
 #include <ctype.h>
+#include <sys/_tz_structs.h>
 #define STD_INSPIRED
 #define lint
 

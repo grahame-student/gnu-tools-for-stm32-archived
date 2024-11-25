@@ -187,6 +187,12 @@ int __cdecl __wrap__fstat32i64(int, struct _stat32i64 *);
 int __cdecl __wrap__fstat64 (int, struct _stat64 *);
 int __cdecl __wrap__fstat64i32(int, struct _stat64i32 *);
 
+// process duplication
+intptr_t __cdecl __wrap_spawnve(int, const char *, char *const *, char *const *);
+intptr_t __cdecl __wrap__spawnve(int, const char *, char *const *, char *const *);
+intptr_t __cdecl __wrap_spawnv(int, const char *, char *const *);
+intptr_t __cdecl __wrap__spawnv(int, const char *, char *const *);
+
 /* Validate stat aliases.  */
 #ifdef _WIN64
 #  ifndef _fstat
@@ -460,6 +466,52 @@ to_errno(DWORD err)
       default: return ENOSYS;
     }
 }
+
+
+static void
+free_wchar_list(wchar_t **wchar, size_t size)
+{
+  for (size_t i = 0; i < size; i++)
+    {
+      SAFE_FREE(wchar[i]);
+    }
+  SAFE_FREE(wchar);
+}
+
+static const wchar_t *const *
+utf8_list_to_wchar_list(char *const *lchar, size_t *size)
+{
+  size_t lchar_len = 0;
+  wchar_t **lwchar = NULL;
+  for (char *const *argv = lchar; *argv; argv++)
+    {
+      lchar_len++;
+    }
+
+  lwchar = (wchar_t **) malloc(sizeof(wchar_t *) * (lchar_len + 1));
+  if (lwchar == NULL)
+    {
+      fprintf(stderr, "%s: malloc failed\n", __func__);
+      return NULL;
+    }
+
+  for (size_t i = 0; i < lchar_len; i++)
+    {
+      lwchar[i] = utf8_to_wchar(lchar[i]);
+      if (lwchar[i] == NULL)
+        {
+          fprintf(stderr, "%s: Unable to convert argument %u\n", __func__, (unsigned int)i);
+          free_wchar_list(lwchar, i);
+          return NULL;
+        }
+    }
+  lwchar[lchar_len] = NULL;
+
+  *size = lchar_len + 1;
+
+  return (const wchar_t *const *) lwchar;
+}
+
 
 
 
@@ -2157,6 +2209,17 @@ internal_getcwd(char *buffer, int maxlen)
   if (internal_update_cwd_cache() < 0)
     return NULL;
 
+  if (buffer == NULL && maxlen == 0)
+    {
+      maxlen = _long_path_name.long_cwd_utf8_len + 1;
+      buffer = (char *) malloc (sizeof(char) * maxlen);
+      if (buffer == NULL)
+        {
+          errno = ENOMEM;
+          return NULL;
+        }
+    }
+
   if (_long_path_name.long_cwd_utf8_len >= (size_t)maxlen)
     {
       /* Buffer too small.  */
@@ -2175,6 +2238,17 @@ internal_wgetcwd(wchar_t *buffer, int maxlen)
 {
   if (internal_update_cwd_cache() < 0)
     return NULL;
+
+  if (buffer == NULL && maxlen == 0)
+    {
+      maxlen = _long_path_name.long_cwd_len + 1;
+      buffer = (wchar_t *) malloc (sizeof(wchar_t) * maxlen);
+      if (buffer == NULL)
+        {
+          errno = ENOMEM;
+          return NULL;
+        }
+    }
 
   if (_long_path_name.long_cwd_len >= (size_t)maxlen)
     {
@@ -3482,6 +3556,131 @@ __wrap_GetModuleFileNameW (HMODULE hModule, LPWSTR lpFilename, DWORD nSize)
   return __real_GetModuleFileNameW (hModule, lpFilename, nSize);
 }
 #endif
+
+
+
+static inline intptr_t
+internal_spawnv(int _Mode, const char *_Cmdname, char *const _ArgList[])
+{
+  intptr_t ret = 0;
+
+  wchar_t *_WCmdname = NULL;
+  const wchar_t *const *_WArgList = NULL;
+
+  size_t warg_len = 0;
+
+  _WCmdname = utf8_to_wchar(_Cmdname);
+  if (_WCmdname == NULL)
+    {
+      fprintf(stderr, "%s: wrong value of argument _Cmdname\n", __func__);
+      return ret;
+    }
+
+  _WArgList = utf8_list_to_wchar_list(_ArgList, &warg_len);
+  if (_WArgList == NULL)
+    {
+      fprintf(stderr, "%s: wrong value of argument _ArgList\n", __func__);
+      SAFE_FREE(_WCmdname);
+      return ret;
+    }
+
+  ret = _wspawnv(_Mode, _WCmdname, _WArgList);
+
+  SAFE_FREE(_WCmdname);
+  free_wchar_list((wchar_t **) _WArgList, warg_len);
+
+  return ret;
+}
+
+intptr_t
+__wrap_spawnv(int _Mode, const char *_Cmdname, char *const _ArgList[])
+{
+  return internal_spawnv(_Mode, _Cmdname, _ArgList);
+}
+
+intptr_t
+__wrap__spawnv(int _Mode, const char *_Cmdname, char *const _ArgList[])
+{
+  return internal_spawnv(_Mode, _Cmdname, _ArgList);
+}
+
+#if 0
+This is a nop-wrapping, so skip it.
+intptr_t
+__wrap__wspawnv(int _Mode, const wchar_t *_Cmdname, wchar_t *const _ArgList[])
+{
+  return __real__wspawnv(_Mode, _Filename, _ArgList);
+}
+#endif
+
+
+static inline intptr_t
+internal_spawnve(int _Mode , const char *_Filename, char *const _ArgList[], char *const _Env[])
+{
+  intptr_t ret = 0;
+
+  const wchar_t *const *_WArgList = NULL;
+  const wchar_t *const *_WEnv = NULL;
+  wchar_t *_WFilename = NULL;
+
+  size_t warg_len = 0;
+  size_t wenv_len = 0;
+
+  _WFilename = utf8_to_wchar(_Filename);
+  if (_WFilename == NULL)
+    {
+      fprintf(stderr, "%s: wrong value of argument _Filename\n", __func__);
+      return ret;
+    }
+
+  _WArgList = utf8_list_to_wchar_list(_ArgList, &warg_len);
+  if (_WArgList == NULL)
+    {
+      fprintf(stderr, "%s: wrong value of argument _ArgList\n", __func__);
+      SAFE_FREE(_WFilename);
+      return ret;
+    }
+
+  _WEnv = utf8_list_to_wchar_list(_Env, &wenv_len);
+  if (_WEnv == NULL)
+    {
+      fprintf(stderr, "%s: wrong value of argument _Env\n", __func__);
+      SAFE_FREE(_WFilename);
+      free_wchar_list((wchar_t **) _WArgList, warg_len);
+      return ret;
+    }
+
+  ret = _wspawnve(_Mode, _WFilename, _WArgList, _WEnv);
+
+  SAFE_FREE(_WFilename);
+  free_wchar_list((wchar_t **) _WArgList, warg_len);
+  free_wchar_list((wchar_t **) _WEnv, wenv_len);
+
+  return ret;
+}
+
+intptr_t
+__wrap_spawnve(int _Mode , const char *_Filename, char *const _ArgList[], char *const _Env[])
+{
+  return internal_spawnve(_Mode, _Filename, _ArgList, _Env);
+}
+
+intptr_t
+__wrap__spawnve(int _Mode, const char *_Filename, char *const _ArgList[], char *const _Env[])
+{
+  return internal_spawnve(_Mode, _Filename, _ArgList, _Env);
+}
+
+#if 0
+This is a nop-wrapping, so skip it.
+intptr_t
+__wrap__wspawnve(int _Mode , const wchar_t *_Filename, wchar_t *const _ArgList[], wchar_t *const _Env[])
+{
+  return __real__wspawnve(_Mode, _Filename, _ArgList, _Env);
+}
+#endif
+
+
 
 
 wchar_t *
