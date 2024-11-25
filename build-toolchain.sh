@@ -315,7 +315,7 @@ if [ "x$skip_native_build" != "xyes" ] ; then
         --with-gnu-ld \
         --with-python-dir=share/gcc-arm-none-eabi \
         --with-sysroot=$INSTALLDIR_NATIVE/arm-none-eabi \
-	--with-zstd=no \
+        --with-zstd=no \
         ${GCC_CONFIG_OPTS}                              \
         "${GCC_CONFIG_OPTS_LCPP}"                              \
         "--with-pkgversion=$PKGVERSION" \
@@ -439,7 +439,7 @@ if [ "x$skip_native_build" != "xyes" ] ; then
         --with-headers=yes \
         --with-python-dir=share/gcc-arm-none-eabi \
         --with-sysroot=$INSTALLDIR_NATIVE/arm-none-eabi \
-	--with-zstd=no \
+        --with-zstd=no \
         $GCC_CONFIG_OPTS                                \
         "${GCC_CONFIG_OPTS_LCPP}"                              \
         "--with-pkgversion=$PKGVERSION" \
@@ -499,7 +499,7 @@ if [ "x$skip_native_build" != "xyes" ] ; then
         --with-headers=yes \
         --with-python-dir=share/gcc-arm-none-eabi \
         --with-sysroot=$BUILDDIR_NATIVE/target-libs/arm-none-eabi \
-	--with-zstd=no \
+        --with-zstd=no \
         $GCC_CONFIG_OPTS \
         "${GCC_CONFIG_OPTS_LCPP}"                              \
         "--with-pkgversion=$PKGVERSION" \
@@ -637,7 +637,7 @@ if [ "x$skip_native_build" != "xyes" ] ; then
 
         TARGET_OBJECTS=$(find $INSTALLDIR_NATIVE/arm-none-eabi/lib -name \*.o)
         for target_obj in $TARGET_OBJECTS ; do
-            arm-none-eabi-strip --remove-section=.comment --remove-section=.note --strip-debug --enable-deterministic-archives --keep-section=.debug_frame $target_lib || true
+            arm-none-eabi-strip --remove-section=.comment --remove-section=.note --strip-debug --enable-deterministic-archives --keep-section=.debug_frame $target_obj || true
         done
 
         TARGET_LIBRARIES=$(find $INSTALLDIR_NATIVE/lib/gcc/arm-none-eabi/$GCC_VER -name \*.a)
@@ -647,7 +647,7 @@ if [ "x$skip_native_build" != "xyes" ] ; then
 
         TARGET_OBJECTS=$(find $INSTALLDIR_NATIVE/lib/gcc/arm-none-eabi/$GCC_VER -name \*.o)
         for target_obj in $TARGET_OBJECTS ; do
-            arm-none-eabi-strip --remove-section=.comment --remove-section=.note --strip-debug --enable-deterministic-archives --keep-section=.debug_frame $target_lib || true
+            arm-none-eabi-strip --remove-section=.comment --remove-section=.note --strip-debug --enable-deterministic-archives --keep-section=.debug_frame $target_obj || true
         done
     fi
     restoreenv
@@ -700,6 +700,22 @@ if [ "x$skip_native_build" != "xyes" ] ; then
     time ${TAR} czf $PACKAGEDIR/${PACKAGE_NAME_NATIVE}-build.tar.gz --owner=0 --group=0 build-native/
     time ${TAR} czf $PACKAGEDIR/${PACKAGE_NAME_NATIVE}-install.tar.gz --owner=0 --group=0 install-native/
     popd
+
+    # Validate binaries on macos
+    if [ "x$BUILD" == "xx86_64-apple-darwin10" ]; then
+        echo Task [III-14] /Validate tool dependencies/
+        invalid=()
+        while read line; do
+          if objdump -macho --dylibs-used "$line" | grep -q '/usr/local/'; then
+            invalid+=($line)
+          fi
+        done <<< $(find $INSTALLDIR_NATIVE/ -type f |  xargs file | grep "Mach-O " | cut -d: -f1)
+
+        if [ ${#invalid[@]} -ne 0 ]; then
+          echo -e "Illegal dependency detected!${invalid[@]/#/\\n}\nAborting..."
+          exit 1
+        fi
+    fi
 fi  #if [ "x$skip_native_build" != "xyes" ] ; then
 
 # skip building mingw32 toolchain if "--skip_mingw32" specified
