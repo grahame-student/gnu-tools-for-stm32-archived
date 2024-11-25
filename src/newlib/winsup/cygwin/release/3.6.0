@@ -1,0 +1,36 @@
+What's new:
+-----------
+
+- New API call: getlocalename_l.
+
+- New API calls: fdclosedir, posix_getdents.
+
+- New API call: setproctitle.
+
+- New API call: timespec_get.
+
+- Add FS_IOC_[GS]ETFLAGS FS_PINNED_FL and FS_UNPINNED_FL flags to handle
+  Windows attributes FILE_ATTRIBUTE_PINNED and FILE_ATTRIBUTE_UNPINNED.
+  Add matching 'p' and 'u' mode bits in chattr(1) and lsattr(1).
+
+
+What changed:
+-------------
+
+- ps -f now prints the commandline rather than the full path to the
+  executable.
+
+- Drop support for NT4 and Samba < 3.0.22.
+
+- Now that SMBv1 is ultimately deprecated and not installed by default
+  on latest Windows versions, use Network Discovery (i. e. WSD, "Web
+  Service Discovery") for enumerating network servers in //, just like
+  Windows Explorer.
+
+- If "server" is given as FQDN, and if "server" is an NFS server,
+  ls //server now also enumerates NFS shares.  If "server" is given
+  as a flat name, only SMB shares are enumerated.
+
+- Expose //tsclient (Microsoft Terminal Services) shares as well as
+  //wsl$ (Plan 9 Network Provider) shares, i. e., WSL installation
+  root dirs.
