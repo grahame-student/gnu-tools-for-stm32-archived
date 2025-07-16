@@ -41,6 +41,11 @@ Include librdimon-v2m.a in delivery for both Newlib variants         | Support r
 
 ## Backports
 
+### Binutils
+
+- [string merge section map output](https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=9dd98830e85cf98aafa224e485b3823210a20350)
+- [ld: fix alignment issue for ARM thumb long branch stub using PureCode section](https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=014a7c0fa36ecc41918e5793052dd3ae8372efe5)
+
 ### GCC
 
 - [arm: Always use vmov.f64 instead of vmov.f32 with MVE](https://gcc.gnu.org/git/?p=gcc.git;a=commit;h=37c21d4c6ad0afe2aacdd6384b9efa96f5754169)
