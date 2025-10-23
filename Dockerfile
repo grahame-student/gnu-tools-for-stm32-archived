@@ -29,7 +29,6 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
 #########################
 RUN mkdir /root/build/gnu-tools-for-stm32/
 COPY . /root/build/gnu-tools-for-stm32/
-COPY ./repo_source/.git /root/build/gnu-tools-for-stm32/.git
 
 
 
