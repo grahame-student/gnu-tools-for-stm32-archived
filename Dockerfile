@@ -36,4 +36,4 @@ COPY . /root/build/gnu-tools-for-stm32
 ### Build Prerequisites ###
 ###########################
 WORKDIR /root/build/gnu-tools-for-stm32
-RUN ./build-prerequisites.sh
+RUN ./build-prerequisites.sh --skip_steps=mingw
