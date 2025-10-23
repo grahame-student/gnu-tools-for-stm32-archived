@@ -17,6 +17,7 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
     apt-get install --yes --no-install-recommends automake-1.15 \
                                                   bison \
                                                   build-essential \
+                                                  flex \
                                                   git \
                                                   python3 \
                                                   texinfo && \
