@@ -14,8 +14,7 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
     sed -i 's/# \(.*multiverse$\)/\1/g' /etc/apt/sources.list && \
     apt-get update && \
     apt-get --yes upgrade && \
-    apt-get install --yes --no-install-recommends automake-1.14 \
-                                                  automake-1.15 \
+    apt-get install --yes --no-install-recommends automake-1.15 \
                                                   bison \
                                                   build-essential \
                                                   git \
