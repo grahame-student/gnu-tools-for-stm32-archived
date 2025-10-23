@@ -37,3 +37,8 @@ COPY . /root/build/gnu-tools-for-stm32
 ###########################
 WORKDIR /root/build/gnu-tools-for-stm32
 RUN ./build-prerequisites.sh --skip_steps=mingw
+
+#######################
+### Build Toolchain ###
+#######################
+RUN ./build-toolchain.sh --skip-steps=mingw,mingw-gdb-with-python
