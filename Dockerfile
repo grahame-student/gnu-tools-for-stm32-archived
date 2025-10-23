@@ -16,7 +16,8 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
     apt-get --yes upgrade && \
     apt-get install --yes --no-install-recommends automake-1.15 \
                                                   build-essential \
-                                                  git && \
+                                                  git \
+                                                  yacc && \
     rm -rf /var/lib/apt/lists/*
 
 
