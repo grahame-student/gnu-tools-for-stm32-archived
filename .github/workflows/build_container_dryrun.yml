@@ -36,9 +36,8 @@ jobs:
           --recursive \
           https://github.com/grahame-student/gnu-tools-for-stm32.git \
           repo_source
-          ls -l .
-          ls -l ./repo_source/
-    
+          ls -la .
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.10.0
 
