@@ -1,0 +1,23 @@
+---
+name: Build toolchain
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4.2.2
+
+      - name: Check Prerequisites
+        shell: bash
+        run: |
+          ./build-prerequisites.sh
