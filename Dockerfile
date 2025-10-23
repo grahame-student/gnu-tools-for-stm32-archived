@@ -14,8 +14,7 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
     sed -i 's/# \(.*multiverse$\)/\1/g' /etc/apt/sources.list && \
     apt-get update && \
     apt-get --yes upgrade && \
-    apt-get install --yes --no-install-recommends automake-1.15 \
-                                                  git && \
+    apt-get install --yes --no-install-recommends automake-1.15 && \
     rm -rf /var/lib/apt/lists/*
 
 
@@ -23,11 +22,8 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
 #########################
 ### Create Build Area ###
 #########################
-RUN mkdir /root/build
-
-# clone sourcecode
-WORKDIR /root/build
-RUN git clone https://github.com/grahame-student/gnu-tools-for-stm32.git
+RUN mkdir /root/build/gnu-tools-for-stm32
+COPY . /root/build/gnu-tools-for-stm32
 
 
 
