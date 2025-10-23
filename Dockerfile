@@ -27,7 +27,7 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
 #########################
 ### Create Build Area ###
 #########################
-RUN mkdir /root/build/gnu-tools-for-stm32/
+RUN mkdir -p /root/build/gnu-tools-for-stm32/
 COPY . /root/build/gnu-tools-for-stm32/
 
 
