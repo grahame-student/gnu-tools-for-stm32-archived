@@ -18,6 +18,7 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
                                                   bison \
                                                   build-essential \
                                                   git \
+                                                  python3 \
                                                   texinfo && \
     rm -rf /var/lib/apt/lists/*
 
