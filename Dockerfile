@@ -43,4 +43,4 @@ RUN ./build-prerequisites.sh --skip_steps=mingw
 #######################
 ### Build Toolchain ###
 #######################
-RUN ./build-toolchain.sh --skip_steps=mingw,mingw-gdb-with-python
+RUN ./build-toolchain.sh --skip_steps=mingw,mingw-gdb-with-python,manual
