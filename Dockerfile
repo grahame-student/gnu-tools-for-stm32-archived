@@ -20,7 +20,8 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
                                                   flex \
                                                   git \
                                                   python3 \
-                                                  texinfo && \
+                                                  texinfo \
+                                                  texlive && \
     rm -rf /var/lib/apt/lists/*
 
 
