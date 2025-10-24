@@ -30,7 +30,8 @@ COPY . /root/build/gnu-tools-for-stm32/
 # Build bootstrap prerequisites (foundational libraries needed by GCC)
 WORKDIR /root/build/gnu-tools-for-stm32
 RUN ./build-prerequisites.sh --skip_steps=mingw && \
-    # Clean up build artifacts to free up space
+    # Clean up temporary build directories to free up space.
+    # Note: Installed libraries in build-native/host-libs/usr/lib/ are preserved for the toolchain build.
     rm -rf build-native/zlib build-native/gmp build-native/mpfr \
            build-native/mpc build-native/isl build-native/expat
 
