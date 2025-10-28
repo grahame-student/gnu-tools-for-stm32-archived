@@ -43,18 +43,15 @@ FROM bootstrap AS toolchain
 # Build the core toolchain (GCC, GDB) components
 WORKDIR /root/build/gnu-tools-for-stm32
 RUN ./build-toolchain.sh --skip_steps=mingw,mingw-gdb-with-python,manual && \
-    # Install toolchain binaries to system directories for container access
-    cp -r install-native/bin/* /usr/local/bin/ && \
-    cp -r install-native/lib/* /usr/local/lib/ && \
-    cp -r install-native/arm-none-eabi /usr/local/ && \
-    cp -r install-native/share /usr/local/ && \
-    # Clean up all intermediate build directories and artifacts
-    rm -rf build-native install-native package src && \
-    # Remove any leftover temporary files and build artifacts
+    # Make toolchain binaries available in PATH
+    ln -sf /root/build/gnu-tools-for-stm32/install-native/bin/* /usr/local/bin/ && \
+    # Clean up all intermediate build directories and artifacts to save space
+    rm -rf build-native/binutils build-native/gcc-* build-native/gdb \
+           build-native/newlib* build-native/target-libs && \
+    # Remove temporary files and build artifacts
     find /root/build/gnu-tools-for-stm32 -name "*.o" -delete && \
-    find /root/build/gnu-tools-for-stm32 -name "*.a" -not -path "*/usr/local/*" -delete && \
     find /root/build/gnu-tools-for-stm32 -name "*.la" -delete && \
-    find /root/build/gnu-tools-for-stm32 -type d -empty -delete
+    find /root/build/gnu-tools-for-stm32 -type d -empty -delete 2>/dev/null || true
 
 ##########################################
 ### Main: Build GNU Tools for STM32   ###
