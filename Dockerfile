@@ -36,12 +36,30 @@ RUN ./build-prerequisites.sh --skip_steps=mingw && \
            build-native/mpc build-native/isl build-native/expat
 
 ##########################################
+### Core Toolchain: GCC and GDB      ###
+##########################################
+FROM bootstrap AS toolchain
+
+# Build the core toolchain (GCC, GDB) components
+WORKDIR /root/build/gnu-tools-for-stm32
+RUN ./build-toolchain.sh --skip_steps=mingw,mingw-gdb-with-python,manual && \
+    # Install toolchain binaries to system directories for container access
+    cp -r install-native/bin/* /usr/local/bin/ && \
+    cp -r install-native/lib/* /usr/local/lib/ && \
+    cp -r install-native/arm-none-eabi /usr/local/ && \
+    cp -r install-native/share /usr/local/ && \
+    # Clean up all intermediate build directories and artifacts
+    rm -rf build-native install-native package src && \
+    # Remove any leftover temporary files and build artifacts
+    find /root/build/gnu-tools-for-stm32 -name "*.o" -delete && \
+    find /root/build/gnu-tools-for-stm32 -name "*.a" -not -path "*/usr/local/*" -delete && \
+    find /root/build/gnu-tools-for-stm32 -name "*.la" -delete && \
+    find /root/build/gnu-tools-for-stm32 -type d -empty -delete
+
+##########################################
 ### Main: Build GNU Tools for STM32   ###
 ##########################################
-FROM bootstrap AS main
+FROM toolchain AS main
 
-#######################
-### Build Toolchain ###
-#######################
+# Final stage - toolchain is ready for use
 WORKDIR /root/build/gnu-tools-for-stm32
-RUN ./build-toolchain.sh --skip_steps=mingw,mingw-gdb-with-python,manual
