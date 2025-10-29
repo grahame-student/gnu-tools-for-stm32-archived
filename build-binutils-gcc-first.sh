@@ -7,6 +7,20 @@ set -o pipefail
 # Source common build functions and variables
 . $(dirname $0)/build-common.sh
 
+# Set up configuration options with proper library paths (similar to build-toolchain.sh)
+ENV_CFLAGS=" -I$BUILDDIR_NATIVE/host-libs/zlib/include $BUILD_OPTIONS "
+ENV_CPPFLAGS=" -I$BUILDDIR_NATIVE/host-libs/zlib/include "
+ENV_LDFLAGS=" -L$BUILDDIR_NATIVE/host-libs/zlib/lib
+              -L$BUILDDIR_NATIVE/host-libs/usr/lib "
+
+GCC_CONFIG_OPTS=" --build=$BUILD --host=$HOST_NATIVE
+                  --with-gmp=$BUILDDIR_NATIVE/host-libs/usr
+                  --with-mpfr=$BUILDDIR_NATIVE/host-libs/usr
+                  --with-mpc=$BUILDDIR_NATIVE/host-libs/usr
+                  --with-isl=$BUILDDIR_NATIVE/host-libs/usr "
+
+BINUTILS_CONFIG_OPTS=" --build=$BUILD --host=$HOST_NATIVE "
+
 cd $SRCDIR
 
 # Build binutils

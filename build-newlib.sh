@@ -7,6 +7,9 @@ set -o pipefail
 # Source common build functions and variables
 . $(dirname $0)/build-common.sh
 
+# Set up configuration options with proper library paths (similar to build-toolchain.sh)
+NEWLIB_CONFIG_OPTS=" --build=$BUILD --host=$HOST_NATIVE "
+
 # Add toolchain binaries to PATH
 prepend_path PATH $INSTALLDIR_NATIVE/bin
 
