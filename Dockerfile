@@ -41,99 +41,84 @@ RUN ./build-prerequisites.sh --skip_steps=mingw && \
 FROM bootstrap AS binutils-gcc-first
 
 WORKDIR /root/build/gnu-tools-for-stm32
-# Run build script through GCC first pass, then clean up binutils build artifacts
-RUN # Create a modified script that stops after GCC first pass
-    cat > build-toolchain-partial.sh << 'EOF' && \
-#!/bin/bash
-set -e
-source ./build-common.sh
-
-# Run the original script but override skip flags to stop after GCC first
-export skip_native_build=no
-export skip_mingw32=yes
-export skip_mingw32_gdb_with_python=yes
-export skip_manual=yes
-
-# Source the main script functions
-. ./build-toolchain.sh
-
-# We'll exit after Task III-1 completes
-EOF \
-    chmod +x build-toolchain-partial.sh && \
-    # Run build through binutils and GCC first pass
-    timeout 3600 bash -c 'source build-common.sh && \
-        cd $SRCDIR && \
-        if [ "x$skip_native_build" != "xyes" ] ; then \
-            mkdir -p $BUILDDIR_NATIVE && \
-            rm -rf $INSTALLDIR_NATIVE && mkdir -p $INSTALLDIR_NATIVE && \
-            echo Task [III-0] /$HOST_NATIVE/binutils/ && \
-            rm -rf $BUILDDIR_NATIVE/binutils && mkdir -p $BUILDDIR_NATIVE/binutils && \
-            pushd $BUILDDIR_NATIVE/binutils && \
-            saveenv && \
-            saveenvvar CFLAGS "$ENV_CFLAGS" && \
-            saveenvvar CPPFLAGS "$ENV_CPPFLAGS" && \
-            saveenvvar LDFLAGS "$ENV_LDFLAGS" && \
-            $SRCDIR/$BINUTILS/configure \
-                --build=$BUILD \
-                --host=$HOST_NATIVE \
-                --target=$TARGET \
-                --prefix=$INSTALLDIR_NATIVE \
-                --infodir=$INSTALLDIR_NATIVE_DOC/info \
-                --mandir=$INSTALLDIR_NATIVE_DOC/man \
-                --htmldir=$INSTALLDIR_NATIVE_DOC/html \
-                --pdfdir=$INSTALLDIR_NATIVE_DOC/pdf \
-                --enable-plugins \
-                --disable-nls \
-                --enable-deterministic-archives \
-                $BINUTILS_CONFIG_OPTS && \
-            make -j$JOBS && \
-            make install && \
-            restoreenv && \
-            popd && \
-            rm -rf $BUILDDIR_NATIVE/binutils && \
-            echo Task [III-1] /$HOST_NATIVE/gcc-first/ && \
-            rm -rf $BUILDDIR_NATIVE/gcc-first && mkdir -p $BUILDDIR_NATIVE/gcc-first && \
-            pushd $BUILDDIR_NATIVE/gcc-first && \
-            $SRCDIR/$GCC/configure --target=$TARGET \
-                --prefix=$INSTALLDIR_NATIVE \
-                --libexecdir=$INSTALLDIR_NATIVE/lib \
-                --infodir=$INSTALLDIR_NATIVE_DOC/info \
-                --mandir=$INSTALLDIR_NATIVE_DOC/man \
-                --htmldir=$INSTALLDIR_NATIVE_DOC/html \
-                --pdfdir=$INSTALLDIR_NATIVE_DOC/pdf \
-                --enable-checking=release \
-                --enable-languages=c \
-                --disable-decimal-float \
-                --disable-libffi \
-                --disable-libgomp \
-                --disable-libmudflap \
-                --disable-libquadmath \
-                --disable-libssp \
-                --disable-libstdcxx-pch \
-                --disable-nls \
-                --disable-shared \
-                --disable-threads \
-                --disable-tls \
-                --with-gnu-as \
-                --with-gnu-ld \
-                --with-newlib \
-                --without-headers \
-                --with-python-dir=share/gcc-arm-none-eabi \
-                --with-sysroot=$INSTALLDIR_NATIVE/arm-none-eabi \
-                --build=$BUILD \
-                --host=$HOST_NATIVE \
-                $GCC_CONFIG_OPTS \
-                "${GCC_CONFIG_OPTS_LCPP}" \
-                "--with-pkgversion=$PKGVERSION" \
-                ${MULTILIB_LIST} && \
-            make -j$JOBS all-gcc && \
-            make install-gcc && \
-            popd && \
-            rm -rf $BUILDDIR_NATIVE/gcc-first && \
-            rm -rf bin/arm-none-eabi-gccbug && \
-            rm -rf ./lib/libiberty.a && \
-            rm -rf include; \
-        fi' && \
+# Build binutils and GCC first pass, then clean up build artifacts
+RUN set -e && \
+    source build-common.sh && \
+    cd $SRCDIR && \
+    # Build binutils
+    echo "Task [III-0] /$HOST_NATIVE/binutils/" && \
+    mkdir -p $BUILDDIR_NATIVE && \
+    rm -rf $INSTALLDIR_NATIVE && mkdir -p $INSTALLDIR_NATIVE && \
+    rm -rf $BUILDDIR_NATIVE/binutils && mkdir -p $BUILDDIR_NATIVE/binutils && \
+    pushd $BUILDDIR_NATIVE/binutils && \
+    saveenv && \
+    saveenvvar CFLAGS "$ENV_CFLAGS" && \
+    saveenvvar CPPFLAGS "$ENV_CPPFLAGS" && \
+    saveenvvar LDFLAGS "$ENV_LDFLAGS" && \
+    $SRCDIR/$BINUTILS/configure \
+        --build=$BUILD \
+        --host=$HOST_NATIVE \
+        --target=$TARGET \
+        --prefix=$INSTALLDIR_NATIVE \
+        --infodir=$INSTALLDIR_NATIVE_DOC/info \
+        --mandir=$INSTALLDIR_NATIVE_DOC/man \
+        --htmldir=$INSTALLDIR_NATIVE_DOC/html \
+        --pdfdir=$INSTALLDIR_NATIVE_DOC/pdf \
+        --enable-plugins \
+        --disable-nls \
+        --enable-deterministic-archives \
+        $BINUTILS_CONFIG_OPTS && \
+    make -j$JOBS && \
+    make install && \
+    restoreenv && \
+    popd && \
+    rm -rf $BUILDDIR_NATIVE/binutils && \
+    # Build GCC first pass
+    echo "Task [III-1] /$HOST_NATIVE/gcc-first/" && \
+    rm -rf $BUILDDIR_NATIVE/gcc-first && mkdir -p $BUILDDIR_NATIVE/gcc-first && \
+    pushd $BUILDDIR_NATIVE/gcc-first && \
+    $SRCDIR/$GCC/configure --target=$TARGET \
+        --prefix=$INSTALLDIR_NATIVE \
+        --libexecdir=$INSTALLDIR_NATIVE/lib \
+        --infodir=$INSTALLDIR_NATIVE_DOC/info \
+        --mandir=$INSTALLDIR_NATIVE_DOC/man \
+        --htmldir=$INSTALLDIR_NATIVE_DOC/html \
+        --pdfdir=$INSTALLDIR_NATIVE_DOC/pdf \
+        --enable-checking=release \
+        --enable-languages=c \
+        --disable-decimal-float \
+        --disable-libffi \
+        --disable-libgomp \
+        --disable-libmudflap \
+        --disable-libquadmath \
+        --disable-libssp \
+        --disable-libstdcxx-pch \
+        --disable-nls \
+        --disable-shared \
+        --disable-threads \
+        --disable-tls \
+        --with-gnu-as \
+        --with-gnu-ld \
+        --with-newlib \
+        --without-headers \
+        --with-python-dir=share/gcc-arm-none-eabi \
+        --with-sysroot=$INSTALLDIR_NATIVE/arm-none-eabi \
+        --build=$BUILD \
+        --host=$HOST_NATIVE \
+        $GCC_CONFIG_OPTS \
+        "${GCC_CONFIG_OPTS_LCPP}" \
+        "--with-pkgversion=$PKGVERSION" \
+        ${MULTILIB_LIST} && \
+    make -j$JOBS all-gcc && \
+    make install-gcc && \
+    popd && \
+    # Clean up binutils and GCC first build artifacts
+    rm -rf $BUILDDIR_NATIVE/gcc-first && \
+    pushd $INSTALLDIR_NATIVE && \
+    rm -rf bin/arm-none-eabi-gccbug || true && \
+    rm -rf lib/libiberty.a || true && \
+    rm -rf include || true && \
+    popd && \
     # Clean up any remaining object files from this stage
     find build-native -name "*.o" -delete 2>/dev/null || true && \
     find . -name "*.la" -delete 2>/dev/null || true
