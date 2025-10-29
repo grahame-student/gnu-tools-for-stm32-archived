@@ -7,6 +7,9 @@ set -o pipefail
 # Source common build functions and variables
 . $(dirname $0)/build-common.sh
 
+# Set up BUILD_OPTIONS (similar to build-toolchain.sh)
+BUILD_OPTIONS="-g -O2"
+
 # Set up configuration options with proper library paths (similar to build-toolchain.sh)
 ENV_CFLAGS=" -I$BUILDDIR_NATIVE/host-libs/zlib/include $BUILD_OPTIONS "
 ENV_CPPFLAGS=" -I$BUILDDIR_NATIVE/host-libs/zlib/include "
