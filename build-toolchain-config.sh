@@ -5,6 +5,9 @@
 # Set up BUILD_OPTIONS (similar to build-toolchain.sh)
 BUILD_OPTIONS="-g -O2"
 
+# Set up MULTILIB_LIST (default from build-toolchain.sh line 104)
+MULTILIB_LIST="${MULTILIB_LIST:---with-multilib-list=rmprofile,aprofile}"
+
 # Set up environment flags with proper library paths
 ENV_CFLAGS=" -I$BUILDDIR_NATIVE/host-libs/zlib/include $BUILD_OPTIONS "
 ENV_CPPFLAGS=" -I$BUILDDIR_NATIVE/host-libs/zlib/include "
