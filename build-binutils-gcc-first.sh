@@ -51,6 +51,11 @@ echo "Task [III-1] /$HOST_NATIVE/gcc-first/"
 rm -rf $BUILDDIR_NATIVE/gcc-first && mkdir -p $BUILDDIR_NATIVE/gcc-first
 
 pushd $BUILDDIR_NATIVE/gcc-first
+saveenv
+saveenvvar CFLAGS "$ENV_CFLAGS"
+saveenvvar CPPFLAGS "$ENV_CPPFLAGS"
+saveenvvar LDFLAGS "$ENV_LDFLAGS"
+
 $SRCDIR/$GCC/configure --target=$TARGET \
     --prefix=$INSTALLDIR_NATIVE \
     --libexecdir=$INSTALLDIR_NATIVE/lib \
@@ -86,6 +91,7 @@ $SRCDIR/$GCC/configure --target=$TARGET \
 
 make -j$JOBS all-gcc
 make install-gcc
+restoreenv
 popd
 
 # Clean up GCC first build artifacts
