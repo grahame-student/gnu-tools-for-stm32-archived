@@ -42,7 +42,7 @@ FROM bootstrap AS binutils-gcc-first
 
 WORKDIR /root/build/gnu-tools-for-stm32
 # Build binutils and GCC first pass, then clean up build artifacts
-RUN set -e && \
+RUN /bin/bash -c 'set -e && \
     source build-common.sh && \
     cd $SRCDIR && \
     # Build binutils
@@ -121,7 +121,7 @@ RUN set -e && \
     popd && \
     # Clean up any remaining object files from this stage
     find build-native -name "*.o" -delete 2>/dev/null || true && \
-    find . -name "*.la" -delete 2>/dev/null || true
+    find . -name "*.la" -delete 2>/dev/null || true'
 
 ##########################################
 ### Stage 2: Newlib                   ###
@@ -130,7 +130,7 @@ FROM binutils-gcc-first AS newlib
 
 WORKDIR /root/build/gnu-tools-for-stm32
 # Build newlib and clean up immediately
-RUN source build-common.sh && \
+RUN /bin/bash -c 'source build-common.sh && \
     prepend_path PATH $INSTALLDIR_NATIVE/bin && \
     saveenvvar CFLAGS_FOR_TARGET '-g -Os -ffunction-sections -fdata-sections -fno-unroll-loops -DPREFER_SIZE_OVER_SPEED -D__OPTIMIZE_SIZE__ -DSMALL_MEMORY' && \
     echo Task [III-2] /$HOST_NATIVE/newlib/ && \
@@ -155,7 +155,7 @@ RUN source build-common.sh && \
     rm -rf $BUILDDIR_NATIVE/newlib && \
     # Clean up any remaining object files from this stage
     find build-native -name "*.o" -delete 2>/dev/null || true && \
-    find . -name "*.la" -delete 2>/dev/null || true
+    find . -name "*.la" -delete 2>/dev/null || true'
 
 ##########################################
 ### Stage 3: GCC Final + GDB          ###
@@ -164,7 +164,7 @@ FROM newlib AS gcc-final-gdb
 
 WORKDIR /root/build/gnu-tools-for-stm32
 # Build GCC final and GDB, then clean up all build artifacts
-RUN source build-common.sh && \
+RUN /bin/bash -c 'source build-common.sh && \
     prepend_path PATH $INSTALLDIR_NATIVE/bin && \
     echo Task [III-4] /$HOST_NATIVE/gcc-final/ && \
     rm -f $INSTALLDIR_NATIVE/arm-none-eabi/usr && \
@@ -250,7 +250,7 @@ RUN source build-common.sh && \
     rm -rf build-native && \
     find /root/build/gnu-tools-for-stm32 -name "*.o" -delete 2>/dev/null || true && \
     find /root/build/gnu-tools-for-stm32 -name "*.la" -delete 2>/dev/null || true && \
-    find /root/build/gnu-tools-for-stm32 -type d -empty -delete 2>/dev/null || true
+    find /root/build/gnu-tools-for-stm32 -type d -empty -delete 2>/dev/null || true'
 
 ##########################################
 ### Main: Final Stage                 ###
