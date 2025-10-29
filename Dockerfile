@@ -36,27 +36,241 @@ RUN ./build-prerequisites.sh --skip_steps=mingw && \
            build-native/mpc build-native/isl build-native/expat
 
 ##########################################
-### Core Toolchain: GCC and GDB      ###
+### Stage 1: Binutils + GCC First    ###
 ##########################################
-FROM bootstrap AS toolchain
+FROM bootstrap AS binutils-gcc-first
 
-# Build the core toolchain (GCC, GDB) components
 WORKDIR /root/build/gnu-tools-for-stm32
-RUN ./build-toolchain.sh --skip_steps=mingw,mingw-gdb-with-python,manual && \
+# Run build script through GCC first pass, then clean up binutils build artifacts
+RUN # Create a modified script that stops after GCC first pass
+    cat > build-toolchain-partial.sh << 'EOF' && \
+#!/bin/bash
+set -e
+source ./build-common.sh
+
+# Run the original script but override skip flags to stop after GCC first
+export skip_native_build=no
+export skip_mingw32=yes
+export skip_mingw32_gdb_with_python=yes
+export skip_manual=yes
+
+# Source the main script functions
+. ./build-toolchain.sh
+
+# We'll exit after Task III-1 completes
+EOF \
+    chmod +x build-toolchain-partial.sh && \
+    # Run build through binutils and GCC first pass
+    timeout 3600 bash -c 'source build-common.sh && \
+        cd $SRCDIR && \
+        if [ "x$skip_native_build" != "xyes" ] ; then \
+            mkdir -p $BUILDDIR_NATIVE && \
+            rm -rf $INSTALLDIR_NATIVE && mkdir -p $INSTALLDIR_NATIVE && \
+            echo Task [III-0] /$HOST_NATIVE/binutils/ && \
+            rm -rf $BUILDDIR_NATIVE/binutils && mkdir -p $BUILDDIR_NATIVE/binutils && \
+            pushd $BUILDDIR_NATIVE/binutils && \
+            saveenv && \
+            saveenvvar CFLAGS "$ENV_CFLAGS" && \
+            saveenvvar CPPFLAGS "$ENV_CPPFLAGS" && \
+            saveenvvar LDFLAGS "$ENV_LDFLAGS" && \
+            $SRCDIR/$BINUTILS/configure \
+                --build=$BUILD \
+                --host=$HOST_NATIVE \
+                --target=$TARGET \
+                --prefix=$INSTALLDIR_NATIVE \
+                --infodir=$INSTALLDIR_NATIVE_DOC/info \
+                --mandir=$INSTALLDIR_NATIVE_DOC/man \
+                --htmldir=$INSTALLDIR_NATIVE_DOC/html \
+                --pdfdir=$INSTALLDIR_NATIVE_DOC/pdf \
+                --enable-plugins \
+                --disable-nls \
+                --enable-deterministic-archives \
+                $BINUTILS_CONFIG_OPTS && \
+            make -j$JOBS && \
+            make install && \
+            restoreenv && \
+            popd && \
+            rm -rf $BUILDDIR_NATIVE/binutils && \
+            echo Task [III-1] /$HOST_NATIVE/gcc-first/ && \
+            rm -rf $BUILDDIR_NATIVE/gcc-first && mkdir -p $BUILDDIR_NATIVE/gcc-first && \
+            pushd $BUILDDIR_NATIVE/gcc-first && \
+            $SRCDIR/$GCC/configure --target=$TARGET \
+                --prefix=$INSTALLDIR_NATIVE \
+                --libexecdir=$INSTALLDIR_NATIVE/lib \
+                --infodir=$INSTALLDIR_NATIVE_DOC/info \
+                --mandir=$INSTALLDIR_NATIVE_DOC/man \
+                --htmldir=$INSTALLDIR_NATIVE_DOC/html \
+                --pdfdir=$INSTALLDIR_NATIVE_DOC/pdf \
+                --enable-checking=release \
+                --enable-languages=c \
+                --disable-decimal-float \
+                --disable-libffi \
+                --disable-libgomp \
+                --disable-libmudflap \
+                --disable-libquadmath \
+                --disable-libssp \
+                --disable-libstdcxx-pch \
+                --disable-nls \
+                --disable-shared \
+                --disable-threads \
+                --disable-tls \
+                --with-gnu-as \
+                --with-gnu-ld \
+                --with-newlib \
+                --without-headers \
+                --with-python-dir=share/gcc-arm-none-eabi \
+                --with-sysroot=$INSTALLDIR_NATIVE/arm-none-eabi \
+                --build=$BUILD \
+                --host=$HOST_NATIVE \
+                $GCC_CONFIG_OPTS \
+                "${GCC_CONFIG_OPTS_LCPP}" \
+                "--with-pkgversion=$PKGVERSION" \
+                ${MULTILIB_LIST} && \
+            make -j$JOBS all-gcc && \
+            make install-gcc && \
+            popd && \
+            rm -rf $BUILDDIR_NATIVE/gcc-first && \
+            rm -rf bin/arm-none-eabi-gccbug && \
+            rm -rf ./lib/libiberty.a && \
+            rm -rf include; \
+        fi' && \
+    # Clean up any remaining object files from this stage
+    find build-native -name "*.o" -delete 2>/dev/null || true && \
+    find . -name "*.la" -delete 2>/dev/null || true
+
+##########################################
+### Stage 2: Newlib                   ###
+##########################################
+FROM binutils-gcc-first AS newlib
+
+WORKDIR /root/build/gnu-tools-for-stm32
+# Build newlib and clean up immediately
+RUN source build-common.sh && \
+    prepend_path PATH $INSTALLDIR_NATIVE/bin && \
+    saveenvvar CFLAGS_FOR_TARGET '-g -Os -ffunction-sections -fdata-sections -fno-unroll-loops -DPREFER_SIZE_OVER_SPEED -D__OPTIMIZE_SIZE__ -DSMALL_MEMORY' && \
+    echo Task [III-2] /$HOST_NATIVE/newlib/ && \
+    rm -rf $BUILDDIR_NATIVE/newlib && mkdir -p $BUILDDIR_NATIVE/newlib && \
+    pushd $BUILDDIR_NATIVE/newlib && \
+    $SRCDIR/$NEWLIB/configure \
+        $NEWLIB_CONFIG_OPTS \
+        --target=$TARGET \
+        --prefix=$INSTALLDIR_NATIVE \
+        --infodir=$INSTALLDIR_NATIVE_DOC/info \
+        --mandir=$INSTALLDIR_NATIVE_DOC/man \
+        --htmldir=$INSTALLDIR_NATIVE_DOC/html \
+        --pdfdir=$INSTALLDIR_NATIVE_DOC/pdf \
+        --enable-newlib-io-long-long \
+        --enable-newlib-io-long-double \
+        --enable-newlib-register-fini \
+        --disable-newlib-supplied-syscalls \
+        --disable-nls && \
+    make -j$JOBS && \
+    make install && \
+    popd && \
+    rm -rf $BUILDDIR_NATIVE/newlib && \
+    # Clean up any remaining object files from this stage
+    find build-native -name "*.o" -delete 2>/dev/null || true && \
+    find . -name "*.la" -delete 2>/dev/null || true
+
+##########################################
+### Stage 3: GCC Final + GDB          ###
+##########################################  
+FROM newlib AS gcc-final-gdb
+
+WORKDIR /root/build/gnu-tools-for-stm32
+# Build GCC final and GDB, then clean up all build artifacts
+RUN source build-common.sh && \
+    prepend_path PATH $INSTALLDIR_NATIVE/bin && \
+    echo Task [III-4] /$HOST_NATIVE/gcc-final/ && \
+    rm -f $INSTALLDIR_NATIVE/arm-none-eabi/usr && \
+    ln -s . $INSTALLDIR_NATIVE/arm-none-eabi/usr && \
+    rm -rf $BUILDDIR_NATIVE/gcc-final && mkdir -p $BUILDDIR_NATIVE/gcc-final && \
+    pushd $BUILDDIR_NATIVE/gcc-final && \
+    $SRCDIR/$GCC/configure --target=$TARGET \
+        --prefix=$INSTALLDIR_NATIVE \
+        --libexecdir=$INSTALLDIR_NATIVE/lib \
+        --infodir=$INSTALLDIR_NATIVE_DOC/info \
+        --mandir=$INSTALLDIR_NATIVE_DOC/man \
+        --htmldir=$INSTALLDIR_NATIVE_DOC/html \
+        --pdfdir=$INSTALLDIR_NATIVE_DOC/pdf \
+        --enable-checking=release \
+        --enable-languages=c,c++ \
+        --enable-plugins \
+        --disable-decimal-float \
+        --disable-libffi \
+        --disable-libgomp \
+        --disable-libmudflap \
+        --disable-libquadmath \
+        --disable-libssp \
+        --disable-libstdcxx-pch \
+        --disable-nls \
+        --disable-shared \
+        --disable-threads \
+        --disable-tls \
+        --with-gnu-as \
+        --with-gnu-ld \
+        --with-newlib \
+        --with-headers=yes \
+        --with-python-dir=share/gcc-arm-none-eabi \
+        --with-sysroot=$BUILDDIR_NATIVE/target-libs/arm-none-eabi \
+        --build=$BUILD \
+        --host=$HOST_NATIVE \
+        $GCC_CONFIG_OPTS \
+        "${GCC_CONFIG_OPTS_LCPP}" \
+        "--with-pkgversion=$PKGVERSION" \
+        ${MULTILIB_LIST} && \
+    make -j$JOBS CCXXFLAGS="$BUILD_OPTIONS" \
+            LDFLAGS_FOR_TARGET="--specs=nosys.specs" \
+            CXXFLAGS_FOR_TARGET="-g -Os -ffunction-sections -fdata-sections -fno-exceptions" && \
+    make install && \
+    popd && \
+    rm -rf $BUILDDIR_NATIVE/gcc-final && \
+    rm -rf $BUILDDIR_NATIVE/target-libs && \
+    echo Task [III-6] /$HOST_NATIVE/gdb/ && \
+    rm -rf $BUILDDIR_NATIVE/gdb && mkdir -p $BUILDDIR_NATIVE/gdb && \
+    pushd $BUILDDIR_NATIVE/gdb && \
+    saveenv && \
+    saveenvvar CFLAGS "$ENV_CFLAGS" && \
+    saveenvvar CPPFLAGS "$ENV_CPPFLAGS" && \
+    saveenvvar LDFLAGS "$ENV_LDFLAGS" && \
+    $SRCDIR/$GDB/configure \
+        --target=$TARGET \
+        --prefix=$INSTALLDIR_NATIVE \
+        --infodir=$INSTALLDIR_NATIVE_DOC/info \
+        --mandir=$INSTALLDIR_NATIVE_DOC/man \
+        --htmldir=$INSTALLDIR_NATIVE_DOC/html \
+        --pdfdir=$INSTALLDIR_NATIVE_DOC/pdf \
+        --disable-nls \
+        --disable-sim \
+        --disable-gas \
+        --disable-binutils \
+        --disable-ld \
+        --disable-gprof \
+        --with-libexpat \
+        --with-lzma=no \
+        --with-system-gdbinit=$INSTALLDIR_NATIVE/$HOST_NATIVE/arm-none-eabi/lib/gdbinit \
+        --with-zstd=no \
+        $GDB_CONFIG_OPTS \
+        --with-python=no \
+        '--with-gdb-datadir=${prefix}/arm-none-eabi/share/gdb' \
+        "--with-pkgversion=$PKGVERSION" && \
+    make -j$JOBS && \
+    make install && \
+    restoreenv && \
+    popd && \
+    rm -rf $BUILDDIR_NATIVE/gdb && \
     # Make toolchain binaries available in PATH
     ln -sf /root/build/gnu-tools-for-stm32/install-native/bin/* /usr/local/bin/ && \
-    # Clean up all intermediate build directories and artifacts to save space
-    rm -rf build-native/binutils build-native/gcc-* build-native/gdb \
-           build-native/newlib* build-native/target-libs && \
-    # Remove temporary files and build artifacts
-    find /root/build/gnu-tools-for-stm32 -name "*.o" -delete && \
-    find /root/build/gnu-tools-for-stm32 -name "*.la" -delete && \
+    # Final aggressive cleanup of all build artifacts
+    rm -rf build-native && \
+    find /root/build/gnu-tools-for-stm32 -name "*.o" -delete 2>/dev/null || true && \
+    find /root/build/gnu-tools-for-stm32 -name "*.la" -delete 2>/dev/null || true && \
     find /root/build/gnu-tools-for-stm32 -type d -empty -delete 2>/dev/null || true
 
 ##########################################
-### Main: Build GNU Tools for STM32   ###
+### Main: Final Stage                 ###
 ##########################################
-FROM toolchain AS main
+FROM gcc-final-gdb AS main
 
 # Final stage - toolchain is ready for use
 WORKDIR /root/build/gnu-tools-for-stm32
