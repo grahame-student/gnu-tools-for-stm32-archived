@@ -10,7 +10,8 @@ MULTILIB_LIST="${MULTILIB_LIST:---with-multilib-list=rmprofile,aprofile}"
 
 # Set up environment flags with proper library paths
 ENV_CFLAGS=" -I$BUILDDIR_NATIVE/host-libs/zlib/include $BUILD_OPTIONS "
-ENV_CPPFLAGS=" -I$BUILDDIR_NATIVE/host-libs/zlib/include "
+ENV_CPPFLAGS=" -I$BUILDDIR_NATIVE/host-libs/zlib/include
+               -I$BUILDDIR_NATIVE/host-libs/usr/include "
 ENV_LDFLAGS=" -L$BUILDDIR_NATIVE/host-libs/zlib/lib
               -L$BUILDDIR_NATIVE/host-libs/usr/lib "
 
