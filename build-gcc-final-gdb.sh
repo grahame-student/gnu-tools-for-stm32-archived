@@ -11,6 +11,7 @@ set -o pipefail
 . $(dirname $0)/build-toolchain-config.sh
 
 # Add toolchain binaries to PATH
+saveenv
 prepend_path PATH $INSTALLDIR_NATIVE/bin
 
 # Build GCC final pass with C++ support
@@ -61,6 +62,7 @@ make -j$JOBS CCXXFLAGS="$BUILD_OPTIONS" \
         LDFLAGS_FOR_TARGET="--specs=nosys.specs" \
         CXXFLAGS_FOR_TARGET="-g -Os -ffunction-sections -fdata-sections -fno-exceptions"
 make install
+restoreenv
 popd
 
 # Clean up GCC final build artifacts  
