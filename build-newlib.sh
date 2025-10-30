@@ -13,6 +13,9 @@ set -o pipefail
 # Add toolchain binaries to PATH
 prepend_path PATH $INSTALLDIR_NATIVE/bin
 
+# Save environment before setting variables
+saveenv
+
 # Set target-specific compilation flags
 saveenvvar CFLAGS_FOR_TARGET '-g -Os -ffunction-sections -fdata-sections -fno-unroll-loops -DPREFER_SIZE_OVER_SPEED -D__OPTIMIZE_SIZE__ -DSMALL_MEMORY'
 
@@ -37,6 +40,9 @@ $SRCDIR/$NEWLIB/configure \
 make -j$JOBS
 make install
 popd
+
+# Restore environment
+restoreenv
 
 # Clean up newlib build artifacts
 rm -rf $BUILDDIR_NATIVE/newlib
