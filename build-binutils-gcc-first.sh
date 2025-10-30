@@ -100,7 +100,7 @@ rm -rf $BUILDDIR_NATIVE/gcc-first
 # Clean up some installed files we don't need
 pushd $INSTALLDIR_NATIVE
 rm -rf bin/arm-none-eabi-gccbug || true
-rm -rf lib/libiberty.a || true  
+rm -rf lib/libiberty.a || true
 rm -rf include || true
 popd
 

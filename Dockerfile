@@ -55,7 +55,7 @@ RUN chmod +x build-newlib.sh && \
 
 ##########################################
 ### Stage 3: GCC Final + GDB          ###
-##########################################  
+##########################################
 FROM newlib AS gcc-final-gdb
 
 WORKDIR /root/build/gnu-tools-for-stm32

@@ -65,7 +65,7 @@ make install
 restoreenv
 popd
 
-# Clean up GCC final build artifacts  
+# Clean up GCC final build artifacts
 rm -rf $BUILDDIR_NATIVE/gcc-final
 rm -rf $BUILDDIR_NATIVE/target-libs
 
