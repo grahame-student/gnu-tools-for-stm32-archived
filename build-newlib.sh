@@ -10,11 +10,11 @@ set -o pipefail
 # Source common toolchain configuration
 . $(dirname $0)/build-toolchain-config.sh
 
-# Add toolchain binaries to PATH
-prepend_path PATH $INSTALLDIR_NATIVE/bin
-
 # Save environment before setting variables
 saveenv
+
+# Add toolchain binaries to PATH
+prepend_path PATH $INSTALLDIR_NATIVE/bin
 
 # Set target-specific compilation flags
 saveenvvar CFLAGS_FOR_TARGET '-g -Os -ffunction-sections -fdata-sections -fno-unroll-loops -DPREFER_SIZE_OVER_SPEED -D__OPTIMIZE_SIZE__ -DSMALL_MEMORY'
