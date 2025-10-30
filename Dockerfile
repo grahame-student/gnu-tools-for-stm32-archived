@@ -64,11 +64,16 @@ RUN chmod +x build-gcc-final-gdb.sh && \
 
 ##########################################
 ### Stage 4: Runtime Libraries        ###
+### Finalizes runtime library         ###
+### installation (libstdc++, newlib)  ###
+### and removes build artifacts       ###
 ##########################################
 FROM gcc-final-gdb AS runtime-libs
 
 WORKDIR /root/build/gnu-tools-for-stm32
-# Finalize runtime library installation and clean up build artifacts
+# Runtime libraries (newlib, libstdc++, etc.) are already built and installed 
+# in install-native/arm-none-eabi/lib/ by previous stages.
+# This stage verifies their presence and performs final cleanup.
 RUN set -e && \
     # Verify runtime libraries are installed
     echo "Verifying runtime libraries..." && \
