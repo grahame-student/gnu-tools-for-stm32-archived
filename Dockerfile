@@ -63,9 +63,36 @@ RUN chmod +x build-gcc-final-gdb.sh && \
     ./build-gcc-final-gdb.sh
 
 ##########################################
+### Stage 4: Runtime Libraries        ###
+##########################################
+FROM gcc-final-gdb AS runtime-libs
+
+WORKDIR /root/build/gnu-tools-for-stm32
+# Install runtime libraries to standard system locations
+RUN mkdir -p /usr/lib/arm-none-eabi && \
+    # Copy runtime libraries from install directory to /usr/lib
+    if [ -d install-native/arm-none-eabi/lib ]; then \
+        cp -r install-native/arm-none-eabi/lib/* /usr/lib/arm-none-eabi/ || true; \
+    fi && \
+    # Copy headers if they exist
+    if [ -d install-native/arm-none-eabi/include ]; then \
+        mkdir -p /usr/include/arm-none-eabi && \
+        cp -r install-native/arm-none-eabi/include/* /usr/include/arm-none-eabi/ || true; \
+    fi && \
+    # Ensure toolchain binaries are in PATH (if not already done)
+    if [ -d install-native/bin ]; then \
+        ln -sf /root/build/gnu-tools-for-stm32/install-native/bin/* /usr/local/bin/ || true; \
+    fi && \
+    # Clean up unnecessary build artifacts
+    find /root/build/gnu-tools-for-stm32 -name "*.o" -delete 2>/dev/null || true && \
+    find /root/build/gnu-tools-for-stm32 -name "*.la" -delete 2>/dev/null || true && \
+    find /root/build/gnu-tools-for-stm32 -type d -empty -delete 2>/dev/null || true && \
+    echo "Runtime libraries installed and cleaned up successfully"
+
+##########################################
 ### Main: Final Stage                 ###
 ##########################################
-FROM gcc-final-gdb AS main
+FROM runtime-libs AS main
 
-# Final stage - toolchain is ready for use
+# Final stage - toolchain is ready for use with runtime libraries
 WORKDIR /root/build/gnu-tools-for-stm32

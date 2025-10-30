@@ -109,13 +109,4 @@ popd
 # Clean up GDB build artifacts
 rm -rf $BUILDDIR_NATIVE/gdb
 
-# Make toolchain binaries available in PATH
-ln -sf /root/build/gnu-tools-for-stm32/install-native/bin/* /usr/local/bin/
-
-# Final aggressive cleanup of all build artifacts
-rm -rf build-native
-find /root/build/gnu-tools-for-stm32 -name "*.o" -delete 2>/dev/null || true
-find /root/build/gnu-tools-for-stm32 -name "*.la" -delete 2>/dev/null || true
-find /root/build/gnu-tools-for-stm32 -type d -empty -delete 2>/dev/null || true
-
 echo "GCC final and GDB build completed successfully"
