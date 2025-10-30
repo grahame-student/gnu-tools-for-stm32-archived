@@ -127,6 +127,13 @@ fi
 
 cd "$SRCDIR"
 
+# Regenerate autotools files if needed
+if [ ! -f "$SRCDIR/../.autotools_generated" ]; then
+    echo "Regenerating autotools files..."
+    "$script_path/autogen.sh"
+    touch "$SRCDIR/../.autotools_generated"
+fi
+
 if [ "x$skip_native_build" != "xyes" ] ; then
     echo Task [I-0] /$HOST_NATIVE/zlib/ | tee -a "$BUILDDIR_NATIVE/.stage"
     rm -rf $BUILDDIR_NATIVE/zlib
