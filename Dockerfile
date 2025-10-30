@@ -36,36 +36,12 @@ RUN ./build-prerequisites.sh --skip_steps=mingw && \
            build-native/mpc build-native/isl build-native/expat
 
 ##########################################
-### Stage 1: Binutils + GCC First    ###
+### Main: Build GNU Tools for STM32   ###
 ##########################################
-FROM bootstrap AS binutils-gcc-first
+FROM bootstrap AS main
 
+#######################
+### Build Toolchain ###
+#######################
 WORKDIR /root/build/gnu-tools-for-stm32
-RUN chmod +x build-binutils-gcc-first.sh && \
-    ./build-binutils-gcc-first.sh
-
-##########################################
-### Stage 2: Newlib                   ###
-##########################################
-FROM binutils-gcc-first AS newlib
-
-WORKDIR /root/build/gnu-tools-for-stm32
-RUN chmod +x build-newlib.sh && \
-    ./build-newlib.sh
-
-##########################################
-### Stage 3: GCC Final + GDB          ###
-##########################################
-FROM newlib AS gcc-final-gdb
-
-WORKDIR /root/build/gnu-tools-for-stm32
-RUN chmod +x build-gcc-final-gdb.sh && \
-    ./build-gcc-final-gdb.sh
-
-##########################################
-### Main: Final Stage                 ###
-##########################################
-FROM gcc-final-gdb AS main
-
-# Final stage - toolchain is ready for use
-WORKDIR /root/build/gnu-tools-for-stm32
+RUN ./build-toolchain.sh --skip_steps=mingw,mingw-gdb-with-python,manual
