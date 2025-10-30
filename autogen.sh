@@ -13,6 +13,7 @@ echo "=========================================="
 # Function to regenerate files in a directory
 regenerate_autotools() {
     local dir="$1"
+    local use_autoconf269="$2"
     
     if [ ! -f "$dir/configure.ac" ] && [ ! -f "$dir/configure.in" ]; then
         return
@@ -25,8 +26,12 @@ regenerate_autotools() {
     # Run autoreconf to regenerate everything
     # -f: force (overwrite files)
     # -i: install missing auxiliary files
-    # The recursive option is not needed as autoreconf will handle subdirectories
-    autoreconf -fi
+    # Some packages (gcc, binutils, gdb, newlib) require autoconf 2.69
+    if [ "$use_autoconf269" = "yes" ]; then
+        autoreconf2.69 -fi
+    else
+        autoreconf -fi
+    fi
     
     popd > /dev/null
 }
@@ -37,24 +42,28 @@ SRC_DIR="$SCRIPT_DIR/src"
 
 # List of top-level packages that need autotools regeneration
 # These are the main packages that the build scripts directly configure
+# Format: "package_name:use_autoconf269"
 PACKAGES=(
-    "binutils"
-    "expat"
-    "gcc"
-    "gdb"
-    "gmp"
-    "isl"
-    "libiconv"
-    "mpc"
-    "mpfr"
-    "newlib"
-    "zlib-1.2.12"
+    "binutils:yes"
+    "expat:no"
+    "gcc:yes"
+    "gdb:yes"
+    "gmp:no"
+    "isl:no"
+    "libiconv:no"
+    "mpc:no"
+    "mpfr:no"
+    "newlib:yes"
+    "zlib-1.2.12:no"
 )
 
 # Regenerate for each package
-for pkg in "${PACKAGES[@]}"; do
+for pkg_spec in "${PACKAGES[@]}"; do
+    pkg="${pkg_spec%%:*}"
+    use_269="${pkg_spec##*:}"
+    
     if [ -d "$SRC_DIR/$pkg" ]; then
-        regenerate_autotools "$SRC_DIR/$pkg"
+        regenerate_autotools "$SRC_DIR/$pkg" "$use_269"
     else
         echo "Warning: Package directory not found: $SRC_DIR/$pkg"
     fi
