@@ -68,26 +68,24 @@ RUN chmod +x build-gcc-final-gdb.sh && \
 FROM gcc-final-gdb AS runtime-libs
 
 WORKDIR /root/build/gnu-tools-for-stm32
-# Install runtime libraries to standard system locations
-RUN mkdir -p /usr/lib/arm-none-eabi && \
-    # Copy runtime libraries from install directory to /usr/lib
-    if [ -d install-native/arm-none-eabi/lib ]; then \
-        cp -r install-native/arm-none-eabi/lib/* /usr/lib/arm-none-eabi/ || true; \
-    fi && \
-    # Copy headers if they exist
-    if [ -d install-native/arm-none-eabi/include ]; then \
-        mkdir -p /usr/include/arm-none-eabi && \
-        cp -r install-native/arm-none-eabi/include/* /usr/include/arm-none-eabi/ || true; \
-    fi && \
-    # Ensure toolchain binaries are in PATH (if not already done)
-    if [ -d install-native/bin ]; then \
-        ln -sf /root/build/gnu-tools-for-stm32/install-native/bin/* /usr/local/bin/ || true; \
-    fi && \
-    # Clean up unnecessary build artifacts
+# Finalize runtime library installation and clean up build artifacts
+RUN set -e && \
+    # Verify runtime libraries are installed
+    echo "Verifying runtime libraries..." && \
+    test -d install-native/arm-none-eabi/lib || { echo "Error: Runtime libraries not found"; exit 1; } && \
+    ls -la install-native/arm-none-eabi/lib/*.a | head -10 && \
+    # Make toolchain binaries available in PATH
+    ln -sf /root/build/gnu-tools-for-stm32/install-native/bin/* /usr/local/bin/ && \
+    # Clean up all remaining build artifacts to save space
+    rm -rf build-native && \
     find /root/build/gnu-tools-for-stm32 -name "*.o" -delete 2>/dev/null || true && \
     find /root/build/gnu-tools-for-stm32 -name "*.la" -delete 2>/dev/null || true && \
     find /root/build/gnu-tools-for-stm32 -type d -empty -delete 2>/dev/null || true && \
-    echo "Runtime libraries installed and cleaned up successfully"
+    # Display summary of installed libraries
+    echo "Runtime libraries installed successfully:" && \
+    echo "  Libraries: $(find install-native/arm-none-eabi/lib -name '*.a' | wc -l) archive files" && \
+    echo "  Headers: $(find install-native/arm-none-eabi/include -name '*.h' 2>/dev/null | wc -l || echo 0) header files" && \
+    echo "Runtime library installation and cleanup completed"
 
 ##########################################
 ### Main: Final Stage                 ###
