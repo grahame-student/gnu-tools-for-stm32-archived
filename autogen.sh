@@ -79,3 +79,6 @@ echo ""
 echo "=========================================="
 echo "Autotools regeneration complete."
 echo "=========================================="
+
+# Create marker file to indicate successful completion
+touch "$SCRIPT_DIR/.autotools_generated"

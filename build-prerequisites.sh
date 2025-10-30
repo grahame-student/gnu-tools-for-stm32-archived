@@ -131,7 +131,6 @@ cd "$SRCDIR"
 if [ ! -f "$SRCDIR/../.autotools_generated" ]; then
     echo "Regenerating autotools files..."
     "$script_path/autogen.sh"
-    touch "$SRCDIR/../.autotools_generated"
 fi
 
 if [ "x$skip_native_build" != "xyes" ] ; then
