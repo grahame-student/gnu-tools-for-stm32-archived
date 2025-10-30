@@ -71,26 +71,8 @@ RUN chmod +x build-gcc-final-gdb.sh && \
 FROM gcc-final-gdb AS runtime-libs
 
 WORKDIR /root/build/gnu-tools-for-stm32
-# Runtime libraries (newlib, libstdc++, etc.) are already built and installed 
-# in install-native/arm-none-eabi/lib/ by previous stages.
-# This stage verifies their presence and performs final cleanup.
-RUN set -e && \
-    # Verify runtime libraries are installed
-    echo "Verifying runtime libraries..." && \
-    test -d install-native/arm-none-eabi/lib || { echo "Error: Runtime libraries not found"; exit 1; } && \
-    ls -la install-native/arm-none-eabi/lib/*.a | head -10 && \
-    # Make toolchain binaries available in PATH
-    ln -sf /root/build/gnu-tools-for-stm32/install-native/bin/* /usr/local/bin/ && \
-    # Clean up all remaining build artifacts to save space
-    rm -rf build-native && \
-    find /root/build/gnu-tools-for-stm32 -name "*.o" -delete 2>/dev/null || true && \
-    find /root/build/gnu-tools-for-stm32 -name "*.la" -delete 2>/dev/null || true && \
-    find /root/build/gnu-tools-for-stm32 -type d -empty -delete 2>/dev/null || true && \
-    # Display summary of installed libraries
-    echo "Runtime libraries installed successfully:" && \
-    echo "  Libraries: $(find install-native/arm-none-eabi/lib -name '*.a' | wc -l) archive files" && \
-    echo "  Headers: $(find install-native/arm-none-eabi/include -name '*.h' 2>/dev/null | wc -l || echo 0) header files" && \
-    echo "Runtime library installation and cleanup completed"
+RUN chmod +x build-runtime-libs-finalize.sh && \
+    ./build-runtime-libs-finalize.sh
 
 ##########################################
 ### Main: Final Stage                 ###
