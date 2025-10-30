@@ -27,7 +27,13 @@ regenerate_autotools() {
     # -f: force (overwrite files)
     # -i: install missing auxiliary files
     # Some packages (gcc, binutils, gdb, newlib) require autoconf 2.69
-    if [ "$use_autoconf269" = "yes" ]; then
+    # libiconv is special - it only uses autoconf, not automake
+    if [ "$(basename "$dir")" = "libiconv" ]; then
+        # libiconv uses autoconf only and needs srcm4 directory
+        # Need to run aclocal first to gather macros
+        aclocal -I m4 -I srcm4
+        autoconf
+    elif [ "$use_autoconf269" = "yes" ]; then
         autoreconf2.69 -fi
     else
         autoreconf -fi
