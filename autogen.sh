@@ -49,18 +49,19 @@ SRC_DIR="$SCRIPT_DIR/src"
 # List of top-level packages that need autotools regeneration
 # These are the main packages that the build scripts directly configure
 # Format: "package_name:use_autoconf269"
-# Note: zlib is NOT included as it uses a hand-written configure script, not autotools
+# 
+# NOTE: binutils, gcc, gdb, and newlib are NOT included because their top-level
+# Makefile.in and auxiliary files are kept in version control for reliable builds.
+# These complex multi-directory projects have their generated files committed.
+# 
+# zlib is also NOT included as it uses a hand-written configure script, not autotools.
 PACKAGES=(
-    "binutils:yes"
     "expat:no"
-    "gcc:yes"
-    "gdb:yes"
     "gmp:no"
     "isl:no"
     "libiconv:no"
     "mpc:no"
     "mpfr:no"
-    "newlib:yes"
 )
 
 # Regenerate for each package
