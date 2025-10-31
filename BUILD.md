@@ -89,8 +89,8 @@ Key directories:
 
 ## Requirements
 
-- Ubuntu 20.04 (or compatible Linux distribution)
-- automake-1.15
+- Ubuntu 22.04 (or compatible Linux distribution)
+- automake (1.16+)
 - bison
 - build-essential
 - flex
