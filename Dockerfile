@@ -2,8 +2,8 @@
 # GitHub actions require that the docker image use the root user
 # https://docs.github.com/en/actions/creating-actions/dockerfile-support-for-github-actions#user
 
-# 20.04 is the last ubuntu version to use automake-1.15 which is required to build the gnu-tools
-FROM ubuntu:20.04 AS bootstrap
+# 22.04 is the first ubuntu version to include automake-1.16
+FROM ubuntu:22.04 AS bootstrap
 
 ##########################################
 ### Bootstrap: Install Build Tools    ###
@@ -13,7 +13,7 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
     apt-get update && \
     apt-get --yes upgrade && \
     apt-get install --yes --no-install-recommends \
-        automake-1.15 \
+        automake \
         bison \
         build-essential \
         flex \
