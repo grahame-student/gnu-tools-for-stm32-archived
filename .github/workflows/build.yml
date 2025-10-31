@@ -20,8 +20,10 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          apt list --installed | grep automake
-          exit 1
+          sudo apt-get update
+          sudo apt-get install -y autoconf autoconf2.69 automake libtool \
+                                   m4 gettext autopoint pkg-config \
+                                   build-essential bison flex texinfo
 
       - name: Build Prerequisites
         shell: bash
