@@ -14,7 +14,6 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
     apt-get --yes upgrade && \
     apt-get install --yes --no-install-recommends \
         autoconf \
-        autoconf2.69 \
         automake-1.15 \
         autopoint \
         bison \

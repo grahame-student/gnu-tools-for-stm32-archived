@@ -27,15 +27,15 @@ regenerate_autotools() {
     # -f: force (overwrite files)
     # -i: install missing auxiliary files
     # Some packages (gcc, binutils, gdb, newlib) require autoconf 2.69
+    # Ubuntu 20.04's autoconf package is version 2.69, so we just use autoreconf
     # libiconv is special - it only uses autoconf, not automake
     if [ "$(basename "$dir")" = "libiconv" ]; then
         # libiconv uses autoconf only and needs srcm4 directory
         # Need to run aclocal first to gather macros
         aclocal -I m4 -I srcm4
         autoconf
-    elif [ "$use_autoconf269" = "yes" ]; then
-        autoreconf2.69 -fi
     else
+        # Use autoreconf for all packages (Ubuntu 20.04 has autoconf 2.69)
         autoreconf -fi
     fi
     

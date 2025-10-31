@@ -7,9 +7,8 @@ This repository contains the source code for GNU Tools for STM32, which requires
 The following tools must be installed before building:
 
 ### Essential Build Tools
-- **autoconf** (version 2.71 or later)
-- **autoconf2.69** - Required for GCC, binutils, GDB, and Newlib
-- **automake** (version 1.16 or later)
+- **autoconf** (version 2.69 or later) - Ubuntu 20.04 provides version 2.69
+- **automake** (version 1.15 or later)
 - **libtool** (version 2.4 or later)
 - **m4** (GNU M4 1.4.16 or later)
 - **gettext** - Required for libiconv
@@ -24,7 +23,7 @@ The following tools must be installed before building:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y build-essential autoconf autoconf2.69 automake \
+sudo apt-get install -y build-essential autoconf automake \
                         libtool m4 gettext autopoint pkg-config
 ```
 
@@ -63,7 +62,7 @@ The build scripts have been updated to automatically call `autogen.sh` if needed
 ## Package-Specific Notes
 
 ### GCC, Binutils, GDB, Newlib
-These packages require exactly autoconf 2.69. The autogen.sh script automatically uses `autoreconf2.69` for these packages.
+These packages require autoconf 2.69. Ubuntu 20.04's autoconf package provides version 2.69, which is exactly what's needed.
 
 ### libiconv
 This package only uses autoconf (not automake) and requires special handling with `aclocal` before running `autoconf`. The autogen.sh script handles this automatically.
@@ -74,10 +73,11 @@ Packages like expat, gmp, isl, mpc, mpfr, and zlib use standard autotools and ca
 ## Troubleshooting
 
 ### "Please use exactly Autoconf 2.69" Error
-This means autoconf2.69 is not installed or not being used. Install it using:
+This means autoconf 2.69 is not installed. On Ubuntu 20.04, install it using:
 ```bash
-sudo apt-get install autoconf2.69
+sudo apt-get install autoconf
 ```
+Note: Ubuntu 20.04's autoconf package is version 2.69.
 
 ### Missing Macro Errors
 If you see errors about missing macros (e.g., `AM_LANGINFO_CODESET`), ensure gettext and autopoint are installed:

@@ -21,7 +21,7 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get install -y autoconf autoconf2.69 automake libtool \
+          sudo apt-get install -y autoconf automake libtool \
                                    m4 gettext autopoint pkg-config \
                                    build-essential bison flex texinfo
 
