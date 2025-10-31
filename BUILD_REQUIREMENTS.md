@@ -64,6 +64,8 @@ The build scripts have been updated to automatically call `autogen.sh` if needed
 ### GCC, Binutils, GDB, Newlib
 These packages require autoconf 2.69. Ubuntu 20.04's autoconf package provides version 2.69, which is exactly what's needed.
 
+**Note:** These are complex multi-directory projects. While autogen.sh regenerates most autotools files, the top-level auxiliary scripts (install-sh, missing, config.guess, config.sub, etc.) are kept in version control to ensure reliable builds. These files are needed by the top-level configure scripts.
+
 ### libiconv
 This package only uses autoconf (not automake) and requires special handling with `aclocal` before running `autoconf`. The autogen.sh script handles this automatically.
 
