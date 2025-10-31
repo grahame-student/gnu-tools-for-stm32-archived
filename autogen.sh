@@ -49,6 +49,7 @@ SRC_DIR="$SCRIPT_DIR/src"
 # List of top-level packages that need autotools regeneration
 # These are the main packages that the build scripts directly configure
 # Format: "package_name:use_autoconf269"
+# Note: zlib is NOT included as it uses a hand-written configure script, not autotools
 PACKAGES=(
     "binutils:yes"
     "expat:no"
@@ -60,7 +61,6 @@ PACKAGES=(
     "mpc:no"
     "mpfr:no"
     "newlib:yes"
-    "zlib-1.2.12:no"
 )
 
 # Regenerate for each package

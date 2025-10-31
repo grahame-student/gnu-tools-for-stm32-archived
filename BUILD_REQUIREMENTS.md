@@ -67,8 +67,11 @@ These packages require autoconf 2.69. Ubuntu 20.04's autoconf package provides v
 ### libiconv
 This package only uses autoconf (not automake) and requires special handling with `aclocal` before running `autoconf`. The autogen.sh script handles this automatically.
 
+### zlib
+This package does NOT use autotools. It has a hand-written configure script and Makefile.in which are kept in version control.
+
 ### Other Packages
-Packages like expat, gmp, isl, mpc, mpfr, and zlib use standard autotools and can be regenerated with the current autoconf version.
+Packages like expat, gmp, isl, mpc, and mpfr use standard autotools and can be regenerated with the current autoconf version.
 
 ## Troubleshooting
 
