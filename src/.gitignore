@@ -50,3 +50,6 @@
 **/*.dylib
 **/autom4te.cache/
 **/*~
+**/*.info
+**/*.info-*
+**/ar-lib
