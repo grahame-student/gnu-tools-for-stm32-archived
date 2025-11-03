@@ -269,8 +269,10 @@ regenerate_autotools() {
         return 1
     fi
     
-    # Check if configure already exists (already regenerated)
-    if [ -f "$lib_src_dir/configure" ] ; then
+    # Check if configure and essential autotools files already exist (already regenerated)
+    # We check for configure, aclocal.m4, and at least one Makefile.in
+    if [ -f "$lib_src_dir/configure" ] && [ -f "$lib_src_dir/aclocal.m4" ] && \
+       find "$lib_src_dir" -name "Makefile.in" -print -quit | grep -q .; then
         echo "Autotools files already exist in $lib_src_dir, skipping regeneration"
         return 0
     fi
@@ -285,21 +287,26 @@ regenerate_autotools() {
     # Special handling for libiconv: it needs m4 and srcm4 directories in ACLOCAL_PATH
     local lib_name=$(basename "$lib_src_dir")
     if [ "$lib_name" = "libiconv" ]; then
-        export ACLOCAL_PATH="m4:srcm4:${ACLOCAL_PATH:-}"
+        # Use env to set ACLOCAL_PATH only for this autoreconf call
+        env ACLOCAL_PATH="m4:srcm4:${ACLOCAL_PATH:-}" autoreconf -i -f || {
+            error "Failed to regenerate autotools files in $lib_src_dir"
+            popd > /dev/null
+            return 1
+        }
+    else
+        autoreconf -i -f || {
+            error "Failed to regenerate autotools files in $lib_src_dir"
+            popd > /dev/null
+            return 1
+        }
     fi
-    
-    autoreconf -i -f || {
-        error "Failed to regenerate autotools files in $lib_src_dir"
-        popd > /dev/null
-        return 1
-    }
     
     # Special handling for libcharset subdirectory in libiconv
     if [ "$lib_name" = "libiconv" ] && [ -d "libcharset" ]; then
         echo "Regenerating autotools files for libcharset subdirectory"
         pushd libcharset > /dev/null
-        export ACLOCAL_PATH="m4:${ACLOCAL_PATH:-}"
-        autoreconf -i -f || {
+        # Use env to set ACLOCAL_PATH only for this autoreconf call
+        env ACLOCAL_PATH="m4:${ACLOCAL_PATH:-}" autoreconf -i -f || {
             error "Failed to regenerate autotools files in libcharset"
             popd > /dev/null
             popd > /dev/null
