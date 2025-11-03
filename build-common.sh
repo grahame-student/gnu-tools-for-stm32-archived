@@ -253,6 +253,46 @@ copy_multi_libs() {
     done
 }
 
+# Regenerate autotools files (configure, Makefile.in, etc.) for a library
+# This is needed because these generated files are no longer stored in git
+# Usage: regenerate_autotools <library_src_dir>
+regenerate_autotools() {
+    set +u
+    if [ $# -ne 1 ] ; then
+        warning "regenerate_autotools: Missing argument"
+        return 1
+    fi
+    local lib_src_dir="$1"
+    
+    if [ ! -d "$lib_src_dir" ] ; then
+        error "regenerate_autotools: Directory does not exist ($lib_src_dir)"
+        return 1
+    fi
+    
+    # Check if configure already exists (already regenerated)
+    if [ -f "$lib_src_dir/configure" ] ; then
+        echo "Autotools files already exist in $lib_src_dir, skipping regeneration"
+        return 0
+    fi
+    
+    echo "Regenerating autotools files in $lib_src_dir"
+    pushd "$lib_src_dir" > /dev/null
+    
+    # Run autoreconf to regenerate all autotools files
+    # -i: install missing auxiliary files
+    # -f: force regeneration even if files exist
+    autoreconf -i -f || {
+        error "Failed to regenerate autotools files in $lib_src_dir"
+        popd > /dev/null
+        return 1
+    }
+    
+    popd > /dev/null
+    echo "Successfully regenerated autotools files in $lib_src_dir"
+    set -u
+    return 0
+}
+
 # Clean up unnecessary global shell variables
 clean_env
 
