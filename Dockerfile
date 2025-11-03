@@ -63,9 +63,21 @@ RUN chmod +x build-gcc-final-gdb.sh && \
     ./build-gcc-final-gdb.sh
 
 ##########################################
+### Stage 4: Runtime Libraries        ###
+### Finalizes runtime library         ###
+### installation (libstdc++, newlib)  ###
+### and removes build artifacts       ###
+##########################################
+FROM gcc-final-gdb AS runtime-libs
+
+WORKDIR /root/build/gnu-tools-for-stm32
+RUN chmod +x build-runtime-libs-finalize.sh && \
+    ./build-runtime-libs-finalize.sh
+
+##########################################
 ### Main: Final Stage                 ###
 ##########################################
-FROM gcc-final-gdb AS main
+FROM runtime-libs AS main
 
-# Final stage - toolchain is ready for use
+# Final stage - toolchain is ready for use with runtime libraries
 WORKDIR /root/build/gnu-tools-for-stm32
