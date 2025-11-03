@@ -5,10 +5,10 @@ set -u
 set -o pipefail
 
 # Source common build functions and variables
-. $(dirname $0)/build-common.sh
+. "$(dirname "$0")/build-common.sh"
 
 # Source common toolchain configuration
-. $(dirname $0)/build-toolchain-config.sh
+. "$(dirname "$0")/build-toolchain-config.sh"
 
 echo "Task [III-7] /$HOST_NATIVE/runtime-libs-finalize/"
 echo "Finalizing runtime library installation and cleaning up build artifacts..."
