@@ -48,3 +48,5 @@
 **/*.so
 **/*.so.*
 **/*.dylib
+**/autom4te.cache/
+**/*~
