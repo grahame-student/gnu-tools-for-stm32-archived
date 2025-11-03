@@ -5,12 +5,12 @@ set -u
 set -o pipefail
 
 # Source common build functions and variables
-. "$(dirname "$0")/build-common.sh"
+. $(dirname $0)/build-common.sh
 
 # Source common toolchain configuration
-. "$(dirname "$0")/build-toolchain-config.sh"
+. $(dirname $0)/build-toolchain-config.sh
 
-echo "Task [III-5] /$HOST_NATIVE/runtime-libs-finalize/"
+echo "Task [III-7] /$HOST_NATIVE/runtime-libs-finalize/"
 echo "Finalizing runtime library installation and cleaning up build artifacts..."
 
 # Verify runtime libraries are installed
@@ -22,7 +22,10 @@ ls -la "$INSTALLDIR_NATIVE/arm-none-eabi/lib"/*.a | head -10 || true
 
 # Make toolchain binaries available in PATH
 echo "Making toolchain binaries available in /usr/local/bin..."
-ln -sf "$INSTALLDIR_NATIVE"/bin/* /usr/local/bin/
+for bin in "$INSTALLDIR_NATIVE"/bin/*; do
+  [ -e "$bin" ] || { echo "No binaries found in $INSTALLDIR_NATIVE/bin/"; break; }
+  ln -sf "$bin" /usr/local/bin/
+done
 
 # Clean up all remaining build artifacts to save space
 echo "Cleaning up build artifacts..."
