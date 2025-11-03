@@ -281,11 +281,32 @@ regenerate_autotools() {
     # Run autoreconf to regenerate all autotools files
     # -i: install missing auxiliary files
     # -f: force regeneration even if files exist
+    
+    # Special handling for libiconv: it needs m4 and srcm4 directories in ACLOCAL_PATH
+    local lib_name=$(basename "$lib_src_dir")
+    if [ "$lib_name" = "libiconv" ]; then
+        export ACLOCAL_PATH="m4:srcm4:${ACLOCAL_PATH:-}"
+    fi
+    
     autoreconf -i -f || {
         error "Failed to regenerate autotools files in $lib_src_dir"
         popd > /dev/null
         return 1
     }
+    
+    # Special handling for libcharset subdirectory in libiconv
+    if [ "$lib_name" = "libiconv" ] && [ -d "libcharset" ]; then
+        echo "Regenerating autotools files for libcharset subdirectory"
+        pushd libcharset > /dev/null
+        export ACLOCAL_PATH="m4:${ACLOCAL_PATH:-}"
+        autoreconf -i -f || {
+            error "Failed to regenerate autotools files in libcharset"
+            popd > /dev/null
+            popd > /dev/null
+            return 1
+        }
+        popd > /dev/null
+    fi
     
     popd > /dev/null
     echo "Successfully regenerated autotools files in $lib_src_dir"
