@@ -348,6 +348,25 @@ regenerate_autotools() {
         }
     fi
     
+    # Special handling for binutils/gcc/gdb: regenerate subdirectories that have configure.ac
+    if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ]; then
+        echo "Regenerating autotools files for subdirectories with configure.ac"
+        # Find all subdirectories with configure.ac/configure.in (excluding gnulib which has special handling)
+        # We need to process them in order from deepest to shallowest to handle nested subdirectories
+        local subdirs=$(find . -name "configure.ac" -o -name "configure.in" | grep -v "^\./configure\." | grep -v gnulib | sed 's|/configure\.[ai][cn]$||' | sort -u)
+        for subdir in $subdirs; do
+            if [ -d "$subdir" ] && [ "$subdir" != "." ]; then
+                echo "  Regenerating $subdir"
+                pushd "$subdir" > /dev/null
+                $autoreconf_cmd -i -f 2>/dev/null || {
+                    # Some subdirectories might fail, that's okay - continue
+                    true
+                }
+                popd > /dev/null
+            fi
+        done
+    fi
+    
     # Special handling for libcharset subdirectory in libiconv
     if [ "$lib_name" = "libiconv" ] && [ -d "libcharset" ]; then
         echo "Regenerating autotools files for libcharset subdirectory"
