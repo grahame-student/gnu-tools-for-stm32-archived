@@ -366,7 +366,7 @@ configure:6346: x86_64-linux-gnu-gcc -o conftest -O3 -fomit-frame-pointer -malig
 configure:6346: $? = 0
 configure:6346: ./conftest
 configure:6346: $? = 0
-configure:6357: result: a00f11:2100800:feda3203:178bfbff
+configure:6357: result: a00f11:100800:feda3203:178bfbff
 configure:6579: checking whether C compiler accepts -march=k8
 configure:6594: x86_64-linux-gnu-gcc -c -march=k8  conftest.c >&5
 configure:6594: $? = 0
@@ -893,7 +893,7 @@ ax_cv_c_flags__march_k8=yes
 ax_cv_gcc_archflag=-march=k8
 ax_cv_gcc_warn_unused_result=yes
 ax_cv_gcc_x86_cpuid_0=d:68747541:444d4163:69746e65
-ax_cv_gcc_x86_cpuid_1=a00f11:2100800:feda3203:178bfbff
+ax_cv_gcc_x86_cpuid_1=a00f11:100800:feda3203:178bfbff
 lt_cv_ar_at_file=@
 lt_cv_deplibs_check_method=pass_all
 lt_cv_file_magic_cmd='$MAGIC_CMD'

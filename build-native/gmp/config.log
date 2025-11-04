@@ -2719,7 +2719,7 @@ configure:25791: $? = 0
 configure:25791: result: yes
 configure:25797: checking for attr_get
 configure:25797: gcc -o conftest -O2 -pedantic -fomit-frame-pointer -m64 -mtune=k8 -march=k8 -fexceptions  conftest.c  >&5
-/usr/bin/ld: /tmp/ccuF3S6h.o: in function `main':
+/usr/bin/ld: /tmp/ccLFwCdA.o: in function `main':
 conftest.c:(.text.startup+0xb): undefined reference to `attr_get'
 collect2: error: ld returned 1 exit status
 configure:25797: $? = 1
@@ -2828,7 +2828,7 @@ configure:25803: $? = 0
 configure:25803: result: yes
 configure:25809: checking for cputime
 configure:25809: gcc -o conftest -O2 -pedantic -fomit-frame-pointer -m64 -mtune=k8 -march=k8 -fexceptions  conftest.c  >&5
-/usr/bin/ld: /tmp/ccSTeQNc.o: in function `main':
+/usr/bin/ld: /tmp/cco5yVh8.o: in function `main':
 conftest.c:(.text.startup+0xb): undefined reference to `cputime'
 collect2: error: ld returned 1 exit status
 configure:25809: $? = 1
@@ -2946,7 +2946,7 @@ configure:25827: $? = 0
 configure:25827: result: yes
 configure:25833: checking for getsysinfo
 configure:25833: gcc -o conftest -O2 -pedantic -fomit-frame-pointer -m64 -mtune=k8 -march=k8 -fexceptions  conftest.c  >&5
-/usr/bin/ld: /tmp/ccz5JB6D.o: in function `main':
+/usr/bin/ld: /tmp/ccPIYnjN.o: in function `main':
 conftest.c:(.text.startup+0xb): undefined reference to `getsysinfo'
 collect2: error: ld returned 1 exit status
 configure:25833: $? = 1
@@ -3089,7 +3089,7 @@ configure:25875: $? = 0
 configure:25875: result: yes
 configure:25881: checking for processor_info
 configure:25881: gcc -o conftest -O2 -pedantic -fomit-frame-pointer -m64 -mtune=k8 -march=k8 -fexceptions  conftest.c  >&5
-/usr/bin/ld: /tmp/cckiLGgv.o: in function `main':
+/usr/bin/ld: /tmp/cctMX9LU.o: in function `main':
 conftest.c:(.text.startup+0xb): undefined reference to `processor_info'
 collect2: error: ld returned 1 exit status
 configure:25881: $? = 1
@@ -3205,7 +3205,7 @@ configure: failed program was:
 configure:25881: result: no
 configure:25887: checking for pstat_getprocessor
 configure:25887: gcc -o conftest -O2 -pedantic -fomit-frame-pointer -m64 -mtune=k8 -march=k8 -fexceptions  conftest.c  >&5
-/usr/bin/ld: /tmp/ccoCzHDE.o: in function `main':
+/usr/bin/ld: /tmp/cch0vDfh.o: in function `main':
 conftest.c:(.text.startup+0xb): undefined reference to `pstat_getprocessor'
 collect2: error: ld returned 1 exit status
 configure:25887: $? = 1
@@ -3325,7 +3325,7 @@ configure:25893: $? = 0
 configure:25893: result: yes
 configure:25899: checking for read_real_time
 configure:25899: gcc -o conftest -O2 -pedantic -fomit-frame-pointer -m64 -mtune=k8 -march=k8 -fexceptions  conftest.c  >&5
-/usr/bin/ld: /tmp/ccssVWCO.o: in function `main':
+/usr/bin/ld: /tmp/cch5Pm3T.o: in function `main':
 conftest.c:(.text.startup+0xb): undefined reference to `read_real_time'
 collect2: error: ld returned 1 exit status
 configure:25899: $? = 1
@@ -3450,13 +3450,13 @@ configure:25911: $? = 0
 configure:25911: result: yes
 configure:25917: checking for sigstack
 configure:25917: gcc -o conftest -O2 -pedantic -fomit-frame-pointer -m64 -mtune=k8 -march=k8 -fexceptions  conftest.c  >&5
-/usr/bin/ld: /tmp/ccYguRhD.o: in function `main':
+/usr/bin/ld: /tmp/ccYurBc1.o: in function `main':
 conftest.c:(.text.startup+0xb): warning: the `sigstack' function is dangerous.  `sigaltstack' should be used instead.
 configure:25917: $? = 0
 configure:25917: result: yes
 configure:25923: checking for syssgi
 configure:25923: gcc -o conftest -O2 -pedantic -fomit-frame-pointer -m64 -mtune=k8 -march=k8 -fexceptions  conftest.c  >&5
-/usr/bin/ld: /tmp/ccwfb3JL.o: in function `main':
+/usr/bin/ld: /tmp/ccITmJDU.o: in function `main':
 conftest.c:(.text.startup+0xb): undefined reference to `syssgi'
 collect2: error: ld returned 1 exit status
 configure:25923: $? = 1
@@ -3609,7 +3609,7 @@ configure:25959: $? = 0
 configure:25959: result: yes
 configure:25965: checking for sysctl
 configure:25965: gcc -o conftest -O2 -pedantic -fomit-frame-pointer -m64 -mtune=k8 -march=k8 -fexceptions  conftest.c  >&5
-/usr/bin/ld: /tmp/ccFo4kNR.o: in function `main':
+/usr/bin/ld: /tmp/ccx6bDrS.o: in function `main':
 conftest.c:(.text.startup+0xb): undefined reference to `sysctl'
 collect2: error: ld returned 1 exit status
 configure:25965: $? = 1
@@ -3735,7 +3735,7 @@ configure: failed program was:
 configure:25965: result: no
 configure:25971: checking for sysctlbyname
 configure:25971: gcc -o conftest -O2 -pedantic -fomit-frame-pointer -m64 -mtune=k8 -march=k8 -fexceptions  conftest.c  >&5
-/usr/bin/ld: /tmp/ccja5no4.o: in function `main':
+/usr/bin/ld: /tmp/ccizSm1M.o: in function `main':
 conftest.c:(.text.startup+0xb): undefined reference to `sysctlbyname'
 collect2: error: ld returned 1 exit status
 configure:25971: $? = 1
@@ -5069,7 +5069,7 @@ configure:29314: $? = 0
 configure:29327: result: none needed
 configure:29342: checking for library containing yywrap
 configure:29372: gcc -o conftest -O2 -pedantic -fomit-frame-pointer -m64 -mtune=k8 -march=k8 -fexceptions  conftest.c  >&5
-/usr/bin/ld: /tmp/cchwVDpY.o: in function `main':
+/usr/bin/ld: /tmp/cc7qitnp.o: in function `main':
 conftest.c:(.text.startup+0xb): undefined reference to `yywrap'
 collect2: error: ld returned 1 exit status
 configure:29372: $? = 1

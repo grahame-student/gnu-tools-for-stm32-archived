@@ -381,7 +381,7 @@ conftest.c:35:6: warning: conflicting types for built-in function 'creal'; expec
       |      ^~~~~
 conftest.c:1:1: note: 'creal' is declared in header '<complex.h>'
     1 | /* confdefs.h */
-/usr/bin/ld: /tmp/ccauU7TB.o: in function `main':
+/usr/bin/ld: /tmp/ccL7iRYm.o: in function `main':
 conftest.c:(.text.startup+0xb): undefined reference to `creal'
 collect2: error: ld returned 1 exit status
 configure:14254: $? = 1
