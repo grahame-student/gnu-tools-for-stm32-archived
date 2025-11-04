@@ -287,8 +287,8 @@ regenerate_autotools() {
     
     # Determine which autoreconf to use
     # binutils/gcc/gdb require autoconf 2.69 for reproducible builds
-    # On Ubuntu 22.04 (Docker): the default autoconf is 2.69, so we use 'autoreconf'
-    # On Ubuntu 24.04+ (non-Docker): autoconf is 2.71+, so we use 'autoconf2.69' explicitly if available
+    # We use 'autoconf2.69' explicitly if available (required on Ubuntu 22.04+ which has autoconf 2.71 by default)
+    # The Dockerfile installs autoconf2.69 package to ensure correct version is used
     local autoreconf_cmd="autoreconf"
     local lib_name=$(basename "$lib_src_dir")
     if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ]; then

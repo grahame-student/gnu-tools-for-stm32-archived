@@ -13,7 +13,7 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
     apt-get update && \
     apt-get --yes upgrade && \
     apt-get install --yes --no-install-recommends \
-        autoconf \
+        autoconf2.69 \
         automake \
         autogen \
         libtool \
