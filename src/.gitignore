@@ -33,6 +33,7 @@
 **/compile
 **/test-driver
 **/ltmain.sh
+**/ylwrap
 
 # Build artifacts (should not be in repo anyway)
 **/config.h

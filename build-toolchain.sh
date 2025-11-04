@@ -243,6 +243,9 @@ fi
 
 cd $SRCDIR
 
+# Regenerate autotools files for binutils if needed
+regenerate_autotools $SRCDIR/$BINUTILS
+
 if [ "x$skip_native_build" != "xyes" ] ; then
     echo Task [III-0] /$HOST_NATIVE/binutils/ | tee -a "$BUILDDIR_NATIVE/.stage"
     rm -rf $BUILDDIR_NATIVE/binutils && mkdir -p $BUILDDIR_NATIVE/binutils

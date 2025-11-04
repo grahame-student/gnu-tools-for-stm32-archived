@@ -12,6 +12,9 @@ set -o pipefail
 
 cd $SRCDIR
 
+# Regenerate autotools files for binutils if needed
+regenerate_autotools $SRCDIR/$BINUTILS
+
 # Build binutils
 echo "Task [III-0] /$HOST_NATIVE/binutils/"
 mkdir -p $BUILDDIR_NATIVE
