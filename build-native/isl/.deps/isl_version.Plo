@@ -1,0 +1,9 @@
+isl_version.lo: \
+ /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/isl/isl_version.c \
+ /usr/include/stdc-predef.h isl_config.h \
+ /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/isl/isl_config_post.h \
+ gitversion.h
+/usr/include/stdc-predef.h:
+isl_config.h:
+/home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/isl/isl_config_post.h:
+gitversion.h:

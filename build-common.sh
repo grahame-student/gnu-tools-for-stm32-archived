@@ -286,19 +286,53 @@ regenerate_autotools() {
     
     # Special handling for libiconv: it needs m4 and srcm4 directories in ACLOCAL_PATH
     local lib_name=$(basename "$lib_src_dir")
+    
+    # Special handling for binutils and gcc: they require autoconf 2.69 but we may have newer version
+    # Temporarily patch the version check in config/override.m4 if needed
+    local override_m4="$lib_src_dir/config/override.m4"
+    local override_m4_backup=""
+    if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ]; then
+        if [ -f "$override_m4" ]; then
+            # Get current autoconf version
+            local autoconf_version=$(autoconf --version | head -1 | sed 's/.* //')
+            # Check if we need to patch (if version is not 2.69)
+            if [ "$autoconf_version" != "2.69" ]; then
+                echo "Patching config/override.m4 to accept autoconf $autoconf_version"
+                override_m4_backup="${override_m4}.backup"
+                cp "$override_m4" "$override_m4_backup"
+                # Replace the version requirement
+                sed -i "s/\[m4_define(\[_GCC_AUTOCONF_VERSION\], \[2.69\])\]/[m4_define([_GCC_AUTOCONF_VERSION], [$autoconf_version])]/" "$override_m4"
+            fi
+        fi
+    fi
+    
     if [ "$lib_name" = "libiconv" ]; then
         # Use env to set ACLOCAL_PATH only for this autoreconf call
         env ACLOCAL_PATH="m4:srcm4:${ACLOCAL_PATH:-}" autoreconf -i -f || {
+            # Restore backup if it exists
+            if [ -n "$override_m4_backup" ] && [ -f "$override_m4_backup" ]; then
+                mv "$override_m4_backup" "$override_m4"
+            fi
             error "Failed to regenerate autotools files in $lib_src_dir"
             popd > /dev/null
             return 1
         }
     else
         autoreconf -i -f || {
+            # Restore backup if it exists
+            if [ -n "$override_m4_backup" ] && [ -f "$override_m4_backup" ]; then
+                mv "$override_m4_backup" "$override_m4"
+            fi
             error "Failed to regenerate autotools files in $lib_src_dir"
             popd > /dev/null
             return 1
         }
+    fi
+    
+    # Restore the original override.m4 if we backed it up
+    if [ -n "$override_m4_backup" ] && [ -f "$override_m4_backup" ]; then
+        mv "$override_m4_backup" "$override_m4"
+        echo "Restored original config/override.m4"
     fi
     
     # Special handling for libcharset subdirectory in libiconv

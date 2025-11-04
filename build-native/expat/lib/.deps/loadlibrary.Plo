@@ -1,0 +1,4 @@
+loadlibrary.lo: \
+ /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/expat/lib/loadlibrary.c \
+ /usr/include/stdc-predef.h
+/usr/include/stdc-predef.h:

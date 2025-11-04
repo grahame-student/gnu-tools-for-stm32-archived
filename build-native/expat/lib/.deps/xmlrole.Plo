@@ -1,0 +1,17 @@
+xmlrole.lo: \
+ /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/expat/lib/xmlrole.c \
+ /usr/include/stdc-predef.h \
+ /usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h ../expat_config.h \
+ /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/expat/lib/expat_external.h \
+ /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/expat/lib/internal.h \
+ /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/expat/lib/xmlrole.h \
+ /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/expat/lib/xmltok.h \
+ /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/expat/lib/ascii.h
+/usr/include/stdc-predef.h:
+/usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h:
+../expat_config.h:
+/home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/expat/lib/expat_external.h:
+/home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/expat/lib/internal.h:
+/home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/expat/lib/xmlrole.h:
+/home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/expat/lib/xmltok.h:
+/home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/expat/lib/ascii.h:
