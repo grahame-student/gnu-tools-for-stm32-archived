@@ -270,9 +270,10 @@ regenerate_autotools() {
     fi
     
     # Check if configure and essential autotools files already exist (already regenerated)
-    # We check for configure, aclocal.m4, and at least one Makefile.in
-    if [ -f "$lib_src_dir/configure" ] && [ -f "$lib_src_dir/aclocal.m4" ] && \
-       find "$lib_src_dir" -name "Makefile.in" -print -quit | grep -q .; then
+    # We check for configure and at least one Makefile.in
+    # Note: aclocal.m4 may not exist for all projects (e.g., binutils uses autogen)
+    if [ -f "$lib_src_dir/configure" ] && \
+       find "$lib_src_dir" -maxdepth 1 -name "Makefile.in" -print -quit | grep -q .; then
         echo "Autotools files already exist in $lib_src_dir, skipping regeneration"
         return 0
     fi
@@ -284,17 +285,50 @@ regenerate_autotools() {
     # -i: install missing auxiliary files
     # -f: force regeneration even if files exist
     
-    # Special handling for libiconv: it needs m4 and srcm4 directories in ACLOCAL_PATH
+    # Determine which autoreconf to use
+    # binutils/gcc/gdb require autoconf 2.69 for reproducible builds
+    # On Ubuntu 22.04 (Docker): the default autoconf is 2.69, so we use 'autoreconf'
+    # On Ubuntu 24.04+ (non-Docker): autoconf is 2.71+, so we use 'autoconf2.69' explicitly if available
+    local autoreconf_cmd="autoreconf"
     local lib_name=$(basename "$lib_src_dir")
+    if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ]; then
+        # Check if we need to use autoconf2.69 explicitly
+        local autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | grep -oP '\d+\.\d+' || echo "")
+        if [ "$autoconf_version" != "2.69" ] && which autoconf2.69 > /dev/null 2>&1; then
+            # Not using 2.69 by default, use autoconf2.69 explicitly
+            # Set AUTOCONF and related variables to use version 2.69
+            export AUTOCONF=autoconf2.69
+            export AUTOHEADER=autoheader2.69
+            export AUTOM4TE=autom4te2.69
+            export AUTORECONF=autoreconf2.69
+            export AUTOUPDATE=autoupdate2.69
+            autoreconf_cmd="autoreconf2.69"
+        fi
+    fi
+    
+    # Special handling for binutils/gcc/gdb: they use autogen to generate Makefile.in from Makefile.def
+    if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ]; then
+        # First generate Makefile.in using autogen if Makefile.def exists
+        if [ -f "Makefile.def" ] && which autogen > /dev/null 2>&1; then
+            echo "Generating Makefile.in from Makefile.def using autogen"
+            autogen Makefile.def || {
+                error "Failed to generate Makefile.in with autogen in $lib_src_dir"
+                popd > /dev/null
+                return 1
+            }
+        fi
+    fi
+    
+    # Special handling for libiconv: it needs m4 and srcm4 directories in ACLOCAL_PATH
     if [ "$lib_name" = "libiconv" ]; then
         # Use env to set ACLOCAL_PATH only for this autoreconf call
-        env ACLOCAL_PATH="m4:srcm4:${ACLOCAL_PATH:-}" autoreconf -i -f || {
+        env ACLOCAL_PATH="m4:srcm4:${ACLOCAL_PATH:-}" $autoreconf_cmd -i -f || {
             error "Failed to regenerate autotools files in $lib_src_dir"
             popd > /dev/null
             return 1
         }
     else
-        autoreconf -i -f || {
+        $autoreconf_cmd -i -f || {
             error "Failed to regenerate autotools files in $lib_src_dir"
             popd > /dev/null
             return 1
