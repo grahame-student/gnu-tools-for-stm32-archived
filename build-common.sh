@@ -253,6 +253,74 @@ copy_multi_libs() {
     done
 }
 
+# Regenerate autotools files (configure, Makefile.in, etc.) for a library
+# This is needed because these generated files are no longer stored in git
+# Usage: regenerate_autotools <library_src_dir>
+regenerate_autotools() {
+    set +u
+    if [ $# -ne 1 ] ; then
+        warning "regenerate_autotools: Missing argument"
+        return 1
+    fi
+    local lib_src_dir="$1"
+    
+    if [ ! -d "$lib_src_dir" ] ; then
+        error "regenerate_autotools: Directory does not exist ($lib_src_dir)"
+        return 1
+    fi
+    
+    # Check if configure and essential autotools files already exist (already regenerated)
+    # We check for configure, aclocal.m4, and at least one Makefile.in
+    if [ -f "$lib_src_dir/configure" ] && [ -f "$lib_src_dir/aclocal.m4" ] && \
+       find "$lib_src_dir" -name "Makefile.in" -print -quit | grep -q .; then
+        echo "Autotools files already exist in $lib_src_dir, skipping regeneration"
+        return 0
+    fi
+    
+    echo "Regenerating autotools files in $lib_src_dir"
+    pushd "$lib_src_dir" > /dev/null
+    
+    # Run autoreconf to regenerate all autotools files
+    # -i: install missing auxiliary files
+    # -f: force regeneration even if files exist
+    
+    # Special handling for libiconv: it needs m4 and srcm4 directories in ACLOCAL_PATH
+    local lib_name=$(basename "$lib_src_dir")
+    if [ "$lib_name" = "libiconv" ]; then
+        # Use env to set ACLOCAL_PATH only for this autoreconf call
+        env ACLOCAL_PATH="m4:srcm4:${ACLOCAL_PATH:-}" autoreconf -i -f || {
+            error "Failed to regenerate autotools files in $lib_src_dir"
+            popd > /dev/null
+            return 1
+        }
+    else
+        autoreconf -i -f || {
+            error "Failed to regenerate autotools files in $lib_src_dir"
+            popd > /dev/null
+            return 1
+        }
+    fi
+    
+    # Special handling for libcharset subdirectory in libiconv
+    if [ "$lib_name" = "libiconv" ] && [ -d "libcharset" ]; then
+        echo "Regenerating autotools files for libcharset subdirectory"
+        pushd libcharset > /dev/null
+        # Use env to set ACLOCAL_PATH only for this autoreconf call
+        env ACLOCAL_PATH="m4:${ACLOCAL_PATH:-}" autoreconf -i -f || {
+            error "Failed to regenerate autotools files in libcharset"
+            popd > /dev/null
+            popd > /dev/null
+            return 1
+        }
+        popd > /dev/null
+    fi
+    
+    popd > /dev/null
+    echo "Successfully regenerated autotools files in $lib_src_dir"
+    set -u
+    return 0
+}
+
 # Clean up unnecessary global shell variables
 clean_env
 

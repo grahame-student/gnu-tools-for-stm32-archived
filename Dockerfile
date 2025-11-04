@@ -13,7 +13,9 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
     apt-get update && \
     apt-get --yes upgrade && \
     apt-get install --yes --no-install-recommends \
+        autoconf \
         automake \
+        libtool \
         bison \
         build-essential \
         flex \

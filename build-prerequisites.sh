@@ -127,6 +127,18 @@ fi
 
 cd "$SRCDIR"
 
+# Regenerate autotools files for bootstrap libraries (if not already present)
+# These files are no longer stored in git to reduce repository size
+if [ "x$skip_native_build" != "xyes" ] ; then
+    echo "Regenerating autotools files for bootstrap libraries..."
+    regenerate_autotools "$SRCDIR/$GMP"
+    regenerate_autotools "$SRCDIR/$MPFR"
+    regenerate_autotools "$SRCDIR/$MPC"
+    regenerate_autotools "$SRCDIR/$ISL"
+    regenerate_autotools "$SRCDIR/$EXPAT"
+    regenerate_autotools "$SRCDIR/$LIBICONV"
+fi
+
 if [ "x$skip_native_build" != "xyes" ] ; then
     echo Task [I-0] /$HOST_NATIVE/zlib/ | tee -a "$BUILDDIR_NATIVE/.stage"
     rm -rf $BUILDDIR_NATIVE/zlib

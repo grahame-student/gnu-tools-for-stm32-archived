@@ -8,8 +8,8 @@ on:
 #  pull_request_target:
 #    branches: ['dependabot/**']
 
-#  pull_request:
-#    types: [opened, synchronize, edited]
+  pull_request:
+    types: [opened, synchronize, edited]
 
 # concurrency: 
 #  group: ${{ github.workflow }}-${{ github.ref }}
