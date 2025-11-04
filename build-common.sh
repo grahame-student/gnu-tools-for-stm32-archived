@@ -317,6 +317,19 @@ regenerate_autotools() {
                 return 1
             }
         fi
+        
+        # Copy auxiliary build files (install-sh, missing, etc.) since these projects
+        # don't use automake at the top level and autoreconf won't install them
+        local automake_dir=$(automake --print-libdir 2>/dev/null)
+        if [ -n "$automake_dir" ] && [ -d "$automake_dir" ]; then
+            echo "Installing auxiliary build files from automake"
+            for file in install-sh missing config.guess config.sub depcomp compile test-driver ylwrap; do
+                if [ -f "$automake_dir/$file" ] && [ ! -f "$file" ]; then
+                    cp "$automake_dir/$file" "$file"
+                    chmod +x "$file"
+                fi
+            done
+        fi
     fi
     
     # Special handling for libiconv: it needs m4 and srcm4 directories in ACLOCAL_PATH

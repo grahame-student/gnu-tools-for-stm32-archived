@@ -90,7 +90,10 @@ Key directories:
 ## Requirements
 
 - Ubuntu 22.04 (or compatible Linux distribution)
+- autoconf (2.69 for binutils/gcc/gdb)
 - automake (1.16+)
+- autogen (for generating Makefile.in from Makefile.def)
+- libtool
 - bison
 - build-essential
 - flex
@@ -98,6 +101,8 @@ Key directories:
 - python3
 - texinfo
 - texlive
+
+**Note**: On Ubuntu 24.04+, install `autoconf2.69` package explicitly as binutils/gcc/gdb require this specific version.
 
 ## Output
 

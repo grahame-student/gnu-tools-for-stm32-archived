@@ -15,6 +15,7 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
     apt-get install --yes --no-install-recommends \
         autoconf \
         automake \
+        autogen \
         libtool \
         bison \
         build-essential \
