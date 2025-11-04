@@ -12,6 +12,12 @@ set -o pipefail
 
 cd $SRCDIR
 
+# Regenerate autotools files for binutils and gcc (if not already present)
+# These files are no longer stored in git to reduce repository size
+echo "Regenerating autotools files for binutils and gcc..."
+regenerate_autotools "$SRCDIR/$BINUTILS"
+regenerate_autotools "$SRCDIR/$GCC"
+
 # Build binutils
 echo "Task [III-0] /$HOST_NATIVE/binutils/"
 mkdir -p $BUILDDIR_NATIVE
