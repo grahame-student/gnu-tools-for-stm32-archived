@@ -1,1 +1,0 @@
-/home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/gmp/mpn/x86_64/k8/div_qr_1n_pi1.asm
