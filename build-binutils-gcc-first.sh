@@ -49,6 +49,9 @@ popd
 # Clean up binutils build artifacts immediately
 rm -rf $BUILDDIR_NATIVE/binutils
 
+# Regenerate autotools files for gcc if needed
+regenerate_autotools $SRCDIR/$GCC
+
 # Build GCC first pass
 echo "Task [III-1] /$HOST_NATIVE/gcc-first/"
 rm -rf $BUILDDIR_NATIVE/gcc-first && mkdir -p $BUILDDIR_NATIVE/gcc-first

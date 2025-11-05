@@ -14,6 +14,9 @@ set -o pipefail
 saveenv
 prepend_path PATH $INSTALLDIR_NATIVE/bin
 
+# Regenerate autotools files for gcc if needed
+regenerate_autotools $SRCDIR/$GCC
+
 # Build GCC final pass with C++ support
 echo "Task [III-4] /$HOST_NATIVE/gcc-final/"
 
