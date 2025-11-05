@@ -1,1 +1,0 @@
-/home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/gmp/mpn/x86_64/mod_1_2.asm

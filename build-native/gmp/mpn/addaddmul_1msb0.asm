@@ -1,1 +1,0 @@
-/home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/src/gmp/mpn/x86_64/addaddmul_1msb0.asm
