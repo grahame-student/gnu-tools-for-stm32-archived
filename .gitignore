@@ -6,3 +6,32 @@ install-mingw/
 
 # Package directory
 pkg/
+
+# Autotools generated files for mpfr
+src/mpfr/configure
+src/mpfr/Makefile.in
+src/mpfr/aclocal.m4
+src/mpfr/config.h.in
+src/mpfr/ar-lib
+src/mpfr/compile
+src/mpfr/config.guess
+src/mpfr/config.sub
+src/mpfr/depcomp
+src/mpfr/install-sh
+src/mpfr/ltmain.sh
+src/mpfr/missing
+src/mpfr/test-driver
+src/mpfr/ylwrap
+src/mpfr/m4/libtool.m4
+src/mpfr/m4/ltoptions.m4
+src/mpfr/m4/ltsugar.m4
+src/mpfr/m4/ltversion.m4
+src/mpfr/m4/lt~obsolete.m4
+
+# Generated documentation for mpfr
+src/mpfr/doc/mpfr.info
+src/mpfr/doc/Makefile.in
+
+# Generated files in subdirectories for mpfr
+src/mpfr/*/Makefile.in
+src/mpfr/*/config.h.in
