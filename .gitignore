@@ -15,7 +15,7 @@ src/gmp/Makefile.in
 src/gmp/aclocal.m4
 src/gmp/config.h.in
 src/gmp/config.in
-src/gmp/config.in~
+src/gmp/*~
 src/gmp/compile
 src/gmp/config.guess
 src/gmp/config.sub
@@ -27,6 +27,7 @@ src/gmp/test-driver
 src/gmp/ar-lib
 src/gmp/py-compile
 src/gmp/autom4te.cache/
+# Subdirectories also contain generated Makefile.in files (e.g., cxx/, mpf/, mpz/, mpq/, tests/, etc.)
 src/gmp/**/Makefile.in
 src/gmp/**/configure
 src/gmp/**/config.h.in
