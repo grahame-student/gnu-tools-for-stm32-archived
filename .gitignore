@@ -13,6 +13,8 @@ src/gmp/configure
 src/gmp/Makefile.in
 src/gmp/aclocal.m4
 src/gmp/config.h.in
+src/gmp/config.in
+src/gmp/config.in~
 src/gmp/compile
 src/gmp/config.guess
 src/gmp/config.sub
@@ -23,6 +25,7 @@ src/gmp/missing
 src/gmp/test-driver
 src/gmp/ar-lib
 src/gmp/py-compile
+src/gmp/autom4te.cache/
 src/gmp/**/Makefile.in
 src/gmp/**/configure
 src/gmp/**/config.h.in
