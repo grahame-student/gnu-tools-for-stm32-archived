@@ -1,0 +1,8 @@
+# Build directories
+build-native/
+build-mingw/
+install-native/
+install-mingw/
+
+# Package directory
+pkg/
