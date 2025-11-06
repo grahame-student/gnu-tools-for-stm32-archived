@@ -286,12 +286,12 @@ regenerate_autotools() {
     # -f: force regeneration even if files exist
     
     # Determine which autoreconf to use
-    # binutils/gcc/gdb require autoconf 2.69 for reproducible builds
+    # binutils/gcc/gdb/newlib require autoconf 2.69 for reproducible builds
     # We use 'autoconf2.69' explicitly if available (required on Ubuntu 22.04+ which has autoconf 2.71 by default)
     # The Dockerfile installs autoconf2.69 package to ensure correct version is used
     local autoreconf_cmd="autoreconf"
     local lib_name=$(basename "$lib_src_dir")
-    if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ]; then
+    if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ] || [ "$lib_name" = "newlib" ]; then
         # Check if we need to use autoconf2.69 explicitly
         local autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | grep -oP '\d+\.\d+' || echo "")
         if [ "$autoconf_version" != "2.69" ] && which autoconf2.69 > /dev/null 2>&1; then
@@ -306,8 +306,8 @@ regenerate_autotools() {
         fi
     fi
     
-    # Special handling for binutils/gcc/gdb: they use autogen to generate Makefile.in from Makefile.def
-    if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ]; then
+    # Special handling for binutils/gcc/gdb/newlib: they use autogen to generate Makefile.in from Makefile.def
+    if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ] || [ "$lib_name" = "newlib" ]; then
         # First generate Makefile.in using autogen if Makefile.def exists
         if [ -f "Makefile.def" ] && which autogen > /dev/null 2>&1; then
             echo "Generating Makefile.in from Makefile.def using autogen"
@@ -348,8 +348,8 @@ regenerate_autotools() {
         }
     fi
     
-    # Special handling for binutils/gcc/gdb: regenerate subdirectories that have configure.ac
-    if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ]; then
+    # Special handling for binutils/gcc/gdb/newlib: regenerate subdirectories that have configure.ac
+    if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ] || [ "$lib_name" = "newlib" ]; then
         echo "Regenerating autotools files for subdirectories with configure.ac"
         # Find all subdirectories with configure.ac/configure.in (excluding gnulib which has special handling)
         # We need to process them in order from deepest to shallowest to handle nested subdirectories
