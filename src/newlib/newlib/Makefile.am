@@ -129,6 +129,7 @@ MATHOBJS_IN_LIBC = \
 
 ## Place the libm_a objects in libc/ to keep the top dir tidy.
 stamp-libc-math-objects: libm.a
+	$(AM_V_at)test -d libc || mkdir -p libc
 	$(AM_V_GEN)cd libc && $(AR) x ../$< $(MATHOBJS_IN_LIBC)
 	$(AM_V_at)touch $@
 
