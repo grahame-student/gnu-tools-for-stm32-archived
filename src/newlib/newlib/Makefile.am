@@ -130,16 +130,19 @@ MATHOBJS_IN_LIBC = \
 ## Place the libm_a objects in libc/ to keep the top dir tidy.
 stamp-libc-math-objects: libm.a
 	$(AM_V_at)test -d libc || mkdir -p libc
-	$(AM_V_GEN)cd libc && $(AR) x ../$< $(MATHOBJS_IN_LIBC)
+	$(AM_V_GEN)cd libc && $(AR) x ../$< $(MATHOBJS_IN_LIBC) || exit 1
 	$(AM_V_at)touch $@
 
-CLEANFILES += $(MATHOBJS_IN_LIBC)
+## Tell make how to build the extracted math objects
+$(MATHOBJS_IN_LIBC:%=libc/%): stamp-libc-math-objects
+
+CLEANFILES += stamp-libc-math-objects $(MATHOBJS_IN_LIBC:%=libc/%)
 
 libc_a_SOURCES =
 libc_a_CFLAGS = $(AM_CFLAGS) $(libc_a_CFLAGS_$(subst /,_,$(@D))) $(libc_a_CFLAGS_$(subst /,_,$(@D)_$(<F)))
 libc_a_CCASFLAGS = $(AM_CCASFLAGS) $(libc_a_CCASFLAGS_$(subst /,_,$(@D))) $(libc_a_CCASFLAGS_$(subst /,_,$(@D)_$(<F)))
 libc_a_CPPFLAGS = $(AM_CPPFLAGS) $(libc_a_CPPFLAGS_$(subst /,_,$(@D))) $(libc_a_CPPFLAGS_$(subst /,_,$(@D)_$(<F)))
-libc_a_DEPENDENCIES = stamp-libc-math-objects
+libc_a_DEPENDENCIES = stamp-libc-math-objects $(MATHOBJS_IN_LIBC:%=libc/%)
 ## Best to avoid libc_a_LIBADD entirely to avoid having 2 independent lists
 ## with separate overriding behavior (libc_a_OBJECTS is the other).  See the
 ## AWK_UNIQUE_OBJS comment aove for more details.
