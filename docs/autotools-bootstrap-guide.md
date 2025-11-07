@@ -286,4 +286,4 @@ This bootstrap approach should be reviewed when:
 - Updating GCC, binutils, or gdb versions
 - Ubuntu base image is updated (currently 22.04)
 
-Last updated: 2025-11-07 (November 7, 2025)
+Last updated: November 7, 2025

@@ -17,13 +17,14 @@ This document summarizes the modernization and minimization of autotools bootstr
   - `host_arch=`uname -m | sed ...`` → `host_arch=$(uname -m | sed ...)`
   - `JOBS=`grep ^processor ...`` → `JOBS=$(grep ^processor ...)`
   - `#JOBS=`sysctl -n hw.ncpu`` → `#JOBS=$(sysctl -n hw.ncpu)` (in comment)
-  - `SCRIPT=$(basename $0)` → `SCRIPT=$(basename "$0")` (added quoting)
-  - `GCC_VER=`cat ...`` → `GCC_VER=$(cat ...)`
+  - `GCC_VER=`cat ...`` → `GCC_VER=$(cat "$SRCDIR/$GCC/gcc/BASE-VER")`
   - `GCC_VER_DISPLAY=`cut ...`` → `GCC_VER_DISPLAY=$(cut ...)`
   - `STM32_TOOLS_VER=`git describe ...`` → `STM32_TOOLS_VER=$(git describe ...)`
 - Replaced `expr` arithmetic with `$(())` syntax (2 instances)
   - `stack_level=`expr $stack_level \+ 1 || true`` → `stack_level=$((stack_level + 1))`
   - `stack_level=`expr $stack_level \- 1 || true`` → `stack_level=$((stack_level - 1))`
+- Added proper quoting in existing $() commands (1 instance)
+  - `SCRIPT=$(basename $0)` → `SCRIPT=$(basename "$0")`
 - Removed workaround comments about "Force expr return 0 to avoid script fail" (no longer needed with modern syntax)
 
 **File: `build-prerequisites.sh`**
@@ -32,7 +33,7 @@ This document summarizes the modernization and minimization of autotools bootstr
   - `skip_steps=`echo $ac_arg | sed ...`` → `skip_steps=$(echo "$ac_arg" | sed ...)`
 - Added proper quoting in command substitutions for better safety
 
-**Total: 10 backtick replacements + 2 expr replacements across both files**
+**Total: 10 backtick replacements + 2 expr replacements = 12 legacy constructs eliminated**
 
 **Impact:**
 - Follows modern shell scripting best practices (POSIX-compliant)
@@ -111,8 +112,8 @@ Created 289-line comprehensive guide covering:
 1. `.gitignore` - Added autom4te.cache pattern
 2. `BUILD.md` - Added build time estimates
 3. `README.md` - Added documentation links
-4. `build-common.sh` - Modernized shell syntax (6 changes)
-5. `build-prerequisites.sh` - Modernized shell syntax (2 changes)
+4. `build-common.sh` - Modernized shell syntax (10 legacy constructs + quoting improvements)
+5. `build-prerequisites.sh` - Modernized shell syntax (2 legacy constructs + quoting improvements)
 6. `docs/autotools-bootstrap-guide.md` - New comprehensive guide (289 lines)
 
 **Total Lines Changed:** +316 insertions, -10 deletions
