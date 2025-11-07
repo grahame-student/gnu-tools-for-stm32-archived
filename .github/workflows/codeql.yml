@@ -2,10 +2,6 @@
 name: CodeQL Security Analysis
 
 on:
-  push:
-    # Run on push to default branch only (not on PR branches)
-    branches: 
-      - 13.3.rel1
   pull_request:
     # Run on pull requests to any branch
   schedule:
