@@ -456,7 +456,7 @@ When upgrading libtool:
 
 | Ubuntu Version | Autoconf | Automake | Libtool | Status | Migration Notes |
 |----------------|----------|----------|---------|--------|-----------------|
-| 20.04 LTS | 2.69 | 1.16.1 | 2.4.6 | ⚠️ EOL 2025 | Legacy, consider upgrading |
+| 20.04 LTS | 2.69 | 1.16.1 | 2.4.6 | ⚠️ EOL Apr 2025 | Legacy, consider upgrading |
 | 22.04 LTS | 2.71 | 1.16.5 | 2.4.6 | ✅ **Current** | Modern tools, stable |
 | 24.04 LTS | 2.71 | 1.16.5 | **2.4.7** | ✅ Ready | Libtool upgraded |
 

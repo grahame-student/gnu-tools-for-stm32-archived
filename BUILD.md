@@ -44,12 +44,14 @@ The Dockerfile follows the same build order using multi-stage builds:
 bootstrap → binutils-gcc-first → newlib → gcc-final-gdb → runtime-libs → main
 ```
 
-**Build Time**: A full container build typically takes approximately **2 hours** on current CI infrastructure. Individual stages complete much faster:
+**Build Time**: A full container build typically takes approximately **2 hours** on current CI infrastructure. The sum of individual build stages is approximately 100 minutes; the remaining time includes Docker image setup, layer caching, and other overhead. Individual stages complete:
 - Bootstrap (prerequisites): ~5 minutes
 - Binutils + GCC First: ~20 minutes
 - Newlib: ~10 minutes
 - GCC Final + GDB: ~60 minutes
 - Runtime libs finalization: ~5 minutes
+
+> **Note:** Stage timings are approximate and exclude Docker overhead such as image pulls, layer caching, and setup operations.
 
 To build with Docker:
 ```bash
