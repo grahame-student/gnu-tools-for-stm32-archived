@@ -236,7 +236,7 @@ This modernization is part of the broader autotools modernization effort documen
 - Status: **VERIFIED** - Bootstrap stage builds successfully in 129.5 seconds
 - No errors or warnings related to GMP
 
-✅ **Document rationale and before/after generated files in docs/modernization-gmp.md**
+✅ **Document rationale and before/after generated files in docs/autotools-modernization-gmp.md**
 - Status: **COMPLETED** - This document
 
 ✅ **Linting carried out and no new issues introduced**
