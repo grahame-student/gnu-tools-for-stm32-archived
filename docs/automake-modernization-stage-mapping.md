@@ -23,8 +23,8 @@ bootstrap → binutils-gcc-first → newlib → gcc-final-gdb → runtime-libs �
 Install build tools and build foundational prerequisite libraries needed by GCC.
 
 ### Build Tools Installed
-- **autoconf2.69** - Required for binutils/gcc/gdb (exactly version 2.69)
-- **automake** (1.16+) - For processing Makefile.am files
+- **autoconf2.69** (package name: `autoconf2.69`) - Required for binutils/gcc/gdb (exactly version 2.69)
+- **automake** (version 1.16+) - For processing Makefile.am files
 - **autogen** - For generating Makefile.in from Makefile.def
 - **libtool** - For library building support
 - **bison** - Parser generator
@@ -375,11 +375,11 @@ Final stage with complete toolchain ready for use.
 
 **Total count**: 165 files
 
-Breakdown by type:
-- `configure` scripts: ~40 files
-- `Makefile.in` files: ~110 files
-- `aclocal.m4` files: ~10 files
-- `config.h.in` / `*_config.h.in` files: ~5 files
+Breakdown by type (exact counts):
+- `configure` scripts: 32 files
+- `Makefile.in` files: 89 files
+- `aclocal.m4` files: 28 files
+- `config.h.in` / `*_config.h.in` files: 16 files
 
 ---
 
