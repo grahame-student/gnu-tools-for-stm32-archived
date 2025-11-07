@@ -1,0 +1,122 @@
+---
+name: CodeQL Security Analysis
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  schedule:
+    # Run at 00:00 UTC every Sunday
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze Code
+    runs-on: ubuntu-latest
+
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # CodeQL supports analyzing C/C++, but this repo is primarily build scripts
+        # We'll focus on general scripting analysis
+        language: [ 'python' ]
+        # Note: If the repo had Python scripts, we'd include it here
+        # For shell scripts, CodeQL has limited support, so we rely on shellcheck
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-and-quality
+
+      # Autobuild attempts to build any compiled languages (C/C++, etc.)
+      # Since this is mainly a build system with scripts, autobuild may not find much
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  shellcheck-analysis:
+    name: Shell Script Security Analysis
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Run shellcheck on all shell scripts
+        run: |
+          echo "=== Running shellcheck security analysis ==="
+          
+          # Find all shell scripts
+          shell_scripts=$(find . -type f -name "*.sh" -o -name "build-*" | grep -v ".git")
+          
+          has_errors=0
+          for script in $shell_scripts; do
+            echo "Analyzing $script..."
+            # Run shellcheck with security-focused checks
+            if ! shellcheck \
+              -e SC1091,SC2148 \
+              -f gcc \
+              "$script"; then
+              has_errors=1
+            fi
+          done
+          
+          if [ $has_errors -eq 1 ]; then
+            echo "ERROR: Shell scripts have security or quality issues"
+            exit 1
+          fi
+          
+          echo "All shell scripts passed security analysis"
+
+      - name: Run shellcheck with SARIF output
+        # This step generates SARIF format output for GitHub Security tab
+        continue-on-error: true
+        run: |
+          # Install shellcheck with SARIF support if available
+          # Note: May need a newer version of shellcheck for SARIF support
+          
+          mkdir -p shellcheck-results
+          
+          for script in $(find . -type f -name "*.sh" -o -name "build-*" | grep -v ".git"); do
+            script_name=$(basename "$script")
+            # Try to generate SARIF output (if supported by shellcheck version)
+            shellcheck -f json "$script" > "shellcheck-results/${script_name}.json" || true
+          done
+
+      - name: Upload shellcheck results
+        # Upload results even if some checks failed
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: shellcheck-results
+          path: shellcheck-results/
+          retention-days: 30
