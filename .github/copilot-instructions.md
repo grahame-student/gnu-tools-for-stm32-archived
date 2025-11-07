@@ -94,17 +94,17 @@ autoconf
 ## Build Scripts and Configuration
 
 ### Core Build Files
-- `build-common.sh` (797 lines) - **Core functions library**
+- `build-common.sh` - **Core functions library**
   - Contains: `regenerate_autotools()`, `lint_autotools()`, `check_autotools_drift()`
   - Error handling, directory management, autotools utilities
   - **Source this file first** before using other build scripts
   
-- `build-toolchain-config.sh` (35 lines) - **Build configuration**
+- `build-toolchain-config.sh` - **Build configuration**
   - Sets up environment variables (CFLAGS, LDFLAGS, etc.)
   - Defines configuration options for GCC, Binutils, Newlib, GDB
   - **Source after build-common.sh**
 
-- `build-toolchain.sh` (1021 lines) - **Legacy monolithic build script**
+- `build-toolchain.sh` - **Legacy monolithic build script**
   - Not used in Docker builds
   - Kept for reference and manual builds
   - Contains all build stages in one script
