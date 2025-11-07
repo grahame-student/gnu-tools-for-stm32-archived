@@ -13,6 +13,13 @@ This repository contains sources and build scripts for **GNU Tools for STM32** C
 
 See [LICENSE.md](LICENSE.md)
 
+## Documentation
+
+- [BUILD.md](BUILD.md) - Build instructions and Docker build information
+- [docs/autotools-bootstrap-guide.md](docs/autotools-bootstrap-guide.md) - Autotools regeneration and bootstrap process
+- [docs/automake-modernization-stage-mapping.md](docs/automake-modernization-stage-mapping.md) - Detailed build stage mapping
+- [docs/automake-linting.md](docs/automake-linting.md) - Linting and quality checks
+
 ## Host Platforms
 
 * GNU/Linux
