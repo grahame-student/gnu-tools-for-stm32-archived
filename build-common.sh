@@ -105,8 +105,8 @@ clean_env () {
 # Must call this before saving any variables
 saveenv () {
     set +u
-    # Force expr return 0 to avoid script fail
-    stack_level=`expr $stack_level \+ 1 || true`
+    # Increment stack level
+    stack_level=$((stack_level + 1))
     eval stack_list_$stack_level=
     set -u
 }
@@ -158,8 +158,8 @@ restoreenv () {
         eval level_saved_${stack_level}_$varname=
         # eval echo $varname restore to \\\"\"\${$varname}\"\\\"
     done
-    # Force expr return 0 to avoid script fail
-    stack_level=`expr $stack_level \- 1 || true`
+    # Decrement stack level
+    stack_level=$((stack_level - 1))
     set -u
 }
 
@@ -654,7 +654,7 @@ check_autotools_drift() {
 # Clean up unnecessary global shell variables
 clean_env
 
-ROOT=`pwd`
+ROOT=$(pwd)
 SRCDIR=$ROOT/src
 
 BUILDDIR_NATIVE=$ROOT/build-native
@@ -710,8 +710,8 @@ PYTHON_WIN_URL=https://www.python.org/ftp/python/$PYTHON_WIN_VER/$PYTHON_WIN_PAC
 TAR=tar
 # Set variables according to real environment to make this script can run
 # on Ubuntu and Mac OS X.
-uname_string=`uname | sed 'y/LINUXDARWIN/linuxdarwin/'`
-host_arch=`uname -m | sed 'y/XI/xi/'`
+uname_string=$(uname | sed 'y/LINUXDARWIN/linuxdarwin/')
+host_arch=$(uname -m | sed 'y/XI/xi/')
 if [ "x$uname_string" == "xlinux" ] ; then
     BUILD="$host_arch"-linux-gnu
     HOST_NATIVE="$host_arch"-linux-gnu
