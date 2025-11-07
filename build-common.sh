@@ -503,11 +503,12 @@ lint_autotools() {
     # Run shellcheck on shell scripts if available
     if which shellcheck > /dev/null 2>&1; then
         echo "  Running shellcheck on shell scripts..."
-        local shell_scripts=$(find . -maxdepth 2 -type f \( -name "*.sh" -o -name "configure" \) 2>/dev/null || true)
+        local shell_scripts
+        shell_scripts=$(find . -maxdepth 2 -type f \( -name "*.sh" -o -name "configure" \) 2>/dev/null || true)
         if [ -n "$shell_scripts" ]; then
-            for script in $shell_scripts; do
+            while IFS= read -r script; do
                 # Skip configure scripts as they're auto-generated
-                if [[ "$script" =~ configure$ ]] && [ -f "${script}.ac" -o -f "${script}.in" ]; then
+                if [[ "$script" =~ configure$ ]] && [[ -f "${script}.ac" || -f "${script}.in" ]]; then
                     continue
                 fi
                 if [ -f "$script" ] && file "$script" 2>/dev/null | grep -q "shell script"; then
@@ -517,7 +518,7 @@ lint_autotools() {
                         lint_issues=$((lint_issues + 1))
                     fi
                 fi
-            done
+            done <<< "$shell_scripts"
         fi
         rm -f /tmp/shellcheck-lint.log
     fi

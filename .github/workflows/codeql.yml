@@ -19,6 +19,9 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
+      # actions: read - Required to read workflow artifacts and metadata
+      # contents: read - Required to checkout the repository code
+      # security-events: write - Required to upload CodeQL results to GitHub Security tab
       actions: read
       contents: read
       security-events: write
@@ -57,6 +60,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
+      # contents: read - Required to checkout the repository code
       contents: read
 
     steps:
@@ -68,15 +72,23 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y shellcheck
 
+      - name: Find shell scripts
+        id: find-scripts
+        run: |
+          # Find all shell scripts (both .sh files and build-* scripts)
+          # Exclude .git directory to avoid checking git internals
+          SCRIPTS=$(find . -type f \( -name "*.sh" -o -name "build-*" \) | grep -v ".git" | tr '\n' ' ')
+          echo "scripts=$SCRIPTS" >> $GITHUB_OUTPUT
+          echo "Found scripts: $SCRIPTS"
+
       - name: Run shellcheck on all shell scripts
+        env:
+          SHELL_SCRIPTS: ${{ steps.find-scripts.outputs.scripts }}
         run: |
           echo "=== Running shellcheck security analysis ==="
           
-          # Find all shell scripts
-          shell_scripts=$(find . -type f -name "*.sh" -o -name "build-*" | grep -v ".git")
-          
           has_errors=0
-          for script in $shell_scripts; do
+          for script in $SHELL_SCRIPTS; do
             echo "Analyzing $script..."
             # Run shellcheck with security-focused checks
             if ! shellcheck \
@@ -97,10 +109,12 @@ jobs:
       - name: Run shellcheck with JSON output
         # This step generates JSON format output for artifact storage
         continue-on-error: true
+        env:
+          SHELL_SCRIPTS: ${{ steps.find-scripts.outputs.scripts }}
         run: |
           mkdir -p shellcheck-results
           
-          for script in $(find . -type f -name "*.sh" -o -name "build-*" | grep -v ".git"); do
+          for script in $SHELL_SCRIPTS; do
             script_name=$(basename "$script")
             # Generate JSON output for artifact storage
             shellcheck -f json "$script" > "shellcheck-results/${script_name}.json" || true

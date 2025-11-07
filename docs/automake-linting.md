@@ -238,8 +238,6 @@ As components are modernized and cleaned up, they can be switched to strict mode
 lint_autotools "src/$lib" --strict
 ```
 
-### Failure Behavior
-
 ## Component-Specific Notes
 
 ### Prerequisites (GMP, MPFR, MPC, ISL, Expat)
