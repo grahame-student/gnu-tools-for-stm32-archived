@@ -373,10 +373,10 @@ A separate CodeQL workflow (`.github/workflows/codeql.yml`) runs:
 - **Don't commit secrets** or sensitive data
 
 ### Best Practices for Pull Requests
-Per CONTRIBUTING.md:
-- Issues and PRs are **not supported** in this repository
-- For problems/suggestions: Use [ST Community forums](https://community.st.com/t5/stm32cubeide-mcus/bd-p/stm32-mcu-cubeide-forum)
-- For defects: Contact [ST Support Center](https://my.st.com/ols#/ols/)
+This repository is detached from the original fork network and accepts contributions through standard GitHub workflows:
+- Submit issues for bug reports or feature requests
+- Submit pull requests for code changes
+- Follow standard GitHub collaboration practices
 
 ## Troubleshooting Common Issues
 
