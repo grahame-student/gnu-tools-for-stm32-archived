@@ -6,6 +6,10 @@ on:
   pull_request:
     # Run on pull requests to any branch
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions: {}
 
 jobs:
