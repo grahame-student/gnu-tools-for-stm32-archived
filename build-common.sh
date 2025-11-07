@@ -29,7 +29,6 @@ error () {
     set +u
     echo "$0: error: $*" >&2
     exit 1
-    set -u
 }
 
 warning () {
@@ -412,7 +411,6 @@ lint_autotools() {
     
     if [ ! -d "$lib_src_dir" ] ; then
         error "lint_autotools: Directory does not exist ($lib_src_dir)"
-        return 1
     fi
     
     local lib_name=$(basename "$lib_src_dir")
@@ -429,7 +427,7 @@ lint_autotools() {
     
     # Use autoconf2.69 for binutils/gcc/gdb/newlib if needed
     if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ] || [ "$lib_name" = "newlib" ]; then
-        local autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | grep -oP '\d+\.\d+' || echo "")
+        local autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | sed -n 's/[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' || echo "")
         if [ "$autoconf_version" != "2.69" ] && which autoconf2.69 > /dev/null 2>&1; then
             autoconf_cmd="autoconf2.69"
             automake_cmd="automake"  # Use default automake
@@ -442,11 +440,12 @@ lint_autotools() {
         $autoconf_cmd --warnings=all -o /dev/null 2>&1 | tee /tmp/autoconf-lint.log || true
         
         # Check if there were any warnings or errors in the output
+        local issue_count=0
         if [ -f /tmp/autoconf-lint.log ] && [ -s /tmp/autoconf-lint.log ]; then
             if grep -qE "(warning|error|deprecated)" /tmp/autoconf-lint.log; then
                 echo "  ⚠️  autoconf linting found issues in $lib_src_dir:"
                 grep -E "(warning|error|deprecated)" /tmp/autoconf-lint.log | head -10
-                local issue_count=$(grep -cE "(warning|error|deprecated)" /tmp/autoconf-lint.log || echo 0)
+                issue_count=$(grep -cE "(warning|error|deprecated)" /tmp/autoconf-lint.log || echo 0)
                 echo "  Total issues: $issue_count (see full output above)"
                 lint_issues=$((lint_issues + 1))
             fi
@@ -477,11 +476,12 @@ lint_autotools() {
             $automake_cmd --warnings=all --add-missing --copy 2>&1 | tee /tmp/automake-lint.log || true
             
             # Check if there were any warnings in the output
+            local issue_count=0
             if [ -f /tmp/automake-lint.log ] && [ -s /tmp/automake-lint.log ]; then
                 if grep -qE "(warning|error|deprecated)" /tmp/automake-lint.log; then
                     echo "  ⚠️  automake linting found issues in $lib_src_dir:"
                     grep -E "(warning|error|deprecated)" /tmp/automake-lint.log | head -10
-                    local issue_count=$(grep -cE "(warning|error|deprecated)" /tmp/automake-lint.log || echo 0)
+                    issue_count=$(grep -cE "(warning|error|deprecated)" /tmp/automake-lint.log || echo 0)
                     echo "  Total issues: $issue_count (see full output above)"
                     lint_issues=$((lint_issues + 1))
                 fi
@@ -558,7 +558,6 @@ check_autotools_drift() {
     
     if [ ! -d "$lib_src_dir" ] ; then
         error "check_autotools_drift: Directory does not exist ($lib_src_dir)"
-        return 1
     fi
     
     local lib_name=$(basename "$lib_src_dir")
@@ -592,7 +591,7 @@ check_autotools_drift() {
     echo "  Running autoreconf -fi to check for drift..."
     local autoreconf_cmd="autoreconf"
     if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ] || [ "$lib_name" = "newlib" ]; then
-        local autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | grep -oP '\d+\.\d+' || echo "")
+        local autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | sed -n 's/[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' || echo "")
         if [ "$autoconf_version" != "2.69" ] && which autoconf2.69 > /dev/null 2>&1; then
             export AUTOCONF=autoconf2.69
             export AUTOHEADER=autoheader2.69
@@ -645,8 +644,6 @@ check_autotools_drift() {
     
     if [ $drift_detected -eq 1 ]; then
         error "Autotools drift detected in $lib_src_dir - regenerate files with autoreconf -fi"
-        set -u
-        return 1
     fi
     
     echo "No drift detected in $lib_src_dir"

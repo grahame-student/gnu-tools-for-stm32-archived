@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 permissions: {}
@@ -78,7 +78,8 @@ jobs:
         run: |
           # Find all shell scripts (both .sh files and build-* scripts)
           # Exclude .git directory to avoid checking git internals
-          SCRIPTS=$(find . -type f \( -name "*.sh" -o -name "build-*" \) | grep -v ".git" | tr '\n' ' ')
+          # Use sort -u to remove duplicates (e.g., build-common.sh matches both patterns)
+          SCRIPTS=$(find . -type f \( -name "*.sh" -o -name "build-*" \) | grep -v ".git" | sort -u | tr '\n' ' ')
           echo "scripts=$SCRIPTS" >> $GITHUB_OUTPUT
           echo "Found scripts: $SCRIPTS"
 

@@ -68,7 +68,7 @@ In strict mode, any linting warnings or errors will cause the linting process to
 
 **Purpose**: Lint automake Makefile templates (Makefile.am)
 
-**Command**: `automake --warnings=all --dry-run`
+**Command**: `automake --warnings=all --add-missing --copy`
 
 **Checks for**:
 - Deprecated automake syntax
