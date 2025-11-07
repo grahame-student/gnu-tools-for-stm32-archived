@@ -19,6 +19,12 @@ prepend_path PATH $INSTALLDIR_NATIVE/bin
 # Set target-specific compilation flags
 saveenvvar CFLAGS_FOR_TARGET '-g -Os -ffunction-sections -fdata-sections -fno-unroll-loops -DPREFER_SIZE_OVER_SPEED -D__OPTIMIZE_SIZE__ -DSMALL_MEMORY'
 
+# Regenerate autotools files (configure, Makefile.in, etc.)
+# NOTE: The regenerate_autotools function is defined in build-common.sh.
+# It requires GNU Autotools (autoconf 2.69, automake >= 1.15, autogen).
+# The function ensures these versions are available before proceeding.
+regenerate_autotools $SRCDIR/$NEWLIB
+
 echo "Task [III-2] /$HOST_NATIVE/newlib/"
 rm -rf $BUILDDIR_NATIVE/newlib && mkdir -p $BUILDDIR_NATIVE/newlib
 
