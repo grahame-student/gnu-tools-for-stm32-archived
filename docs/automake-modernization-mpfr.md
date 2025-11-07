@@ -414,9 +414,9 @@ The following were verified to be correct:
 ### 2. Monitor Upstream MPFR Updates
 
 **Watch for** MPFR upstream releases:
-- Current version: 3.1.6 (2017)
-- Latest stable: 4.2.1 (2023)
-- Consider upgrading to MPFR 4.x in the future
+- Current version in use: 3.1.6 (2017)
+- Check https://www.mpfr.org/ for latest stable releases
+- Consider upgrading to newer MPFR versions when available
 - Newer versions may address obsolete macro warnings
 
 ### 3. Address Obsolete Macros (Optional)
