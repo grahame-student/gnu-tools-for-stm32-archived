@@ -294,7 +294,7 @@ regenerate_autotools() {
         # Check if we need to use autoconf2.69 explicitly
         local autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | grep -oP '\d+\.\d+' || echo "")
         if [ "$autoconf_version" != "2.69" ] && which autoconf2.69 > /dev/null 2>&1; then
-            # Not using 2.69 by default, use autoconf2.69 explicitly for these legacy components
+            # autoconf default is not 2.69, so use autoconf2.69 explicitly for these components
             # Set AUTOCONF and related variables to use version 2.69
             export AUTOCONF=autoconf2.69
             export AUTOHEADER=autoheader2.69

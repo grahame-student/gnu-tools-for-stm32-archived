@@ -25,12 +25,12 @@ The bootstrap stage (Docker stage 1) builds these prerequisite libraries using *
 | Library | Purpose | Autotools Usage | Autotools Versions | Files Tracked |
 |---------|---------|-----------------|-------------------|---------------|
 | **zlib** | Compression | Custom configure (not autotools) | N/A | 2 (configure, Makefile.in) |
-| **GMP** | Arbitrary precision arithmetic | automake + autoconf 2.71 | Modern | 0 (all regenerated) |
-| **MPFR** | Multiple precision floating-point | automake + autoconf 2.71 | Modern | 0 (all regenerated) |
-| **MPC** | Complex number arithmetic | automake + autoconf 2.71 | Modern | 0 (all regenerated) |
-| **ISL** | Integer set library | automake + autoconf 2.71 | Modern | 1 (isl_config.h.in) |
-| **Expat** | XML parser for GDB | automake + autoconf 2.71 | Modern | 1 (expat_config.h.in) |
-| **libiconv** | Character encoding (Windows) | autoconf 2.71 only | Modern | 8 (Makefile.in files) |
+| **GMP** | Arbitrary precision arithmetic | automake + autoconf 2.71 | 2.71 / 1.16.5 / 2.4.6 | 0 (all regenerated) |
+| **MPFR** | Multiple precision floating-point | automake + autoconf 2.71 | 2.71 / 1.16.5 / 2.4.6 | 0 (all regenerated) |
+| **MPC** | Complex number arithmetic | automake + autoconf 2.71 | 2.71 / 1.16.5 / 2.4.6 | 0 (all regenerated) |
+| **ISL** | Integer set library | automake + autoconf 2.71 | 2.71 / 1.16.5 / 2.4.6 | 1 (isl_config.h.in) |
+| **Expat** | XML parser for GDB | automake + autoconf 2.71 | 2.71 / 1.16.5 / 2.4.6 | 1 (expat_config.h.in) |
+| **libiconv** | Character encoding (Windows) | autoconf 2.71 only | 2.71 | 8 (Makefile.in files) |
 
 **Note**: Subsequent build stages (binutils, gcc, gdb, newlib) use autoconf 2.69 for reproducible builds as required by those upstream projects.
 
@@ -456,7 +456,7 @@ When upgrading libtool:
 
 | Ubuntu Version | Autoconf | Automake | Libtool | Status | Migration Notes |
 |----------------|----------|----------|---------|--------|-----------------|
-| 20.04 LTS | 2.69 | 1.16.1 | 2.4.6 | ⚠️ EOL Apr 2025 | Legacy, consider upgrading |
+| 20.04 LTS | 2.69 | 1.16.1 | 2.4.6 | ❌ EOL (Apr 2025) | Legacy, upgrade required |
 | 22.04 LTS | 2.71 | 1.16.5 | 2.4.6 | ✅ **Current** | Modern tools, stable |
 | 24.04 LTS | 2.71 | 1.16.5 | **2.4.7** | ✅ Ready | Libtool upgraded |
 
