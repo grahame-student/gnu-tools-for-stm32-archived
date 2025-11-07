@@ -11,8 +11,7 @@ on:
     - cron: '0 0 * * 0'
   workflow_dispatch:
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   analyze:
@@ -59,7 +58,6 @@ jobs:
 
     permissions:
       contents: read
-      security-events: write
 
     steps:
       - name: Checkout repository
@@ -96,18 +94,15 @@ jobs:
           
           echo "All shell scripts passed security analysis"
 
-      - name: Run shellcheck with SARIF output
-        # This step generates SARIF format output for GitHub Security tab
+      - name: Run shellcheck with JSON output
+        # This step generates JSON format output for artifact storage
         continue-on-error: true
         run: |
-          # Install shellcheck with SARIF support if available
-          # Note: May need a newer version of shellcheck for SARIF support
-          
           mkdir -p shellcheck-results
           
           for script in $(find . -type f -name "*.sh" -o -name "build-*" | grep -v ".git"); do
             script_name=$(basename "$script")
-            # Try to generate SARIF output (if supported by shellcheck version)
+            # Generate JSON output for artifact storage
             shellcheck -f json "$script" > "shellcheck-results/${script_name}.json" || true
           done
 
