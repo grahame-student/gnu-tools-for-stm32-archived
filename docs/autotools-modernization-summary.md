@@ -26,6 +26,8 @@ This document summarizes the modernization and minimization of autotools bootstr
   - `skip_steps=`echo $ac_arg | sed ...`` → `skip_steps=$(echo "$ac_arg" | sed ...)`
 - Added proper quoting in command substitutions for better safety
 
+**Total: 6 backtick replacements + 2 expr replacements across both files**
+
 **Impact:**
 - Follows modern shell scripting best practices (POSIX-compliant)
 - Improves code readability and maintainability

@@ -67,7 +67,7 @@ export AUTORECONF=autoreconf2.69
 export AUTOUPDATE=autoupdate2.69
 ```
 
-Ubuntu 22.04+ ships with autoconf 2.71 by default, so the `autoconf2.69` package must be installed explicitly.
+The Dockerfile is based on Ubuntu 22.04, which ships with autoconf 2.71 by default, so the `autoconf2.69` package must be installed explicitly. Future Ubuntu versions may have different default autoconf versions, so always verify and install the exact version required.
 
 #### Autogen (Makefile.def → Makefile.in)
 
@@ -286,4 +286,4 @@ This bootstrap approach should be reviewed when:
 - Updating GCC, binutils, or gdb versions
 - Ubuntu base image is updated (currently 22.04)
 
-Last updated: 2025-11-07
+Last updated: 2025-11-07 (November 7, 2025)
