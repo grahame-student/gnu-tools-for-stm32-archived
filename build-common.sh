@@ -285,16 +285,16 @@ regenerate_autotools() {
     # -f: force regeneration even if files exist
     
     # Determine which autoreconf to use
+    # Bootstrap libraries (gmp, mpfr, mpc, isl, expat, libiconv) use modern autoconf 2.71 (Ubuntu 22.04 default)
     # binutils/gcc/gdb/newlib require autoconf 2.69 for reproducible builds
-    # We use 'autoconf2.69' explicitly if available (required on Ubuntu 22.04+ which has autoconf 2.71 by default)
-    # The Dockerfile installs autoconf2.69 package to ensure correct version is used
+    # We use 'autoconf2.69' explicitly only for binutils/gcc/gdb/newlib
     local autoreconf_cmd="autoreconf"
     local lib_name=$(basename "$lib_src_dir")
     if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ] || [ "$lib_name" = "newlib" ]; then
         # Check if we need to use autoconf2.69 explicitly
         local autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | grep -oP '\d+\.\d+' || echo "")
         if [ "$autoconf_version" != "2.69" ] && which autoconf2.69 > /dev/null 2>&1; then
-            # Not using 2.69 by default, use autoconf2.69 explicitly
+            # Not using 2.69 by default, use autoconf2.69 explicitly for these legacy components
             # Set AUTOCONF and related variables to use version 2.69
             export AUTOCONF=autoconf2.69
             export AUTOHEADER=autoheader2.69

@@ -21,6 +21,7 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
     apt-get update && \
     apt-get --yes upgrade && \
     apt-get install --yes --no-install-recommends \
+        autoconf \
         autoconf2.69 \
         automake \
         autogen \
@@ -35,8 +36,9 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
     rm -rf /var/lib/apt/lists/*
 
 # Autotools packages installed:
-# - autoconf2.69:    Required for binutils/gcc/gdb (exact version 2.69 needed for reproducible builds)
-# - automake:        For processing Makefile.am → Makefile.in (prerequisite libraries: gmp, mpfr, mpc, isl, expat)
+# - autoconf:        Modern autoconf 2.71 (Ubuntu 22.04 default) for bootstrap libraries (gmp, mpfr, mpc, isl, expat, libiconv)
+# - autoconf2.69:    Legacy version required for binutils/gcc/gdb/newlib (exact version 2.69 needed for reproducible builds)
+# - automake:        For processing Makefile.am → Makefile.in (all libraries using automake)
 # - autogen:         For processing Makefile.def → Makefile.in (binutils, gcc, gdb, newlib)
 # - libtool:         For building shared/static libraries
 
