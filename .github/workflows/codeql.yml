@@ -29,11 +29,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # CodeQL supports analyzing C/C++, but this repo is primarily build scripts
-        # We'll focus on general scripting analysis
-        language: [ 'python' ]
-        # Note: If the repo had Python scripts, we'd include it here
+        # CodeQL supports multiple languages including C/C++, Python, JavaScript
+        # This repo contains Python scripts in src/expat, src/isl, and src/gdb
         # For shell scripts, CodeQL has limited support, so we rely on shellcheck
+        language: [ 'python' ]
 
     steps:
       - name: Checkout repository

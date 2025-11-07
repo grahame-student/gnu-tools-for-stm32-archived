@@ -508,6 +508,8 @@ lint_autotools() {
         if [ -n "$shell_scripts" ]; then
             while IFS= read -r script; do
                 # Skip configure scripts as they're auto-generated
+                # Note: Using [[ ]] for regex matching (=~) which requires bash
+                # This script is explicitly executed with bash (#!/bin/bash not present but sourced by bash scripts)
                 if [[ "$script" =~ configure$ ]] && [[ -f "${script}.ac" || -f "${script}.in" ]]; then
                     continue
                 fi
