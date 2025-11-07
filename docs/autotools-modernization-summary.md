@@ -81,8 +81,8 @@ Added links to all documentation files:
 - docs/automake-modernization-stage-mapping.md
 - docs/automake-linting.md
 
-**docs/autotools-bootstrap-guide.md - New Comprehensive Guide:**
-Created 592-line comprehensive guide covering:
+**docs/autotools-bootstrap-guide.md - New Autotools Bootstrap Guide:**
+Created 592-line autotools bootstrap guide covering:
 - Philosophy of minimal tracked files
 - Bootstrap stage components and their autotools usage
 - Detailed explanation of `regenerate_autotools()` function
@@ -117,7 +117,7 @@ Created 592-line comprehensive guide covering:
 4. `build-common.sh` - Modernized shell syntax (10 legacy constructs + quoting improvements)
 5. `build-prerequisites.sh` - Modernized shell syntax (2 legacy constructs + quoting improvements)
 6. `docs/autotools-bootstrap-guide.md` - New comprehensive guide (592 lines)
-7. `docs/autotools-modernization-summary.md` - New change summary (191 lines)
+7. `docs/autotools-modernization-summary.md` - New change summary (194 lines)
 
 **Total Lines Changed:** +500+ insertions, -10 deletions (excluding new documentation files)
 
