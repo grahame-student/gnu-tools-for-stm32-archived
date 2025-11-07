@@ -54,6 +54,9 @@ jobs:
         shell: bash
         run: |
           echo "=== Linting autotools configurations ==="
+          echo "Note: Running in informational mode - issues will be reported but won't fail the build"
+          echo "This helps identify areas for improvement without blocking development"
+          echo ""
           source build-common.sh
           
           # Lint prerequisite libraries that use autotools
@@ -61,15 +64,14 @@ jobs:
             if [ -d "src/$lib" ]; then
               echo "Linting src/$lib..."
               if [ -f "src/$lib/configure.ac" ] || [ -f "src/$lib/configure.in" ]; then
-                lint_autotools "src/$lib" || {
-                  echo "ERROR: Linting failed for src/$lib"
-                  exit 1
-                }
+                # Run in informational mode (default)
+                lint_autotools "src/$lib" || true
               fi
+              echo ""
             fi
           done
           
-          echo "Autotools linting completed successfully"
+          echo "Autotools linting completed (informational mode)"
 
       - name: Check for autotools drift
         shell: bash

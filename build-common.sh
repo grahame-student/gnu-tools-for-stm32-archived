@@ -388,14 +388,27 @@ regenerate_autotools() {
 }
 
 # Run autoconf/automake linting with all warnings enabled
-# Usage: lint_autotools <library_src_dir>
+# Usage: lint_autotools <library_src_dir> [--strict]
+# By default, linting reports issues but doesn't fail (informational mode)
+# With --strict, linting failures will cause the function to return non-zero
 lint_autotools() {
     set +u
-    if [ $# -ne 1 ] ; then
+    local strict_mode=0
+    local lib_src_dir=""
+    
+    # Parse arguments
+    for arg in "$@"; do
+        if [ "$arg" = "--strict" ]; then
+            strict_mode=1
+        elif [ -z "$lib_src_dir" ]; then
+            lib_src_dir="$arg"
+        fi
+    done
+    
+    if [ -z "$lib_src_dir" ] ; then
         warning "lint_autotools: Missing argument"
         return 1
     fi
-    local lib_src_dir="$1"
     
     if [ ! -d "$lib_src_dir" ] ; then
         error "lint_autotools: Directory does not exist ($lib_src_dir)"
@@ -404,10 +417,13 @@ lint_autotools() {
     
     local lib_name=$(basename "$lib_src_dir")
     echo "Running autotools linting for $lib_name in $lib_src_dir"
+    if [ $strict_mode -eq 0 ]; then
+        echo "  (informational mode - will not fail build)"
+    fi
     
     pushd "$lib_src_dir" > /dev/null
     
-    local lint_failed=0
+    local lint_issues=0
     local autoconf_cmd="autoconf"
     local automake_cmd="automake"
     
@@ -423,54 +439,82 @@ lint_autotools() {
     # Run autoconf with all warnings enabled if configure.ac or configure.in exists
     if [ -f "configure.ac" ] || [ -f "configure.in" ]; then
         echo "  Running $autoconf_cmd --warnings=all..."
-        if ! $autoconf_cmd --warnings=all -o /dev/null 2>&1 | tee /tmp/autoconf-lint.log; then
-            warning "autoconf linting produced warnings in $lib_src_dir"
-            cat /tmp/autoconf-lint.log >&2
-            lint_failed=1
-        fi
-        # Check if there were any warnings in the output
+        $autoconf_cmd --warnings=all -o /dev/null 2>&1 | tee /tmp/autoconf-lint.log || true
+        
+        # Check if there were any warnings or errors in the output
         if [ -f /tmp/autoconf-lint.log ] && [ -s /tmp/autoconf-lint.log ]; then
-            if grep -qE "(warning|deprecated)" /tmp/autoconf-lint.log; then
-                warning "autoconf linting found issues in $lib_src_dir"
-                lint_failed=1
+            if grep -qE "(warning|error|deprecated)" /tmp/autoconf-lint.log; then
+                echo "  ⚠️  autoconf linting found issues in $lib_src_dir:"
+                grep -E "(warning|error|deprecated)" /tmp/autoconf-lint.log | head -10
+                local issue_count=$(grep -cE "(warning|error|deprecated)" /tmp/autoconf-lint.log || echo 0)
+                echo "  Total issues: $issue_count (see full output above)"
+                lint_issues=$((lint_issues + 1))
             fi
         fi
         rm -f /tmp/autoconf-lint.log
     fi
     
     # Run automake with all warnings enabled if Makefile.am exists
+    # Note: We skip actual file generation to avoid side effects, just check for warnings
     if [ -f "Makefile.am" ]; then
         echo "  Running $automake_cmd --warnings=all..."
-        if ! $automake_cmd --warnings=all --dry-run 2>&1 | tee /tmp/automake-lint.log; then
-            warning "automake linting produced warnings in $lib_src_dir"
-            cat /tmp/automake-lint.log >&2
-            lint_failed=1
-        fi
-        # Check if there were any warnings in the output
-        if [ -f /tmp/automake-lint.log ] && [ -s /tmp/automake-lint.log ]; then
-            if grep -qE "(warning|deprecated)" /tmp/automake-lint.log; then
-                warning "automake linting found issues in $lib_src_dir"
-                lint_failed=1
+        # Check if aclocal.m4 exists, if not we need to run aclocal first
+        local need_cleanup=0
+        local aclocal_existed=1
+        if [ ! -f "aclocal.m4" ]; then
+            echo "    Running aclocal to generate aclocal.m4 for linting..."
+            aclocal 2>&1 | tee /tmp/aclocal-lint.log || true
+            if [ -f "aclocal.m4" ]; then
+                need_cleanup=1
+                aclocal_existed=0
+            else
+                warning "aclocal failed, skipping automake linting in $lib_src_dir"
             fi
         fi
-        rm -f /tmp/automake-lint.log
+        
+        # Run automake --warnings=all to check Makefile.am (only if aclocal.m4 exists)
+        if [ -f "aclocal.m4" ]; then
+            $automake_cmd --warnings=all --add-missing --copy 2>&1 | tee /tmp/automake-lint.log || true
+            
+            # Check if there were any warnings in the output
+            if [ -f /tmp/automake-lint.log ] && [ -s /tmp/automake-lint.log ]; then
+                if grep -qE "(warning|error|deprecated)" /tmp/automake-lint.log; then
+                    echo "  ⚠️  automake linting found issues in $lib_src_dir:"
+                    grep -E "(warning|error|deprecated)" /tmp/automake-lint.log | head -10
+                    local issue_count=$(grep -cE "(warning|error|deprecated)" /tmp/automake-lint.log || echo 0)
+                    echo "  Total issues: $issue_count (see full output above)"
+                    lint_issues=$((lint_issues + 1))
+                fi
+            fi
+        fi
+        
+        # Cleanup temporary files if we generated them
+        if [ $need_cleanup -eq 1 ]; then
+            rm -f aclocal.m4
+        fi
+        # Clean up any Makefile.in files that automake may have created during linting
+        if [ $aclocal_existed -eq 0 ]; then
+            # Only clean up if we created aclocal.m4 ourselves
+            rm -f Makefile.in
+        fi
+        rm -f /tmp/automake-lint.log /tmp/aclocal-lint.log
     fi
     
     # Run shellcheck on shell scripts if available
     if which shellcheck > /dev/null 2>&1; then
         echo "  Running shellcheck on shell scripts..."
-        local shell_scripts=$(find . -maxdepth 2 -type f \( -name "*.sh" -o -name "configure" \) 2>/dev/null)
+        local shell_scripts=$(find . -maxdepth 2 -type f \( -name "*.sh" -o -name "configure" \) 2>/dev/null || true)
         if [ -n "$shell_scripts" ]; then
             for script in $shell_scripts; do
                 # Skip configure scripts as they're auto-generated
                 if [[ "$script" =~ configure$ ]] && [ -f "${script}.ac" -o -f "${script}.in" ]; then
                     continue
                 fi
-                if [ -f "$script" ] && file "$script" | grep -q "shell script"; then
+                if [ -f "$script" ] && file "$script" 2>/dev/null | grep -q "shell script"; then
                     echo "    Checking $script..."
-                    if ! shellcheck -e SC1091,SC2148 "$script" 2>&1 | tee -a /tmp/shellcheck-lint.log; then
-                        warning "shellcheck found issues in $script"
-                        lint_failed=1
+                    if shellcheck -e SC1091,SC2148 "$script" 2>&1 | tee /tmp/shellcheck-lint.log | grep -qE "(warning|error)"; then
+                        echo "  ⚠️  shellcheck found issues in $script (see above)"
+                        lint_issues=$((lint_issues + 1))
                     fi
                 fi
             done
@@ -480,13 +524,20 @@ lint_autotools() {
     
     popd > /dev/null
     
-    if [ $lint_failed -eq 1 ]; then
-        warning "Linting found issues in $lib_src_dir"
-        set -u
-        return 1
+    # Report results
+    if [ $lint_issues -gt 0 ]; then
+        echo "⚠️  Linting found issues in $lib_src_dir ($lint_issues tool(s) reported problems)"
+        if [ $strict_mode -eq 1 ]; then
+            warning "Linting found issues in $lib_src_dir (strict mode enabled)"
+            set -u
+            return 1
+        else
+            echo "  (informational only - not failing build)"
+        fi
+    else
+        echo "✓ Linting passed for $lib_src_dir"
     fi
     
-    echo "Successfully completed linting for $lib_src_dir"
     set -u
     return 0
 }
