@@ -6,8 +6,9 @@ on:
   pull_request:
     # Run on pull requests to any branch
   push:
-    # Run on push to default branch
-    branches: [ 13.3.rel1 ]
+    # Run on push to default branch only (not on PR branches)
+    branches: 
+      - 13.3.rel1
 
 permissions: {}
 
