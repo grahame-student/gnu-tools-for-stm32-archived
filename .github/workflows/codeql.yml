@@ -3,9 +3,10 @@ name: CodeQL Security Analysis
 
 on:
   push:
-    branches: [ main, master, develop ]
+    # Run on push to default branch
+    branches: [ 13.3.rel1 ]
   pull_request:
-    branches: [ main, master, develop ]
+    # Run on pull requests to any branch
   schedule:
     # Run at 00:00 UTC every Sunday
     - cron: '0 0 * * 0'
