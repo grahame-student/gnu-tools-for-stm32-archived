@@ -11,10 +11,16 @@ This document summarizes the modernization and minimization of autotools bootstr
 ### 1. Shell Script Modernization
 
 **File: `build-common.sh`**
-- Replaced backtick command substitution with modern `$()` syntax (4 instances)
+- Replaced backtick command substitution with modern `$()` syntax (8 instances)
   - `ROOT=`pwd`` → `ROOT=$(pwd)`
   - `uname_string=`uname | sed ...`` → `uname_string=$(uname | sed ...)`
   - `host_arch=`uname -m | sed ...`` → `host_arch=$(uname -m | sed ...)`
+  - `JOBS=`grep ^processor ...`` → `JOBS=$(grep ^processor ...)`
+  - `#JOBS=`sysctl -n hw.ncpu`` → `#JOBS=$(sysctl -n hw.ncpu)` (in comment)
+  - `SCRIPT=$(basename $0)` → `SCRIPT=$(basename "$0")` (added quoting)
+  - `GCC_VER=`cat ...`` → `GCC_VER=$(cat ...)`
+  - `GCC_VER_DISPLAY=`cut ...`` → `GCC_VER_DISPLAY=$(cut ...)`
+  - `STM32_TOOLS_VER=`git describe ...`` → `STM32_TOOLS_VER=$(git describe ...)`
 - Replaced `expr` arithmetic with `$(())` syntax (2 instances)
   - `stack_level=`expr $stack_level \+ 1 || true`` → `stack_level=$((stack_level + 1))`
   - `stack_level=`expr $stack_level \- 1 || true`` → `stack_level=$((stack_level - 1))`
@@ -26,7 +32,7 @@ This document summarizes the modernization and minimization of autotools bootstr
   - `skip_steps=`echo $ac_arg | sed ...`` → `skip_steps=$(echo "$ac_arg" | sed ...)`
 - Added proper quoting in command substitutions for better safety
 
-**Total: 6 backtick replacements + 2 expr replacements across both files**
+**Total: 10 backtick replacements + 2 expr replacements across both files**
 
 **Impact:**
 - Follows modern shell scripting best practices (POSIX-compliant)

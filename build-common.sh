@@ -716,7 +716,7 @@ if [ "x$uname_string" == "xlinux" ] ; then
     BUILD="$host_arch"-linux-gnu
     HOST_NATIVE="$host_arch"-linux-gnu
     READLINK=readlink
-    JOBS=`grep ^processor /proc/cpuinfo|wc -l`
+    JOBS=$(grep ^processor /proc/cpuinfo|wc -l)
     GCC_CONFIG_OPTS_LCPP="--with-host-libstdcxx=-static-libgcc -Wl,-Bstatic,-lstdc++,-Bdynamic -lm"
     MD5="md5sum -b"
     PACKAGE_NAME_SUFFIX="${host_arch}-linux"
@@ -726,7 +726,7 @@ elif [ "x$uname_string" == "xdarwin" ] ; then
     HOST_NATIVE=x86_64-apple-darwin10
     READLINK=greadlink
     # Disable parallel build for mac as we will randomly run into "Permission denied" issue.
-    #JOBS=`sysctl -n hw.ncpu`
+    #JOBS=$(sysctl -n hw.ncpu)
     JOBS=1
     GCC_CONFIG_OPTS_LCPP="--with-host-libstdcxx=-static-libgcc -Wl,-lstdc++ -lm"
     MD5="md5 -r"
@@ -746,7 +746,7 @@ if [ "x$BUILD" != "xx86_64-apple-darwin10" ]; then
     PREREQS="$SRC_PREREQS $WIN_PREREQS"
 fi
 
-SCRIPT=$(basename $0)
+SCRIPT=$(basename "$0")
 
 RELEASEDATE=20230728
 RELEASEVER=Rel1
@@ -760,9 +760,9 @@ if [[ "${SCRIPT%%-*}" = "build" || "${SCRIPT#*_*}" = "build" ]]; then
     stack_level=0
 
     LICENSE_FILE=license.txt
-    GCC_VER=`cat $SRCDIR/$GCC/gcc/BASE-VER`
-    GCC_VER_DISPLAY=`cut -d'.' -f1,2 $SRCDIR/$GCC/gcc/BASE-VER`
-    STM32_TOOLS_VER=`git describe --tags 2>/dev/null || echo "$GCC_VER_DISPLAY-$RELEASEVER~$(git rev-parse --verify HEAD)"`
+    GCC_VER=$(cat "$SRCDIR/$GCC/gcc/BASE-VER")
+    GCC_VER_DISPLAY=$(cut -d'.' -f1,2 "$SRCDIR/$GCC/gcc/BASE-VER")
+    STM32_TOOLS_VER=$(git describe --tags 2>/dev/null || echo "$GCC_VER_DISPLAY-$RELEASEVER~$(git rev-parse --verify HEAD)")
 
     # sed -r doesn't exist in Darwin
     if [[ $(uname -s) == "Darwin" ]]

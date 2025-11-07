@@ -67,7 +67,7 @@ export AUTORECONF=autoreconf2.69
 export AUTOUPDATE=autoupdate2.69
 ```
 
-The Dockerfile is based on Ubuntu 22.04, which ships with autoconf 2.71 by default, so the `autoconf2.69` package must be installed explicitly. Future Ubuntu versions may have different default autoconf versions, so always verify and install the exact version required.
+The Dockerfile is based on Ubuntu 22.04, which ships with autoconf 2.71 by default, so the `autoconf2.69` package must be installed explicitly.
 
 #### Autogen (Makefile.def → Makefile.in)
 
