@@ -1,7 +1,7 @@
 # Autotools Bootstrap Modernization - Change Summary
 
 ## Date
-2025-11-07
+November 7, 2025
 
 ## Overview
 This document summarizes the modernization and minimization of autotools bootstrap scripts for the GNU Tools for STM32 toolchain root stage (Docker bootstrap stage).
@@ -62,7 +62,7 @@ This document summarizes the modernization and minimization of autotools bootstr
 
 **BUILD.md - Added Build Time Information:**
 ```markdown
-**Build Time**: A full container build typically takes approximately **2 hours** on current CI infrastructure.
+**Build Time**: A full container build typically takes approximately **2 hours** on current CI infrastructure. The sum of individual build stages is approximately 100 minutes; the remaining time includes Docker image setup, layer caching, and other overhead.
 ```
 
 Added stage-by-stage timing breakdown:
@@ -72,6 +72,8 @@ Added stage-by-stage timing breakdown:
 - GCC Final + GDB: ~60 minutes
 - Runtime libs finalization: ~5 minutes
 
+> **Note:** Stage timings are approximate and exclude Docker overhead such as image pulls, layer caching, and setup operations.
+
 **README.md - Added Documentation Section:**
 Added links to all documentation files:
 - BUILD.md
@@ -80,7 +82,7 @@ Added links to all documentation files:
 - docs/automake-linting.md
 
 **docs/autotools-bootstrap-guide.md - New Comprehensive Guide:**
-Created 289-line comprehensive guide covering:
+Created 592-line comprehensive guide covering:
 - Philosophy of minimal tracked files
 - Bootstrap stage components and their autotools usage
 - Detailed explanation of `regenerate_autotools()` function
@@ -114,9 +116,10 @@ Created 289-line comprehensive guide covering:
 3. `README.md` - Added documentation links
 4. `build-common.sh` - Modernized shell syntax (10 legacy constructs + quoting improvements)
 5. `build-prerequisites.sh` - Modernized shell syntax (2 legacy constructs + quoting improvements)
-6. `docs/autotools-bootstrap-guide.md` - New comprehensive guide (289 lines)
+6. `docs/autotools-bootstrap-guide.md` - New comprehensive guide (592 lines)
+7. `docs/autotools-modernization-summary.md` - New change summary (191 lines)
 
-**Total Lines Changed:** +316 insertions, -10 deletions
+**Total Lines Changed:** +500+ insertions, -10 deletions (excluding new documentation files)
 
 ## Acceptance Criteria Validation
 
