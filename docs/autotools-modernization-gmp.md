@@ -1,7 +1,7 @@
 # GMP Library Build Modernization
 
 ## Date
-2025-11-07
+2024-11-07
 
 ## Overview
 This document details the modernization of the GMP (GNU Multiple Precision Arithmetic Library) build configuration to use modern versions of autoconf and automake, while maintaining compatibility with the toolchain build process.
@@ -257,8 +257,8 @@ This modernization is part of the broader autotools modernization effort documen
 ## Conclusion
 
 The GMP library build has been successfully modernized to use:
-- **Autoconf 2.71** (from 2.59) - 18 years newer
-- **Automake 1.16.5** (from 1.8) - 17 years newer
+- **Autoconf 2.71** (released 2021, from 2.59 released 2003)
+- **Automake 1.16.5** (released 2021, from 1.8 released 2004)
 - **Modern macro syntax** - All `AC_HELP_STRING` replaced with `AS_HELP_STRING`
 
 These changes:
