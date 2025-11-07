@@ -37,7 +37,7 @@ sudo apt-get install autoconf2.69 automake autogen libtool
 ```
 
 ### How the Build System Handles This
-The `regenerate_autotools()` function in `build-common.sh` (lines 256-388) automatically:
+The `regenerate_autotools()` function in `build-common.sh` (lines 258-387) automatically:
 - Detects if building binutils/gcc/gdb/newlib
 - Uses `autoconf2.69` for these components (instead of default `autoconf`)
 - Uses standard `autoconf` for prerequisite libraries (gmp, mpfr, mpc, isl, expat)
