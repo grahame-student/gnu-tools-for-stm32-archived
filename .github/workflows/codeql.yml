@@ -1,0 +1,133 @@
+---
+name: CodeQL Security Analysis
+
+on:
+  pull_request:
+    # Run on pull requests to any branch
+  schedule:
+    # Run at 00:00 UTC every Sunday
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  analyze:
+    name: Analyze Code
+    runs-on: ubuntu-latest
+
+    permissions:
+      # actions: read - Required to read workflow artifacts and metadata
+      # contents: read - Required to checkout the repository code
+      # security-events: write - Required to upload CodeQL results to GitHub Security tab
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # CodeQL supports multiple languages including C/C++, Python, JavaScript
+        # This repo contains Python scripts in src/expat, src/isl, and src/gdb
+        # For shell scripts, CodeQL has limited support, so we rely on shellcheck
+        language: [ 'python' ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-and-quality
+
+      # Autobuild attempts to build any compiled languages (C/C++, etc.)
+      # Since this is mainly a build system with scripts, autobuild may not find much
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  shellcheck-analysis:
+    name: Shell Script Security Analysis
+    runs-on: ubuntu-latest
+
+    permissions:
+      # contents: read - Required to checkout the repository code
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Find shell scripts
+        id: find-scripts
+        run: |
+          # Find all shell scripts (both .sh files and build-* scripts)
+          # Exclude .git directory to avoid checking git internals
+          # Use sort -u to remove duplicates (e.g., build-common.sh matches both patterns)
+          SCRIPTS=$(find . -type f \( -name "*.sh" -o -name "build-*" \) | grep -v ".git" | sort -u | tr '\n' ' ')
+          echo "scripts=$SCRIPTS" >> $GITHUB_OUTPUT
+          echo "Found scripts: $SCRIPTS"
+
+      - name: Run shellcheck on all shell scripts
+        env:
+          SHELL_SCRIPTS: ${{ steps.find-scripts.outputs.scripts }}
+        run: |
+          echo "=== Running shellcheck security analysis ==="
+          
+          has_errors=0
+          for script in $SHELL_SCRIPTS; do
+            echo "Analyzing $script..."
+            # Run shellcheck with security-focused checks
+            if ! shellcheck \
+              -e SC1091,SC2148 \
+              -f gcc \
+              "$script"; then
+              has_errors=1
+            fi
+          done
+          
+          if [ $has_errors -eq 1 ]; then
+            echo "ERROR: Shell scripts have security or quality issues"
+            exit 1
+          fi
+          
+          echo "All shell scripts passed security analysis"
+
+      - name: Run shellcheck with JSON output
+        # This step generates JSON format output for artifact storage
+        continue-on-error: true
+        env:
+          SHELL_SCRIPTS: ${{ steps.find-scripts.outputs.scripts }}
+        run: |
+          mkdir -p shellcheck-results
+          
+          for script in $SHELL_SCRIPTS; do
+            script_name=$(basename "$script")
+            # Generate JSON output for artifact storage
+            shellcheck -f json "$script" > "shellcheck-results/${script_name}.json" || true
+          done
+
+      - name: Upload shellcheck results
+        # Upload results even if some checks failed
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: shellcheck-results
+          path: shellcheck-results/
+          retention-days: 30

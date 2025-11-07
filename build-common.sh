@@ -27,14 +27,13 @@
 
 error () {
     set +u
-    echo "$0: error: $@" >&2
+    echo "$0: error: $*" >&2
     exit 1
-    set -u
 }
 
 warning () {
     set +u
-    echo "$0: warning: $@" >&2
+    echo "$0: warning: $*" >&2
     set -u
 }
 
@@ -383,6 +382,271 @@ regenerate_autotools() {
     
     popd > /dev/null
     echo "Successfully regenerated autotools files in $lib_src_dir"
+    set -u
+    return 0
+}
+
+# Run autoconf/automake linting with all warnings enabled
+# Usage: lint_autotools <library_src_dir> [--strict]
+# By default, linting reports issues but doesn't fail (informational mode)
+# With --strict, linting failures will cause the function to return non-zero
+lint_autotools() {
+    set +u
+    local strict_mode=0
+    local lib_src_dir=""
+    
+    # Parse arguments
+    for arg in "$@"; do
+        if [ "$arg" = "--strict" ]; then
+            strict_mode=1
+        elif [ -z "$lib_src_dir" ]; then
+            lib_src_dir="$arg"
+        fi
+    done
+    
+    if [ -z "$lib_src_dir" ] ; then
+        warning "lint_autotools: Missing argument"
+        return 1
+    fi
+    
+    if [ ! -d "$lib_src_dir" ] ; then
+        error "lint_autotools: Directory does not exist ($lib_src_dir)"
+    fi
+    
+    local lib_name=$(basename "$lib_src_dir")
+    echo "Running autotools linting for $lib_name in $lib_src_dir"
+    if [ $strict_mode -eq 0 ]; then
+        echo "  (informational mode - will not fail build)"
+    fi
+    
+    pushd "$lib_src_dir" > /dev/null
+    
+    local lint_issues=0
+    local autoconf_cmd="autoconf"
+    local automake_cmd="automake"
+    
+    # Use autoconf2.69 for binutils/gcc/gdb/newlib if needed
+    if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ] || [ "$lib_name" = "newlib" ]; then
+        local autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | sed -n 's/[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' || echo "")
+        if [ "$autoconf_version" != "2.69" ] && which autoconf2.69 > /dev/null 2>&1; then
+            autoconf_cmd="autoconf2.69"
+            automake_cmd="automake"  # Use default automake
+        fi
+    fi
+    
+    # Run autoconf with all warnings enabled if configure.ac or configure.in exists
+    if [ -f "configure.ac" ] || [ -f "configure.in" ]; then
+        echo "  Running $autoconf_cmd --warnings=all..."
+        $autoconf_cmd --warnings=all -o /dev/null 2>&1 | tee /tmp/autoconf-lint.log || true
+        
+        # Check if there were any warnings or errors in the output
+        local issue_count=0
+        if [ -f /tmp/autoconf-lint.log ] && [ -s /tmp/autoconf-lint.log ]; then
+            if grep -qE "(warning|error|deprecated)" /tmp/autoconf-lint.log; then
+                echo "  ⚠️  autoconf linting found issues in $lib_src_dir:"
+                grep -E "(warning|error|deprecated)" /tmp/autoconf-lint.log | head -10
+                issue_count=$(grep -cE "(warning|error|deprecated)" /tmp/autoconf-lint.log || echo 0)
+                echo "  Total issues: $issue_count (see full output above)"
+                lint_issues=$((lint_issues + 1))
+            fi
+        fi
+        rm -f /tmp/autoconf-lint.log
+    fi
+    
+    # Run automake with all warnings enabled if Makefile.am exists
+    # Note: We skip actual file generation to avoid side effects, just check for warnings
+    if [ -f "Makefile.am" ]; then
+        echo "  Running $automake_cmd --warnings=all..."
+        # Check if aclocal.m4 exists, if not we need to run aclocal first
+        local need_cleanup=0
+        local aclocal_existed=1
+        if [ ! -f "aclocal.m4" ]; then
+            echo "    Running aclocal to generate aclocal.m4 for linting..."
+            aclocal 2>&1 | tee /tmp/aclocal-lint.log || true
+            if [ -f "aclocal.m4" ]; then
+                need_cleanup=1
+                aclocal_existed=0
+            else
+                warning "aclocal failed, skipping automake linting in $lib_src_dir"
+            fi
+        fi
+        
+        # Run automake --warnings=all to check Makefile.am (only if aclocal.m4 exists)
+        if [ -f "aclocal.m4" ]; then
+            $automake_cmd --warnings=all --add-missing --copy 2>&1 | tee /tmp/automake-lint.log || true
+            
+            # Check if there were any warnings in the output
+            local issue_count=0
+            if [ -f /tmp/automake-lint.log ] && [ -s /tmp/automake-lint.log ]; then
+                if grep -qE "(warning|error|deprecated)" /tmp/automake-lint.log; then
+                    echo "  ⚠️  automake linting found issues in $lib_src_dir:"
+                    grep -E "(warning|error|deprecated)" /tmp/automake-lint.log | head -10
+                    issue_count=$(grep -cE "(warning|error|deprecated)" /tmp/automake-lint.log || echo 0)
+                    echo "  Total issues: $issue_count (see full output above)"
+                    lint_issues=$((lint_issues + 1))
+                fi
+            fi
+        fi
+        
+        # Cleanup temporary files if we generated them
+        if [ $need_cleanup -eq 1 ]; then
+            rm -f aclocal.m4
+        fi
+        # Clean up any Makefile.in files that automake may have created during linting
+        if [ $aclocal_existed -eq 0 ]; then
+            # Only clean up if we created aclocal.m4 ourselves
+            rm -f Makefile.in
+        fi
+        rm -f /tmp/automake-lint.log /tmp/aclocal-lint.log
+    fi
+    
+    # Run shellcheck on shell scripts if available
+    if which shellcheck > /dev/null 2>&1; then
+        echo "  Running shellcheck on shell scripts..."
+        local shell_scripts
+        shell_scripts=$(find . -maxdepth 2 -type f \( -name "*.sh" -o -name "configure" \) 2>/dev/null || true)
+        if [ -n "$shell_scripts" ]; then
+            while IFS= read -r script; do
+                # Skip configure scripts as they're auto-generated
+                # Note: Using [[ ]] for regex matching (=~) which requires bash
+                # This script is explicitly executed with bash (#!/bin/bash not present but sourced by bash scripts)
+                if [[ "$script" =~ configure$ ]] && [[ -f "${script}.ac" || -f "${script}.in" ]]; then
+                    continue
+                fi
+                if [ -f "$script" ] && file "$script" 2>/dev/null | grep -q "shell script"; then
+                    echo "    Checking $script..."
+                    if shellcheck -e SC1091,SC2148 "$script" 2>&1 | tee /tmp/shellcheck-lint.log | grep -qE "(warning|error)"; then
+                        echo "  ⚠️  shellcheck found issues in $script (see above)"
+                        lint_issues=$((lint_issues + 1))
+                    fi
+                fi
+            done <<< "$shell_scripts"
+        fi
+        rm -f /tmp/shellcheck-lint.log
+    fi
+    
+    popd > /dev/null
+    
+    # Report results
+    if [ $lint_issues -gt 0 ]; then
+        echo "⚠️  Linting found issues in $lib_src_dir ($lint_issues tool(s) reported problems)"
+        if [ $strict_mode -eq 1 ]; then
+            warning "Linting found issues in $lib_src_dir (strict mode enabled)"
+            set -u
+            return 1
+        else
+            echo "  (informational only - not failing build)"
+        fi
+    else
+        echo "✓ Linting passed for $lib_src_dir"
+    fi
+    
+    set -u
+    return 0
+}
+
+# Check for drift between source files and autogenerated files
+# This runs autoreconf and checks if git detects any changes
+# Usage: check_autotools_drift <library_src_dir>
+check_autotools_drift() {
+    set +u
+    if [ $# -ne 1 ] ; then
+        warning "check_autotools_drift: Missing argument"
+        return 1
+    fi
+    local lib_src_dir="$1"
+    
+    if [ ! -d "$lib_src_dir" ] ; then
+        error "check_autotools_drift: Directory does not exist ($lib_src_dir)"
+    fi
+    
+    local lib_name=$(basename "$lib_src_dir")
+    echo "Checking autotools drift for $lib_name in $lib_src_dir"
+    
+    # Only check drift if configure.ac or configure.in exists
+    if [ ! -f "$lib_src_dir/configure.ac" ] && [ ! -f "$lib_src_dir/configure.in" ]; then
+        echo "No configure.ac or configure.in found, skipping drift check"
+        set -u
+        return 0
+    fi
+    
+    # Save current state
+    pushd "$lib_src_dir" > /dev/null
+    
+    # Create a temporary directory to store original files
+    local temp_backup=$(mktemp -d)
+    
+    # Backup autogenerated files that should be tracked
+    if [ -f "configure" ]; then
+        cp configure "$temp_backup/" 2>/dev/null || true
+    fi
+    if [ -f "Makefile.in" ]; then
+        cp Makefile.in "$temp_backup/" 2>/dev/null || true
+    fi
+    if [ -f "aclocal.m4" ]; then
+        cp aclocal.m4 "$temp_backup/" 2>/dev/null || true
+    fi
+    
+    # Run autoreconf to regenerate files
+    echo "  Running autoreconf -fi to check for drift..."
+    local autoreconf_cmd="autoreconf"
+    if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ] || [ "$lib_name" = "newlib" ]; then
+        local autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | sed -n 's/[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' || echo "")
+        if [ "$autoconf_version" != "2.69" ] && which autoconf2.69 > /dev/null 2>&1; then
+            export AUTOCONF=autoconf2.69
+            export AUTOHEADER=autoheader2.69
+            export AUTOM4TE=autom4te2.69
+            export AUTORECONF=autoreconf2.69
+            export AUTOUPDATE=autoupdate2.69
+            autoreconf_cmd="autoreconf2.69"
+        fi
+    fi
+    
+    # Run autoreconf
+    $autoreconf_cmd -fi > /dev/null 2>&1 || {
+        warning "autoreconf failed during drift check in $lib_src_dir"
+        rm -rf "$temp_backup"
+        popd > /dev/null
+        set -u
+        return 1
+    }
+    
+    # Check if any tracked files changed
+    local drift_detected=0
+    if [ -f "$temp_backup/configure" ] && [ -f "configure" ]; then
+        if ! diff -q "$temp_backup/configure" configure > /dev/null 2>&1; then
+            warning "Drift detected: configure is out of sync in $lib_src_dir"
+            drift_detected=1
+        fi
+    fi
+    
+    if [ -f "$temp_backup/Makefile.in" ] && [ -f "Makefile.in" ]; then
+        if ! diff -q "$temp_backup/Makefile.in" Makefile.in > /dev/null 2>&1; then
+            warning "Drift detected: Makefile.in is out of sync in $lib_src_dir"
+            drift_detected=1
+        fi
+    fi
+    
+    # Restore original files to avoid modifying the working tree
+    if [ -f "$temp_backup/configure" ]; then
+        cp "$temp_backup/configure" configure
+    fi
+    if [ -f "$temp_backup/Makefile.in" ]; then
+        cp "$temp_backup/Makefile.in" Makefile.in
+    fi
+    if [ -f "$temp_backup/aclocal.m4" ]; then
+        cp "$temp_backup/aclocal.m4" aclocal.m4
+    fi
+    
+    # Cleanup
+    rm -rf "$temp_backup"
+    popd > /dev/null
+    
+    if [ $drift_detected -eq 1 ]; then
+        error "Autotools drift detected in $lib_src_dir - regenerate files with autoreconf -fi"
+    fi
+    
+    echo "No drift detected in $lib_src_dir"
     set -u
     return 0
 }

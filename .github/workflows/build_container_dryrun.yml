@@ -9,11 +9,11 @@ on:
 #    branches: ['dependabot/**']
 
   pull_request:
-    types: [opened, synchronize, edited]
+    # Run on pull requests (default types: opened, synchronize, reopened)
 
-# concurrency: 
-#  group: ${{ github.workflow }}-${{ github.ref }}
-#  cancel-in-progress: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions: {}
 
