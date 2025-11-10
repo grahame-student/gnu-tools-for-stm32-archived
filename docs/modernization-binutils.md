@@ -147,16 +147,22 @@ The `regenerate_autotools()` function in `build-common.sh` handles binutils rege
    fi
    ```
 
-4. **Install auxiliary files** (lines 322-331):
+4. **Install auxiliary files** (lines 320-331):
    - Copies install-sh, missing, config.guess, config.sub, etc.
    - From automake's libdir to binutils root
 
-5. **Run autoreconf** (lines 343-347):
+5. **Special handling for binutils libtool files** (lines 312-329):
+   - Runs `libtoolize` to generate ltmain.sh
+   - Manually copies libtool m4 files (libtool.m4, ltoptions.m4, etc.) to top-level
+   - Required because binutils configure.ac uses `m4_include([libtool.m4])` without path
+   - These files must exist before aclocal runs
+
+6. **Run autoreconf** (lines 343-347):
    ```bash
    autoreconf2.69 -i -f
    ```
 
-6. **Regenerate subdirectories** (lines 351-367):
+7. **Regenerate subdirectories** (lines 351-367):
    - Finds all subdirectories with configure.ac
    - Runs autoreconf on each
    - Generates Makefile.in from Makefile.am in subdirectories
