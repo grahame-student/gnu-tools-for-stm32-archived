@@ -7,6 +7,9 @@ install-mingw/
 # Package directory
 pkg/
 
+# Autotools cache directories (generated during autoreconf/autoconf runs)
+**/autom4te.cache/
+
 # Autotools generated files for mpfr
 src/mpfr/configure
 src/mpfr/Makefile.in

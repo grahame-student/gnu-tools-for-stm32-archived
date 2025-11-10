@@ -105,8 +105,8 @@ clean_env () {
 # Must call this before saving any variables
 saveenv () {
     set +u
-    # Force expr return 0 to avoid script fail
-    stack_level=`expr $stack_level \+ 1 || true`
+    # Increment stack level
+    stack_level=$((stack_level + 1))
     eval stack_list_$stack_level=
     set -u
 }
@@ -158,8 +158,8 @@ restoreenv () {
         eval level_saved_${stack_level}_$varname=
         # eval echo $varname restore to \\\"\"\${$varname}\"\\\"
     done
-    # Force expr return 0 to avoid script fail
-    stack_level=`expr $stack_level \- 1 || true`
+    # Decrement stack level
+    stack_level=$((stack_level - 1))
     set -u
 }
 
@@ -285,16 +285,16 @@ regenerate_autotools() {
     # -f: force regeneration even if files exist
     
     # Determine which autoreconf to use
+    # Bootstrap libraries (gmp, mpfr, mpc, isl, expat, libiconv) use modern autoconf 2.71 (Ubuntu 22.04 default)
     # binutils/gcc/gdb/newlib require autoconf 2.69 for reproducible builds
-    # We use 'autoconf2.69' explicitly if available (required on Ubuntu 22.04+ which has autoconf 2.71 by default)
-    # The Dockerfile installs autoconf2.69 package to ensure correct version is used
+    # We use 'autoconf2.69' explicitly only for binutils/gcc/gdb/newlib
     local autoreconf_cmd="autoreconf"
     local lib_name=$(basename "$lib_src_dir")
     if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ] || [ "$lib_name" = "newlib" ]; then
         # Check if we need to use autoconf2.69 explicitly
         local autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | grep -oP '\d+\.\d+' || echo "")
         if [ "$autoconf_version" != "2.69" ] && which autoconf2.69 > /dev/null 2>&1; then
-            # Not using 2.69 by default, use autoconf2.69 explicitly
+            # autoconf default is not 2.69, so use autoconf2.69 explicitly for these components
             # Set AUTOCONF and related variables to use version 2.69
             export AUTOCONF=autoconf2.69
             export AUTOHEADER=autoheader2.69
@@ -654,7 +654,7 @@ check_autotools_drift() {
 # Clean up unnecessary global shell variables
 clean_env
 
-ROOT=`pwd`
+ROOT=$(pwd)
 SRCDIR=$ROOT/src
 
 BUILDDIR_NATIVE=$ROOT/build-native
@@ -710,13 +710,13 @@ PYTHON_WIN_URL=https://www.python.org/ftp/python/$PYTHON_WIN_VER/$PYTHON_WIN_PAC
 TAR=tar
 # Set variables according to real environment to make this script can run
 # on Ubuntu and Mac OS X.
-uname_string=`uname | sed 'y/LINUXDARWIN/linuxdarwin/'`
-host_arch=`uname -m | sed 'y/XI/xi/'`
+uname_string=$(uname | sed 'y/LINUXDARWIN/linuxdarwin/')
+host_arch=$(uname -m | sed 'y/XI/xi/')
 if [ "x$uname_string" == "xlinux" ] ; then
     BUILD="$host_arch"-linux-gnu
     HOST_NATIVE="$host_arch"-linux-gnu
     READLINK=readlink
-    JOBS=`grep ^processor /proc/cpuinfo|wc -l`
+    JOBS=$(grep ^processor /proc/cpuinfo|wc -l)
     GCC_CONFIG_OPTS_LCPP="--with-host-libstdcxx=-static-libgcc -Wl,-Bstatic,-lstdc++,-Bdynamic -lm"
     MD5="md5sum -b"
     PACKAGE_NAME_SUFFIX="${host_arch}-linux"
@@ -726,7 +726,7 @@ elif [ "x$uname_string" == "xdarwin" ] ; then
     HOST_NATIVE=x86_64-apple-darwin10
     READLINK=greadlink
     # Disable parallel build for mac as we will randomly run into "Permission denied" issue.
-    #JOBS=`sysctl -n hw.ncpu`
+    #JOBS=$(sysctl -n hw.ncpu)
     JOBS=1
     GCC_CONFIG_OPTS_LCPP="--with-host-libstdcxx=-static-libgcc -Wl,-lstdc++ -lm"
     MD5="md5 -r"
@@ -746,7 +746,7 @@ if [ "x$BUILD" != "xx86_64-apple-darwin10" ]; then
     PREREQS="$SRC_PREREQS $WIN_PREREQS"
 fi
 
-SCRIPT=$(basename $0)
+SCRIPT=$(basename "$0")
 
 RELEASEDATE=20230728
 RELEASEVER=Rel1
@@ -760,9 +760,9 @@ if [[ "${SCRIPT%%-*}" = "build" || "${SCRIPT#*_*}" = "build" ]]; then
     stack_level=0
 
     LICENSE_FILE=license.txt
-    GCC_VER=`cat $SRCDIR/$GCC/gcc/BASE-VER`
-    GCC_VER_DISPLAY=`cut -d'.' -f1,2 $SRCDIR/$GCC/gcc/BASE-VER`
-    STM32_TOOLS_VER=`git describe --tags 2>/dev/null || echo "$GCC_VER_DISPLAY-$RELEASEVER~$(git rev-parse --verify HEAD)"`
+    GCC_VER=$(cat "$SRCDIR/$GCC/gcc/BASE-VER")
+    GCC_VER_DISPLAY=$(cut -d'.' -f1,2 "$SRCDIR/$GCC/gcc/BASE-VER")
+    STM32_TOOLS_VER=$(git describe --tags 2>/dev/null || echo "$GCC_VER_DISPLAY-$RELEASEVER~$(git rev-parse --verify HEAD)")
 
     # sed -r doesn't exist in Darwin
     if [[ $(uname -s) == "Darwin" ]]
