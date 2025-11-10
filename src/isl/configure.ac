@@ -1,15 +1,16 @@
+AC_PREREQ(2.71)
 AC_INIT([isl], [0.15], [isl-development@googlegroups.com])
 AC_CONFIG_AUX_DIR([.])
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE([1.16.5 foreign])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 AC_SUBST(versioninfo)
 versioninfo=15:0:0
 
 if test "x$prefix" != "xNONE"; then
-	prefix_wd=`cd $prefix && pwd`
-	srcdir_wd=`cd $srcdir && pwd`
-	wd=`pwd`
+	prefix_wd=$(cd "$prefix" && pwd)
+	srcdir_wd=$(cd "$srcdir" && pwd)
+	wd=$(pwd)
 	if test "x$prefix_wd" = "x$srcdir_wd"; then
 		AC_MSG_ERROR(Installation in source directory not supported)
 	fi
@@ -25,7 +26,7 @@ AX_CC_MAXOPT
 AX_GCC_WARN_UNUSED_RESULT
 AX_C___ATTRIBUTE__
 
-AC_PROG_LIBTOOL
+LT_INIT
 
 AC_CHECK_PROG(PERL, perl, perl, [])
 AC_CHECK_PROG(PDFLATEX, pdflatex, pdflatex, [])
@@ -82,20 +83,20 @@ system)
 	if test "$llvm_config_found" != yes; then
 		AC_MSG_ERROR([llvm-config not found])
 	fi
-	CLANG_CXXFLAGS=`$llvm_config --cxxflags`
-	CLANG_LDFLAGS=`$llvm_config --ldflags`
-	targets=`$llvm_config --targets-built`
+	CLANG_CXXFLAGS=$($llvm_config --cxxflags)
+	CLANG_LDFLAGS=$($llvm_config --ldflags)
+	targets=$($llvm_config --targets-built)
 	components="$targets asmparser bitreader support mc"
 	$llvm_config --components | $GREP option > /dev/null 2> /dev/null
 	if test $? -eq 0; then
 		components="$components option"
 	fi
-	CLANG_LIBS=`$llvm_config --libs $components`
-	systemlibs=`$llvm_config --system-libs 2> /dev/null | tail -1`
+	CLANG_LIBS=$($llvm_config --libs $components)
+	systemlibs=$($llvm_config --system-libs 2> /dev/null | tail -1)
 	if test $? -eq 0; then
 		CLANG_LIBS="$CLANG_LIBS $systemlibs"
 	fi
-	CLANG_PREFIX=`$llvm_config --prefix`
+	CLANG_PREFIX=$($llvm_config --prefix)
 	AC_DEFINE_UNQUOTED(CLANG_PREFIX, ["$CLANG_PREFIX"],
 				[Clang installation prefix])
 
