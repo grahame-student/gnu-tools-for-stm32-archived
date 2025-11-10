@@ -1,7 +1,7 @@
 # GMP Library Build Modernization
 
 ## Date
-2024-11-07
+2025-11-07
 
 ## Overview
 This document details the modernization of the GMP (GNU Multiple Precision Arithmetic Library) build configuration to use modern versions of autoconf and automake, while maintaining compatibility with the toolchain build process.
