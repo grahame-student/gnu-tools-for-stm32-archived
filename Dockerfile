@@ -2,7 +2,7 @@
 # GitHub actions require that the docker image use the root user
 # https://docs.github.com/en/actions/creating-actions/dockerfile-support-for-github-actions#user
 
-# Ubuntu 22.04 LTS provides modern autotools: automake 1.16.5, autoconf 2.71, libtool 2.4.6
+# Ubuntu 24.04 LTS provides modern autotools: automake 1.16.5, autoconf 2.71, libtool 2.4.6
 # This is used for bootstrap libraries (GMP, MPFR, MPC, ISL, Expat, libiconv)
 # Legacy autoconf 2.69 is also installed for binutils/gcc/gdb/newlib compatibility
 FROM ubuntu:24.04 AS bootstrap
@@ -38,7 +38,7 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
     rm -rf /var/lib/apt/lists/*
 
 # Autotools packages installed:
-# - autoconf:        Modern autoconf 2.71 (Ubuntu 22.04 default) for bootstrap libraries (gmp, mpfr, mpc, isl, expat, libiconv)
+# - autoconf:        Modern autoconf 2.71 (Ubuntu 24.04 default) for bootstrap libraries (gmp, mpfr, mpc, isl, expat, libiconv)
 # - autoconf2.69:    Legacy version required for binutils/gcc/gdb/newlib (exact version 2.69 needed for reproducible builds)
 # - automake:        For processing Makefile.am → Makefile.in (all libraries using automake)
 # - autogen:         For processing Makefile.def → Makefile.in (binutils, gcc, gdb, newlib)
@@ -69,7 +69,7 @@ COPY . /root/build/gnu-tools-for-stm32/
 #
 # The regenerate_autotools() function (build-common.sh) regenerates configure, Makefile.in,
 # and other autotools files for GMP, MPFR, MPC, ISL, Expat, and libiconv before building using
-# modern autoconf 2.71 (Ubuntu 22.04 default). Only binutils/gcc/gdb/newlib use legacy autoconf 2.69.
+# modern autoconf 2.71 (Ubuntu 24.04 default). Only binutils/gcc/gdb/newlib use legacy autoconf 2.69.
 WORKDIR /root/build/gnu-tools-for-stm32
 RUN ./build-prerequisites.sh --skip_steps=mingw && \
     # Clean up temporary build directories to free up space.
