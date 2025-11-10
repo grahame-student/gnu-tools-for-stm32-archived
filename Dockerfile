@@ -5,7 +5,7 @@
 # Ubuntu 22.04 LTS provides modern autotools: automake 1.16.5, autoconf 2.71, libtool 2.4.6
 # This is used for bootstrap libraries (GMP, MPFR, MPC, ISL, Expat, libiconv)
 # Legacy autoconf 2.69 is also installed for binutils/gcc/gdb/newlib compatibility
-FROM ubuntu:22.04 AS bootstrap
+FROM ubuntu:24.04 AS bootstrap
 
 ##########################################
 ### Bootstrap: Install Build Tools    ###
