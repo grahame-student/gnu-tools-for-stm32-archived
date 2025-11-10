@@ -19,6 +19,7 @@ See [LICENSE.md](LICENSE.md)
 - [docs/autotools-bootstrap-guide.md](docs/autotools-bootstrap-guide.md) - Autotools regeneration, bootstrap process, and upgrade guidance
 - [docs/automake-modernization-stage-mapping.md](docs/automake-modernization-stage-mapping.md) - Detailed build stage mapping
 - [docs/automake-linting.md](docs/automake-linting.md) - Linting and quality checks
+- [docs/autotools-modernization-gmp.md](docs/autotools-modernization-gmp.md) - GMP library build modernization (autoconf 2.71, automake 1.16.5)
 
 ## Host Platforms
 
