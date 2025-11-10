@@ -32,7 +32,7 @@ AC_PREREQ(2.71)
 
 **Rationale:**
 - MPC originally required autoconf 2.61 (released 2006)
-- Ubuntu 22.04 LTS provides autoconf 2.71 (released 2021)
+- Ubuntu 24.04 LTS provides autoconf 2.71 (released 2021)
 - Autoconf 2.71 is the default version used in the Docker bootstrap stage
 - Updating to 2.71 ensures MPC uses modern autoconf features and is compatible with the current build environment
 - This aligns with the project's strategy of using modern autotools for bootstrap libraries (GMP, MPFR, MPC, ISL, Expat, libiconv)
@@ -53,7 +53,7 @@ AM_INIT_AUTOMAKE([1.16.5 -Wall -Werror])
 
 **Rationale:**
 - MPC originally required automake 1.9 (released 2004)
-- Ubuntu 22.04 LTS provides automake 1.16.5 (released 2021)
+- Ubuntu 24.04 LTS provides automake 1.16.5 (released 2021)
 - Automake 1.16.5 is the default version used in the Docker bootstrap stage
 - Updating to 1.16.5 ensures compatibility with modern automake features
 - The options remain unchanged:
@@ -247,7 +247,7 @@ The `regenerate_autotools()` function in `build-common.sh` automatically regener
    - Auxiliary files from automake (install-sh, missing, config.guess, config.sub, etc.)
    - Libtool files (`ltmain.sh`, `m4/libtool.m4`, `m4/ltoptions.m4`, etc.) via libtoolize
    - Subdirectory files (`doc/Makefile.in`, `src/Makefile.in`, `tests/Makefile.in`)
-3. Automake version 1.16.5 and autoconf 2.71 are used (Ubuntu 22.04 defaults)
+3. Automake version 1.16.5 and autoconf 2.71 are used (Ubuntu 24.04 defaults)
 4. Total regeneration time: ~4-5 seconds (included in bootstrap stage)
 
 ### Verification
@@ -355,7 +355,7 @@ Running `lint_autotools src/mpc`:
 
 ### Maintenance
 - **Benefit:** Eliminates all obsolescence warnings for configure.ac
-- **Benefit:** Uses modern autotools features available in Ubuntu 22.04
+- **Benefit:** Uses modern autotools features available in Ubuntu 24.04
 - **Benefit:** Aligns MPC with project's modernization strategy (GMP, MPFR)
 - **Benefit:** Reduces repository size and eliminates drift for libtool files
 - **Risk:** None (changes are minimal and tested)
@@ -430,7 +430,7 @@ The MPC library build has been successfully modernized to use:
 
 These changes:
 - Eliminate all obsolescence warnings in configure.ac (12 total)
-- Align with Ubuntu 22.04 LTS default autotools versions
+- Align with Ubuntu 24.04 LTS default autotools versions
 - Maintain full compatibility with the existing build process
 - Follow the project's strategy of using modern autotools for bootstrap libraries
 - **Reduce repository size by ~323 KB** by removing tracked libtool m4 files
@@ -452,5 +452,5 @@ Future improvements could include:
 - Autoconf 2.71 documentation: https://www.gnu.org/software/autoconf/manual/
 - Automake 1.16.5 documentation: https://www.gnu.org/software/automake/manual/
 - Libtool documentation: https://www.gnu.org/software/libtool/manual/
-- Ubuntu 22.04 LTS package versions: https://packages.ubuntu.com/jammy/
+- Ubuntu 24.04 LTS package versions: https://packages.ubuntu.com/noble/
 - Issue: "Enforce Modern Autotools for MPC Build Stage and Minimise Generated Files"
