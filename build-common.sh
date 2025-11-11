@@ -75,7 +75,6 @@ pack_dir_clean() {
     local dirname="$2"
     local target="$3"
     shift 3
-    # shellcheck disable=SC2086
     tar cjfh "$target" \
         --exclude=CVS --exclude=.svn --exclude=.git --exclude=.pc \
         --exclude="*~" --exclude=".#*" \
@@ -304,7 +303,7 @@ copy_multi_libs() {
 # shellcheck disable=SC2317
 regenerate_autotools() {
     set +u
-    if [ $# -ne 1 ] ; then
+    if [ "$#" -ne 1 ] ; then
         warning "regenerate_autotools: Missing argument"
         return 1
     fi
@@ -426,11 +425,10 @@ regenerate_autotools() {
         echo "Regenerating autotools files for subdirectories with configure.ac"
         # Find all subdirectories with configure.ac/configure.in (excluding gnulib which has special handling)
         # We need to process them in order from deepest to shallowest to handle nested subdirectories
-        local subdirs
-        subdirs=$(find . -name "configure.ac" -o -name "configure.in" | grep -v "^\./configure\." | grep -v gnulib | sed 's|/configure\.[ai][cn]$||' | sort -u)
-        # Word splitting intentional for directory list
-        # shellcheck disable=SC2086
-        for subdir in $subdirs; do
+        local subdirs_array
+        mapfile -t subdirs_array < <(find . -name "configure.ac" -o -name "configure.in" | grep -v "^\./configure\." | grep -v gnulib | sed 's|/configure\.[ai][cn]$||' | sort -u)
+        # Iterate safely over subdirectory list using array to avoid word splitting issues
+        for subdir in "${subdirs_array[@]}"; do
             if [ -d "$subdir" ] && [ "$subdir" != "." ]; then
                 echo "  Regenerating $subdir"
                 pushd "$subdir" > /dev/null
