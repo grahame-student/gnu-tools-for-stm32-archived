@@ -167,27 +167,40 @@ The `regenerate_autotools()` function in `build-common.sh` handles GCC regenerat
    if [ "$lib_name" = "gcc" ]; then
        export AUTOCONF=autoconf2.69
        export AUTOHEADER=autoheader2.69
+       export AUTOM4TE=autom4te2.69
        export AUTORECONF=autoreconf2.69
        export AUTOUPDATE=autoupdate2.69
        autoreconf_cmd="autoreconf2.69"
    fi
    ```
 
-4. **Install auxiliary files** (lines 343-354):
+   **Important**: `AUTOM4TE=autom4te2.69` is critical for GCC because the configure.ac
+   has a strict version check that requires exactly autoconf 2.69.
+
+4. **Special handling for fixincludes** (lines 380-412):
+   The fixincludes subdirectory requires special handling because it needs m4 macros
+   from the parent `../config/` directory. The build system:
+   - Runs `aclocal -I ../config` to include parent m4 macros
+   - Uses `autoconf2.69` to generate the configure script
+   - Uses `autoheader2.69` to generate config.h.in
+   
+   This ensures `ACX_PROG_CC_WARNING_OPTS` and other macros from `../config/warnings.m4`
+   are properly expanded in the generated configure script.
+
+5. **Install auxiliary files** (lines 343-354):
    - Copies install-sh, missing, config.guess, config.sub, mkinstalldirs, etc.
    - From automake's libdir to GCC root
    - These files are needed for the build system but not tracked in git
 
-5. **Run autoreconf** (lines 366-371):
+6. **Run autoreconf** (lines 366-371):
    ```bash
    autoreconf2.69 -i -f
    ```
 
-6. **Regenerate subdirectories** (lines 374-388):
+7. **Regenerate subdirectories** (lines 374-415):
    - Finds all subdirectories with configure.ac
-   - Runs autoreconf on each
+   - Runs autoreconf on each (or special handling for fixincludes)
    - Generates configure, Makefile.in, aclocal.m4, config.h.in for subdirectories
-   - This includes fixincludes, libatomic, libcc1, libffi, libvtv/testsuite/other-tests
 
 ### Build Script Flow
 
