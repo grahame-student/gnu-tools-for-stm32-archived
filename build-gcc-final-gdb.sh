@@ -29,17 +29,16 @@ rm -rf "$BUILDDIR_NATIVE/gcc-final" && mkdir -p "$BUILDDIR_NATIVE/gcc-final"
 pushd "$BUILDDIR_NATIVE/gcc-final"
 
 # Build configure options arrays to avoid word splitting issues
-# GCC_CONFIG_OPTS and MULTILIB_LIST may be empty/modified for different builds
-gcc_opts=()
-if [ -n "$GCC_CONFIG_OPTS" ]; then
-    read -ra gcc_opts <<< "$GCC_CONFIG_OPTS"
-fi
-
+# MULTILIB_LIST may be empty/modified for different builds
 multilib_opts=()
 if [ -n "$MULTILIB_LIST" ]; then
     read -ra multilib_opts <<< "$MULTILIB_LIST"
 fi
 
+# Note: GCC_CONFIG_OPTS is intentionally not quoted as it contains multiple
+# configure options that need to be word-split. It's a controlled variable
+# from build-toolchain-config.sh and is safe to expand.
+# shellcheck disable=SC2086
 "$SRCDIR/$GCC/configure" --target="$TARGET" \
     --prefix="$INSTALLDIR_NATIVE" \
     --libexecdir="$INSTALLDIR_NATIVE/lib" \
@@ -69,7 +68,7 @@ fi
     --with-sysroot="$BUILDDIR_NATIVE/target-libs/arm-none-eabi" \
     --build="$BUILD" \
     --host="$HOST_NATIVE" \
-    "${gcc_opts[@]+"${gcc_opts[@]}"}" \
+    $GCC_CONFIG_OPTS \
     "${GCC_CONFIG_OPTS_LCPP}" \
     "--with-pkgversion=$PKGVERSION" \
     "${multilib_opts[@]+"${multilib_opts[@]}"}"
@@ -95,13 +94,10 @@ saveenvvar CFLAGS "$ENV_CFLAGS"
 saveenvvar CPPFLAGS "$ENV_CPPFLAGS"
 saveenvvar LDFLAGS "$ENV_LDFLAGS"
 
-# Build configure options array to avoid word splitting issues
-# GDB_CONFIG_OPTS may be empty for some builds
-gdb_opts=()
-if [ -n "$GDB_CONFIG_OPTS" ]; then
-    read -ra gdb_opts <<< "$GDB_CONFIG_OPTS"
-fi
-
+# Note: GDB_CONFIG_OPTS is intentionally not quoted as it contains multiple
+# configure options that need to be word-split. It's a controlled variable
+# from build-toolchain-config.sh and is safe to expand.
+# shellcheck disable=SC2086
 "$SRCDIR/$GDB/configure" \
     --target="$TARGET" \
     --prefix="$INSTALLDIR_NATIVE" \
@@ -119,7 +115,7 @@ fi
     --with-lzma=no \
     --with-system-gdbinit="$INSTALLDIR_NATIVE/$HOST_NATIVE/arm-none-eabi/lib/gdbinit" \
     --with-zstd=no \
-    "${gdb_opts[@]+"${gdb_opts[@]}"}" \
+    $GDB_CONFIG_OPTS \
     --with-python=no \
     "--with-gdb-datadir=\${prefix}/arm-none-eabi/share/gdb" \
     "--with-pkgversion=$PKGVERSION"
