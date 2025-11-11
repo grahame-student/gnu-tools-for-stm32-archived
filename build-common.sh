@@ -345,10 +345,10 @@ regenerate_autotools() {
         if [ "$autoconf_version" != "2.69" ] && which autoconf2.69 > /dev/null 2>&1; then
             # autoconf default is not 2.69, so use autoconf2.69 explicitly for these components
             # Set AUTOCONF and related variables to use version 2.69
-            # Note: autoconf2.69 package provides autoconf2.69, autoheader2.69, etc.
-            # but not autom4te2.69, so we don't set AUTOM4TE
+            # Note: autoconf2.69 package provides autoconf2.69, autoheader2.69, autom4te2.69, etc.
             export AUTOCONF=autoconf2.69
             export AUTOHEADER=autoheader2.69
+            export AUTOM4TE=autom4te2.69
             export AUTORECONF=autoreconf2.69
             export AUTOUPDATE=autoupdate2.69
             autoreconf_cmd="autoreconf2.69"
@@ -434,10 +434,45 @@ regenerate_autotools() {
             if [ -d "$subdir" ] && [ "$subdir" != "." ]; then
                 echo "  Regenerating $subdir"
                 pushd "$subdir" > /dev/null
-                $autoreconf_cmd -i -f 2>/dev/null || {
-                    # Some subdirectories might fail, that's okay - continue
-                    true
-                }
+                
+                # Special handling for GCC fixincludes: needs m4 macros from ../config
+                if [ "$lib_name" = "gcc" ] && [ "$subdir" = "./fixincludes" ]; then
+                    echo "    Running aclocal with -I ../config for fixincludes"
+                    # Use aclocal2.69 if available, otherwise use aclocal
+                    local aclocal_cmd="aclocal"
+                    if which aclocal2.69 > /dev/null 2>&1; then
+                        aclocal_cmd="aclocal2.69"
+                    fi
+                    $aclocal_cmd -I ../config || {
+                        # aclocal might fail, that's okay - continue
+                        true
+                    }
+                    echo "    Running autoconf for fixincludes"
+                    # Use autoconf2.69 for GCC components
+                    local autoconf_for_fixinc="autoconf"
+                    if which autoconf2.69 > /dev/null 2>&1; then
+                        autoconf_for_fixinc="autoconf2.69"
+                    fi
+                    $autoconf_for_fixinc || {
+                        # autoconf might fail, that's okay - continue
+                        true
+                    }
+                    # Also generate config.h.in with autoheader
+                    local autoheader_cmd="autoheader"
+                    if which autoheader2.69 > /dev/null 2>&1; then
+                        autoheader_cmd="autoheader2.69"
+                    fi
+                    $autoheader_cmd || {
+                        # autoheader might fail, that's okay - continue
+                        true
+                    }
+                else
+                    $autoreconf_cmd -i -f 2>/dev/null || {
+                        # Some subdirectories might fail, that's okay - continue
+                        true
+                    }
+                fi
+                
                 popd > /dev/null
             fi
         done
