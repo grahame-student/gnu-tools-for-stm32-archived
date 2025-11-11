@@ -47,7 +47,7 @@ fi
     --enable-plugins \
     --disable-nls \
     --enable-deterministic-archives \
-    "${binutils_opts[@]}"
+    "${binutils_opts[@]+"${binutils_opts[@]}"}"
 
 make -j"$JOBS"
 make install
@@ -110,10 +110,10 @@ fi
     --with-sysroot="$INSTALLDIR_NATIVE/arm-none-eabi" \
     --build="$BUILD" \
     --host="$HOST_NATIVE" \
-    "${gcc_opts[@]}" \
+    "${gcc_opts[@]+"${gcc_opts[@]}"}" \
     "${GCC_CONFIG_OPTS_LCPP}" \
     "--with-pkgversion=$PKGVERSION" \
-    "${multilib_opts[@]}"
+    "${multilib_opts[@]+"${multilib_opts[@]}"}"
 
 make -j"$JOBS" all-gcc
 make install-gcc

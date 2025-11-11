@@ -144,6 +144,7 @@ src/binutils/ltoptions.m4
 src/binutils/ltsugar.m4
 src/binutils/ltversion.m4
 src/binutils/lt~obsolete.m4
+src/binutils/ltgcc.m4
 src/binutils/mkinstalldirs
 # Subdirectories also have libtool m4 files
 src/binutils/**/libtool.m4
