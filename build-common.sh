@@ -345,7 +345,7 @@ regenerate_autotools() {
         local automake_dir=$(automake --print-libdir 2>/dev/null)
         if [ -n "$automake_dir" ] && [ -d "$automake_dir" ]; then
             echo "Installing auxiliary build files from automake"
-            for file in install-sh missing config.guess config.sub depcomp compile test-driver ylwrap; do
+            for file in install-sh missing config.guess config.sub depcomp compile test-driver ylwrap mkinstalldirs; do
                 if [ -f "$automake_dir/$file" ] && [ ! -f "$file" ]; then
                     cp "$automake_dir/$file" "$file"
                     chmod +x "$file"

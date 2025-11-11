@@ -147,9 +147,10 @@ The `regenerate_autotools()` function in `build-common.sh` handles binutils rege
    fi
    ```
 
-4. **Install auxiliary files** (lines 320-331):
-   - Copies install-sh, missing, config.guess, config.sub, etc.
+4. **Install auxiliary files** (lines 343-354):
+   - Copies install-sh, missing, config.guess, config.sub, mkinstalldirs, etc.
    - From automake's libdir to binutils root
+   - These files are needed for the build system but not tracked in git
 
 5. **Special handling for binutils libtool files** (lines 312-329):
    - Runs `libtoolize` to generate ltmain.sh
