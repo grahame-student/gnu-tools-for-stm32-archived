@@ -285,7 +285,7 @@ regenerate_autotools() {
     # -f: force regeneration even if files exist
     
     # Determine which autoreconf to use
-    # Bootstrap libraries (gmp, mpfr, mpc, isl, expat, libiconv) use modern autoconf 2.71 (Ubuntu 22.04 default)
+    # Bootstrap libraries (gmp, mpfr, mpc, isl, expat, libiconv) use modern autoconf 2.71 (Ubuntu 24.04 default)
     # binutils/gcc/gdb/newlib require autoconf 2.69 for reproducible builds
     # We use 'autoconf2.69' explicitly only for binutils/gcc/gdb/newlib
     local autoreconf_cmd="autoreconf"
@@ -296,9 +296,10 @@ regenerate_autotools() {
         if [ "$autoconf_version" != "2.69" ] && which autoconf2.69 > /dev/null 2>&1; then
             # autoconf default is not 2.69, so use autoconf2.69 explicitly for these components
             # Set AUTOCONF and related variables to use version 2.69
+            # Note: autoconf2.69 package provides autoconf2.69, autoheader2.69, etc.
+            # but not autom4te2.69, so we don't set AUTOM4TE
             export AUTOCONF=autoconf2.69
             export AUTOHEADER=autoheader2.69
-            export AUTOM4TE=autom4te2.69
             export AUTORECONF=autoreconf2.69
             export AUTOUPDATE=autoupdate2.69
             autoreconf_cmd="autoreconf2.69"
@@ -317,12 +318,34 @@ regenerate_autotools() {
             }
         fi
         
+        # Run libtoolize and copy libtool m4 files for binutils
+        # Binutils configure.ac uses m4_include([libtool.m4]) which requires these files
+        # in the top-level directory before aclocal runs
+        if [ "$lib_name" = "binutils" ]; then
+            echo "Running libtoolize to generate libtool files"
+            libtoolize -c -f || {
+                error "Failed to run libtoolize in $lib_src_dir"
+                popd > /dev/null
+                return 1
+            }
+            # Copy libtool m4 files to top-level directory where configure.ac expects them
+            local aclocal_dir=$(aclocal --print-ac-dir 2>/dev/null)
+            if [ -n "$aclocal_dir" ] && [ -d "$aclocal_dir" ]; then
+                echo "Copying libtool m4 files to top-level directory"
+                for m4file in libtool.m4 ltoptions.m4 ltsugar.m4 ltversion.m4 lt~obsolete.m4; do
+                    if [ -f "$aclocal_dir/$m4file" ]; then
+                        cp "$aclocal_dir/$m4file" .
+                    fi
+                done
+            fi
+        fi
+        
         # Copy auxiliary build files (install-sh, missing, etc.) since these projects
         # don't use automake at the top level and autoreconf won't install them
         local automake_dir=$(automake --print-libdir 2>/dev/null)
         if [ -n "$automake_dir" ] && [ -d "$automake_dir" ]; then
             echo "Installing auxiliary build files from automake"
-            for file in install-sh missing config.guess config.sub depcomp compile test-driver ylwrap; do
+            for file in install-sh missing config.guess config.sub depcomp compile test-driver ylwrap mkinstalldirs; do
                 if [ -f "$automake_dir/$file" ] && [ ! -f "$file" ]; then
                     cp "$automake_dir/$file" "$file"
                     chmod +x "$file"
