@@ -25,6 +25,12 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+# Shellcheck suppressions used throughout this file:
+# - SC2034: Variables unused in this file but used by scripts that source it
+# - SC2317: Commands in error handlers (after || { ... }) appear unreachable but execute on failure
+# - SC1083, SC2086, SC2154: Intentional dynamic variable name construction in saveenv/restoreenv functions
+# Risk mitigation: This script is used in controlled build environment with validated inputs
+
 error () {
     set +u
     echo "$0: error: $*" >&2
@@ -65,11 +71,16 @@ copy_dir_clean() {
 # excluding unnecessary parts, and create package named param2.
 pack_dir_clean() {
     set +u
-    tar cjfh $3 \
+    local basedir="$1"
+    local dirname="$2"
+    local target="$3"
+    shift 3
+    # shellcheck disable=SC2086
+    tar cjfh "$target" \
         --exclude=CVS --exclude=.svn --exclude=.git --exclude=.pc \
         --exclude="*~" --exclude=".#*" \
-        --exclude="*.orig" --exclude="*.rej" $4 $5 $6 $7 $8 $9 ${10} \
-        -C $1 $2
+        --exclude="*.orig" --exclude="*.rej" "$@" \
+        -C "$basedir" "$dirname"
     set -u
 }
 
@@ -107,6 +118,8 @@ saveenv () {
     set +u
     # Increment stack level
     stack_level=$((stack_level + 1))
+    # Dynamic variable name - intentional eval usage
+    # shellcheck disable=SC2086
     eval stack_list_$stack_level=
     set -u
 }
@@ -118,22 +131,33 @@ saveenv () {
 # $2: new variable value
 saveenvvar () {
     set +u
-    if [ $stack_level -le 0 ]; then
+    if [ "$stack_level" -le 0 ]; then
         error Must call saveenv before calling saveenvvar
     fi
     local varname="$1"
     local newval="$2"
+    # The following eval statements use dynamic variable names to implement a variable stack.
+    # SC1083, SC2086, SC2154: These warnings are false positives for intentional dynamic variable name construction.
+    # Risk mitigation: Function is only called from controlled build scripts with validated input.
+    # shellcheck disable=SC1083,SC2086,SC2154
     eval local oldval=\"\${$varname}\"
+    # shellcheck disable=SC1083,SC2086,SC2154
     eval local saved=\"\${level_saved_${stack_level}_${varname}}\"
-    if [ "x$saved" = "x" ]; then
+    if [ -z "$saved" ]; then
         # The variable wasn't saved in the level before. Save it
+        # shellcheck disable=SC1083,SC2086,SC2154
         eval local temp=\"\${stack_list_$stack_level}\"
+        # shellcheck disable=SC2086,SC2154
         eval stack_list_$stack_level=\"$varname $temp\"
+        # shellcheck disable=SC2086,SC2154
         eval save_level_${stack_level}_$varname=\"$oldval\"
+        # shellcheck disable=SC2086
         eval level_saved_${stack_level}_$varname="yes"
+        # shellcheck disable=SC1083,SC2086
         eval level_preset_${stack_level}_${varname}=\"\${$varname+set}\"
         #echo Save $varname: \"$oldval\"
     fi
+    # shellcheck disable=SC2086,SC2154
     eval export $varname=\"$newval\"
     #echo $varname set to \"$newval\"
     set -u
@@ -142,19 +166,28 @@ saveenvvar () {
 # Restore all variables that have been saved in current stack level
 restoreenv () {
     set +u
-    if [ $stack_level -le 0 ]; then
+    if [ "$stack_level" -le 0 ]; then
         error "Trying to restore from an empty stack"
     fi
 
+    # Dynamic variable name construction for variable stack - intentional eval usage
+    # SC1083, SC2086, SC2154: False positives for dynamic variable names
+    # Risk mitigation: Only called from controlled build scripts
+    # shellcheck disable=SC1083,SC2086,SC2154
     eval local list=\"\${stack_list_$stack_level}\"
     local varname
+    # shellcheck disable=SC2154
     for varname in $list; do
+        # shellcheck disable=SC1083,SC2086,SC2154
         eval local varname_preset=\"\${level_preset_${stack_level}_${varname}}\"
-        if [ "x$varname_preset" = "xset" ] ; then
+        if [ "$varname_preset" = "set" ] ; then
+            # shellcheck disable=SC1083,SC2086
             eval $varname=\"\${save_level_${stack_level}_$varname}\"
         else
+            # shellcheck disable=SC2086
             unset $varname
         fi
+        # shellcheck disable=SC2086
         eval level_saved_${stack_level}_$varname=
         # eval echo $varname restore to \\\"\"\${$varname}\"\\\"
     done
@@ -165,6 +198,8 @@ restoreenv () {
 
 prependenvvar() {
     set +u
+    # Dynamic variable expansion - intentional indirect reference
+    # shellcheck disable=SC2086
     eval local oldval=\"\$$1\"
     saveenvvar "$1" "$2$oldval"
     set -u
@@ -172,8 +207,10 @@ prependenvvar() {
 
 prepend_path() {
     set +u
+    # Dynamic variable expansion - intentional indirect reference
+    # shellcheck disable=SC2086
     eval local old_path="\"\$$1\""
-    if [ x"$old_path" == "x" ]; then
+    if [ -z "$old_path" ]; then
         prependenvvar "$1" "$2"
     else
         prependenvvar "$1" "$2:"
@@ -191,11 +228,14 @@ break_hardlink() {
 
     if [ ! -f "$filename" ] ; then
         error "break_hardlink: Argument is not a file ($filename)"
+        # shellcheck disable=SC2317
         return 1
     fi
 
-    local dir=$(dirname -- "$filename")
-    local tmp=$(TMPDIR=$dir mktemp)
+    local dir
+    local tmp
+    dir=$(dirname -- "$filename")
+    tmp=$(TMPDIR="$dir" mktemp)
     cp -p -- "$filename" "$tmp"
     mv -f -- "$tmp" "$filename"
 }
@@ -209,10 +249,11 @@ strip_binary() {
     fi
     local strip="$1"
     local bin="$2"
+    local file_type
 
-    file $bin | grep -q -e "\bELF\b" -e "\bPE\b" -e "\bPE32\b" -e "\bMach-O\b"
-    if [ $? -eq 0 ]; then
-        $strip $bin 2>/dev/null || true
+    file_type=$(file "$bin")
+    if echo "$file_type" | grep -q -e "\bELF\b" -e "\bPE\b" -e "\bPE32\b" -e "\bMach-O\b"; then
+        "$strip" "$bin" 2>/dev/null || true
     fi
 
     set -e
@@ -231,14 +272,18 @@ copy_multi_libs() {
     local target_gcc
 
     for arg in "$@" ; do
+        # Intentional eval to parse key=value arguments and set local variables
+        # shellcheck disable=SC2086
         eval "${arg// /\\ }"
     done
 
+    # Word splitting intentional for command output
+    # shellcheck disable=SC2207
     multilibs=( $("${target_gcc}" -print-multi-lib 2>/dev/null) )
     for multilib in "${multilibs[@]}" ; do
         multi_dir="${multilib%%;*}"
-        src_dir=${src_prefix}/${multi_dir}
-        dst_dir=${dst_prefix}/${multi_dir}
+        src_dir="${src_prefix}/${multi_dir}"
+        dst_dir="${dst_prefix}/${multi_dir}"
         cp -f "${src_dir}/libstdc++.a" "${dst_dir}/libstdc++_nano.a"
         cp -f "${src_dir}/libsupc++.a" "${dst_dir}/libsupc++_nano.a"
         cp -f "${src_dir}/libc.a" "${dst_dir}/libc_nano.a"
@@ -255,6 +300,8 @@ copy_multi_libs() {
 # Regenerate autotools files (configure, Makefile.in, etc.) for a library
 # This is needed because these generated files are no longer stored in git
 # Usage: regenerate_autotools <library_src_dir>
+# Note: SC2317 warnings in this function are false positives - error handlers ARE reachable on command failure
+# shellcheck disable=SC2317
 regenerate_autotools() {
     set +u
     if [ $# -ne 1 ] ; then
@@ -289,10 +336,12 @@ regenerate_autotools() {
     # binutils/gcc/gdb/newlib require autoconf 2.69 for reproducible builds
     # We use 'autoconf2.69' explicitly only for binutils/gcc/gdb/newlib
     local autoreconf_cmd="autoreconf"
-    local lib_name=$(basename "$lib_src_dir")
+    local lib_name
+    lib_name=$(basename "$lib_src_dir")
     if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ] || [ "$lib_name" = "newlib" ]; then
         # Check if we need to use autoconf2.69 explicitly
-        local autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | grep -oP '\d+\.\d+' || echo "")
+        local autoconf_version
+        autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | grep -oP '\d+\.\d+' || echo "")
         if [ "$autoconf_version" != "2.69" ] && which autoconf2.69 > /dev/null 2>&1; then
             # autoconf default is not 2.69, so use autoconf2.69 explicitly for these components
             # Set AUTOCONF and related variables to use version 2.69
@@ -329,7 +378,8 @@ regenerate_autotools() {
                 return 1
             }
             # Copy libtool m4 files to top-level directory where configure.ac expects them
-            local aclocal_dir=$(aclocal --print-ac-dir 2>/dev/null)
+            local aclocal_dir
+            aclocal_dir=$(aclocal --print-ac-dir 2>/dev/null)
             if [ -n "$aclocal_dir" ] && [ -d "$aclocal_dir" ]; then
                 echo "Copying libtool m4 files to top-level directory"
                 for m4file in libtool.m4 ltoptions.m4 ltsugar.m4 ltversion.m4 lt~obsolete.m4; do
@@ -342,7 +392,8 @@ regenerate_autotools() {
         
         # Copy auxiliary build files (install-sh, missing, etc.) since these projects
         # don't use automake at the top level and autoreconf won't install them
-        local automake_dir=$(automake --print-libdir 2>/dev/null)
+        local automake_dir
+        automake_dir=$(automake --print-libdir 2>/dev/null)
         if [ -n "$automake_dir" ] && [ -d "$automake_dir" ]; then
             echo "Installing auxiliary build files from automake"
             for file in install-sh missing config.guess config.sub depcomp compile test-driver ylwrap mkinstalldirs; do
@@ -375,7 +426,10 @@ regenerate_autotools() {
         echo "Regenerating autotools files for subdirectories with configure.ac"
         # Find all subdirectories with configure.ac/configure.in (excluding gnulib which has special handling)
         # We need to process them in order from deepest to shallowest to handle nested subdirectories
-        local subdirs=$(find . -name "configure.ac" -o -name "configure.in" | grep -v "^\./configure\." | grep -v gnulib | sed 's|/configure\.[ai][cn]$||' | sort -u)
+        local subdirs
+        subdirs=$(find . -name "configure.ac" -o -name "configure.in" | grep -v "^\./configure\." | grep -v gnulib | sed 's|/configure\.[ai][cn]$||' | sort -u)
+        # Word splitting intentional for directory list
+        # shellcheck disable=SC2086
         for subdir in $subdirs; do
             if [ -d "$subdir" ] && [ "$subdir" != "." ]; then
                 echo "  Regenerating $subdir"
@@ -413,6 +467,8 @@ regenerate_autotools() {
 # Usage: lint_autotools <library_src_dir> [--strict]
 # By default, linting reports issues but doesn't fail (informational mode)
 # With --strict, linting failures will cause the function to return non-zero
+# Note: SC2317 warnings in this function are false positives - error handlers ARE reachable on command failure
+# shellcheck disable=SC2317
 lint_autotools() {
     set +u
     local strict_mode=0
@@ -436,9 +492,10 @@ lint_autotools() {
         error "lint_autotools: Directory does not exist ($lib_src_dir)"
     fi
     
-    local lib_name=$(basename "$lib_src_dir")
+    local lib_name
+    lib_name=$(basename "$lib_src_dir")
     echo "Running autotools linting for $lib_name in $lib_src_dir"
-    if [ $strict_mode -eq 0 ]; then
+    if [ "$strict_mode" -eq 0 ]; then
         echo "  (informational mode - will not fail build)"
     fi
     
@@ -450,7 +507,8 @@ lint_autotools() {
     
     # Use autoconf2.69 for binutils/gcc/gdb/newlib if needed
     if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ] || [ "$lib_name" = "newlib" ]; then
-        local autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | sed -n 's/[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' || echo "")
+        local autoconf_version
+        autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | sed -n 's/[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' || echo "")
         if [ "$autoconf_version" != "2.69" ] && which autoconf2.69 > /dev/null 2>&1; then
             autoconf_cmd="autoconf2.69"
             automake_cmd="automake"  # Use default automake
@@ -583,7 +641,8 @@ check_autotools_drift() {
         error "check_autotools_drift: Directory does not exist ($lib_src_dir)"
     fi
     
-    local lib_name=$(basename "$lib_src_dir")
+    local lib_name
+    lib_name=$(basename "$lib_src_dir")
     echo "Checking autotools drift for $lib_name in $lib_src_dir"
     
     # Only check drift if configure.ac or configure.in exists
@@ -597,7 +656,8 @@ check_autotools_drift() {
     pushd "$lib_src_dir" > /dev/null
     
     # Create a temporary directory to store original files
-    local temp_backup=$(mktemp -d)
+    local temp_backup
+    temp_backup=$(mktemp -d)
     
     # Backup autogenerated files that should be tracked
     if [ -f "configure" ]; then
@@ -614,7 +674,8 @@ check_autotools_drift() {
     echo "  Running autoreconf -fi to check for drift..."
     local autoreconf_cmd="autoreconf"
     if [ "$lib_name" = "binutils" ] || [ "$lib_name" = "gcc" ] || [ "$lib_name" = "gdb" ] || [ "$lib_name" = "newlib" ]; then
-        local autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | sed -n 's/[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' || echo "")
+        local autoconf_version
+        autoconf_version=$(autoconf --version 2>/dev/null | head -n1 | sed -n 's/[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' || echo "")
         if [ "$autoconf_version" != "2.69" ] && which autoconf2.69 > /dev/null 2>&1; then
             export AUTOCONF=autoconf2.69
             export AUTOHEADER=autoheader2.69
@@ -677,6 +738,12 @@ check_autotools_drift() {
 # Clean up unnecessary global shell variables
 clean_env
 
+# Global configuration variables
+# Many variables below are flagged by shellcheck SC2034 as "unused" because they are
+# used by external scripts that source this file (build-prerequisites.sh, build-binutils-gcc-first.sh, etc.)
+# These variables are intentionally exported for use in the build pipeline.
+# shellcheck disable=SC2034
+
 ROOT=$(pwd)
 SRCDIR=$ROOT/src
 
@@ -735,16 +802,16 @@ TAR=tar
 # on Ubuntu and Mac OS X.
 uname_string=$(uname | sed 'y/LINUXDARWIN/linuxdarwin/')
 host_arch=$(uname -m | sed 'y/XI/xi/')
-if [ "x$uname_string" == "xlinux" ] ; then
+if [ "$uname_string" = "linux" ] ; then
     BUILD="$host_arch"-linux-gnu
     HOST_NATIVE="$host_arch"-linux-gnu
     READLINK=readlink
-    JOBS=$(grep ^processor /proc/cpuinfo|wc -l)
+    JOBS=$(grep -c ^processor /proc/cpuinfo)
     GCC_CONFIG_OPTS_LCPP="--with-host-libstdcxx=-static-libgcc -Wl,-Bstatic,-lstdc++,-Bdynamic -lm"
     MD5="md5sum -b"
     PACKAGE_NAME_SUFFIX="${host_arch}-linux"
     WGET="wget -q"
-elif [ "x$uname_string" == "xdarwin" ] ; then
+elif [ "$uname_string" = "darwin" ] ; then
     BUILD=x86_64-apple-darwin10
     HOST_NATIVE=x86_64-apple-darwin10
     READLINK=greadlink
@@ -765,7 +832,7 @@ SRC_PREREQS="GMP MPFR MPC ISL EXPAT LIBICONV ZLIB"
 WIN_PREREQS="PYTHON_WIN"
 
 PREREQS="$SRC_PREREQS"
-if [ "x$BUILD" != "xx86_64-apple-darwin10" ]; then
+if [ "$BUILD" != "x86_64-apple-darwin10" ]; then
     PREREQS="$SRC_PREREQS $WIN_PREREQS"
 fi
 
