@@ -117,8 +117,8 @@ saveenv () {
     set +u
     # Increment stack level
     stack_level=$((stack_level + 1))
-    # Dynamic variable name - intentional eval usage
-    # shellcheck disable=SC2086
+    # Dynamic variable name - intentional eval usage creates seemingly unused variable
+    # shellcheck disable=SC2034
     eval stack_list_$stack_level=
     set -u
 }
@@ -303,7 +303,7 @@ copy_multi_libs() {
 # shellcheck disable=SC2317
 regenerate_autotools() {
     set +u
-    if [ "$#" -ne 1 ] ; then
+    if [ $# -ne 1 ] ; then
         warning "regenerate_autotools: Missing argument"
         return 1
     fi
@@ -427,9 +427,13 @@ regenerate_autotools() {
         # We need to process them in order from deepest to shallowest to handle nested subdirectories
         local subdirs_array
         mapfile -t subdirs_array < <(find . -name "configure.ac" -o -name "configure.in" | grep -v "^\./configure\." | grep -v gnulib | sed 's|/configure\.[ai][cn]$||' | sort -u)
-        # Iterate safely over subdirectory list using array to avoid word splitting issues
-        for subdir in "${subdirs_array[@]}"; do
-            if [ -d "$subdir" ] && [ "$subdir" != "." ]; then
+        # Check if array is non-empty before iterating
+        if [ ${#subdirs_array[@]} -eq 0 ] || [ -z "${subdirs_array[0]}" ]; then
+            echo "  No subdirectories with configure.ac/configure.in found"
+        else
+            # Iterate safely over subdirectory list using array to avoid word splitting issues
+            for subdir in "${subdirs_array[@]}"; do
+                if [ -d "$subdir" ] && [ "$subdir" != "." ]; then
                 echo "  Regenerating $subdir"
                 pushd "$subdir" > /dev/null
                 
@@ -474,6 +478,7 @@ regenerate_autotools() {
                 popd > /dev/null
             fi
         done
+        fi
     fi
     
     # Special handling for libcharset subdirectory in libiconv
