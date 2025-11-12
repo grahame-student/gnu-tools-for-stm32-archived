@@ -71,17 +71,16 @@ saveenvvar CPPFLAGS "$ENV_CPPFLAGS"
 saveenvvar LDFLAGS "$ENV_LDFLAGS"
 
 # Build configure options array to avoid word splitting issues
-# GCC_CONFIG_OPTS and MULTILIB_LIST may be empty/modified for different builds
-gcc_opts=()
-if [ -n "$GCC_CONFIG_OPTS" ]; then
-    read -ra gcc_opts <<< "$GCC_CONFIG_OPTS"
-fi
-
+# MULTILIB_LIST may be empty/modified for different builds
 multilib_opts=()
 if [ -n "$MULTILIB_LIST" ]; then
     read -ra multilib_opts <<< "$MULTILIB_LIST"
 fi
 
+# Note: GCC_CONFIG_OPTS is intentionally not quoted as it contains multiple
+# configure options that need to be word-split. It's a controlled variable
+# from build-toolchain-config.sh and is safe to expand.
+# shellcheck disable=SC2086
 "$SRCDIR/$GCC/configure" --target="$TARGET" \
     --prefix="$INSTALLDIR_NATIVE" \
     --libexecdir="$INSTALLDIR_NATIVE/lib" \
@@ -110,7 +109,7 @@ fi
     --with-sysroot="$INSTALLDIR_NATIVE/arm-none-eabi" \
     --build="$BUILD" \
     --host="$HOST_NATIVE" \
-    "${gcc_opts[@]+"${gcc_opts[@]}"}" \
+    $GCC_CONFIG_OPTS \
     "${GCC_CONFIG_OPTS_LCPP}" \
     "--with-pkgversion=$PKGVERSION" \
     "${multilib_opts[@]+"${multilib_opts[@]}"}"
