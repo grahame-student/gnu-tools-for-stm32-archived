@@ -36,7 +36,7 @@ jobs:
       - name: Verify toolchain is in container
         run: |
           echo "=== Verifying toolchain binaries ==="
-          docker run --rm gnu-tools-for-stm32:test /bin/bash -c "arm-none-eabi-gcc --version"
+          docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "arm-none-eabi-gcc --version"
 
       - name: Build test project using Docker container
         run: |
