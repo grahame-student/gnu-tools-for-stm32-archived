@@ -30,7 +30,7 @@ while [ -n "$*" ]; do
   shift
 done
 
-[ -r $incfile ] || {
+[ -r "$incfile" ] || {
   echo "**** Couldn't open file '$incfile'.  Aborting."
 }
 
