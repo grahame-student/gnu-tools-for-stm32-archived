@@ -29,10 +29,13 @@ echo "Task [III-2] /$HOST_NATIVE/newlib/"
 rm -rf "$BUILDDIR_NATIVE/newlib" && mkdir -p "$BUILDDIR_NATIVE/newlib"
 
 pushd "$BUILDDIR_NATIVE/newlib"
-# Convert NEWLIB_CONFIG_OPTS to array for proper word splitting
-read -ra newlib_opts <<< "$NEWLIB_CONFIG_OPTS"
+# Convert NEWLIB_CONFIG_OPTS to array for proper word splitting (robust pattern)
+newlib_opts=()
+if [ -n "$NEWLIB_CONFIG_OPTS" ]; then
+    read -ra newlib_opts <<< "$NEWLIB_CONFIG_OPTS"
+fi
 "$SRCDIR/$NEWLIB/configure" \
-    "${newlib_opts[@]}" \
+    "${newlib_opts[@]+"${newlib_opts[@]}"}" \
     --target="$TARGET" \
     --prefix="$INSTALLDIR_NATIVE" \
     --infodir="$INSTALLDIR_NATIVE_DOC/info" \
