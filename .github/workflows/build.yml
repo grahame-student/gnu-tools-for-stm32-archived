@@ -45,10 +45,13 @@ jobs:
         run: |
           echo "=== Linting shell scripts with shellcheck ==="
           # Lint all .sh files in the root directory
+          # SC1091: Not following sourced files (scripts source build-common.sh)
+          # SC2148: Tips for adding shebang (handled by project conventions)
+          # SC2034: Variables unused in build-common.sh but used by sourcing scripts
           for script in *.sh; do
             if [ -f "$script" ]; then
               echo "Checking $script..."
-              shellcheck -e SC1091,SC2148 "$script" || exit 1
+              shellcheck -e SC1091,SC2148,SC2034 "$script" || exit 1
             fi
           done
           echo "All shell scripts passed linting"
