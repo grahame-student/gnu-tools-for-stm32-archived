@@ -1,4 +1,31 @@
 #!/bin/bash
+# Copyright (c) 2011-2020, ARM Limited
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#     * Redistributions of source code must retain the above copyright notice,
+#       this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of Arm nor the names of its contributors may be used
+#       to endorse or promote products derived from this software without
+#       specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
 # Generic Docker entrypoint script for building CMake projects with ARM toolchain
 # 
 # This script validates and builds any CMake project targeting ARM Cortex-M/A processors
@@ -38,11 +65,6 @@ validate_project() {
     local project_dir=$1
     
     echo "=== Validating project directory: $project_dir ==="
-    
-    if [ ! -d "$project_dir" ]; then
-        echo "ERROR: Project directory does not exist: $project_dir"
-        exit 1
-    fi
     
     if [ ! -f "$project_dir/CMakeLists.txt" ]; then
         echo "ERROR: CMakeLists.txt not found in $project_dir"
@@ -86,7 +108,7 @@ build_project() {
     mkdir -p "$build_dir"
     
     # Change to build directory
-    cd "$build_dir"
+    cd "$build_dir" || { echo "ERROR: Failed to change to build directory: $build_dir"; exit 1; }
     
     # Configure CMake with the ARM toolchain
     echo ""
@@ -106,7 +128,14 @@ build_project() {
     # List generated artifacts
     echo ""
     echo "Generated artifacts:"
-    ls -lh -- *.elf *.map *.hex *.bin 2>/dev/null || echo "  (No standard artifacts found)"
+    shopt -s nullglob
+    artifacts=( *.elf *.map *.hex *.bin )
+    if [ ${#artifacts[@]} -gt 0 ]; then
+        ls -lh -- "${artifacts[@]}"
+    else
+        echo "  (No standard artifacts found)"
+    fi
+    shopt -u nullglob
 }
 
 # Main script execution

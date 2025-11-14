@@ -74,7 +74,8 @@ jobs:
             fi
             
             if [ ! -f "test_project/reference/$artifact" ]; then
-              echo "⚠️  WARNING: Reference artifact not found: $artifact"
+              echo "❌ ERROR: Reference artifact not found: $artifact"
+              all_match=false
               continue
             fi
             
@@ -85,8 +86,8 @@ jobs:
               echo "❌ $artifact differs from reference"
               
               # Show file sizes for debugging
-              echo "  Generated: $(stat -c%s "build_output/$artifact") bytes"
-              echo "  Reference: $(stat -c%s "test_project/reference/$artifact") bytes"
+              echo "  Generated: $(wc -c < "build_output/$artifact" | tr -d ' ') bytes"
+              echo "  Reference: $(wc -c < "test_project/reference/$artifact" | tr -d ' ') bytes"
               
               # For text files (.map), show diff summary
               if [[ "$artifact" == *.map ]]; then

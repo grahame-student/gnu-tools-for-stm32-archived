@@ -27,6 +27,8 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 #    set(CMAKE_EXE_LINKER_FLAGS_INIT "--specs=nosys.specs")
 #endif ()
 
+# Note: CMAKE_C_COMPILER is already derived by CMake from BINUTILS_PATH at this point
+# in the toolchain file processing, so we can use it to query the sysroot
 execute_process(COMMAND ${CMAKE_C_COMPILER} -print-sysroot
     OUTPUT_VARIABLE ARM_GCC_SYSROOT OUTPUT_STRIP_TRAILING_WHITESPACE)
 
