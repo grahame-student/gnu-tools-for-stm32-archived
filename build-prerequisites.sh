@@ -88,6 +88,8 @@ for ac_arg; do
 done
 
 if [ -n "$skip_steps" ]; then
+    # Intentionally unquoted: $skip_steps is space-delimited (set on line 77)
+    # and we want word splitting to iterate over each step
     for ss in $skip_steps; do
         case $ss in
             mingw|mingw32)
@@ -140,7 +142,7 @@ if [ "$skip_native_build" != "yes" ] ; then
 fi
 
 if [ "$skip_native_build" != "yes" ] ; then
-    echo Task [I-0] /"$HOST_NATIVE"/zlib/ | tee -a "$BUILDDIR_NATIVE/.stage"
+    echo Task \[I-0\] /"$HOST_NATIVE"/zlib/ | tee -a "$BUILDDIR_NATIVE/.stage"
     rm -rf "$BUILDDIR_NATIVE/zlib"
     copy_dir_clean "$SRCDIR/$ZLIB" "$BUILDDIR_NATIVE/zlib"
     pushd "$BUILDDIR_NATIVE/zlib"
@@ -150,7 +152,7 @@ if [ "$skip_native_build" != "yes" ] ; then
     make install
     popd
 
-    echo Task [I-1] /"$HOST_NATIVE"/gmp/ | tee -a "$BUILDDIR_NATIVE/.stage"
+    echo Task \[I-1\] /"$HOST_NATIVE"/gmp/ | tee -a "$BUILDDIR_NATIVE/.stage"
     rm -rf "$BUILDDIR_NATIVE/gmp" && mkdir -p "$BUILDDIR_NATIVE/gmp"
     pushd "$BUILDDIR_NATIVE/gmp"
 
@@ -166,7 +168,7 @@ if [ "$skip_native_build" != "yes" ] ; then
     #make check
     popd
 
-    echo Task [I-2] /"$HOST_NATIVE"/mpfr/ | tee -a "$BUILDDIR_NATIVE/.stage"
+    echo Task \[I-2\] /"$HOST_NATIVE"/mpfr/ | tee -a "$BUILDDIR_NATIVE/.stage"
     rm -rf "$BUILDDIR_NATIVE/mpfr" && mkdir -p "$BUILDDIR_NATIVE/mpfr"
     pushd "$BUILDDIR_NATIVE/mpfr"
 
@@ -182,7 +184,7 @@ if [ "$skip_native_build" != "yes" ] ; then
     #make check
     popd
 
-    echo Task [I-3] /"$HOST_NATIVE"/mpc/ | tee -a "$BUILDDIR_NATIVE/.stage"
+    echo Task \[I-3\] /"$HOST_NATIVE"/mpc/ | tee -a "$BUILDDIR_NATIVE/.stage"
     rm -rf "$BUILDDIR_NATIVE/mpc" && mkdir -p "$BUILDDIR_NATIVE/mpc"
     pushd "$BUILDDIR_NATIVE/mpc"
 
@@ -199,7 +201,7 @@ if [ "$skip_native_build" != "yes" ] ; then
     #make check
     popd
 
-    echo Task [I-4] /"$HOST_NATIVE"/isl/ | tee -a "$BUILDDIR_NATIVE/.stage"
+    echo Task \[I-4\] /"$HOST_NATIVE"/isl/ | tee -a "$BUILDDIR_NATIVE/.stage"
     rm -rf "$BUILDDIR_NATIVE/isl" && mkdir -p "$BUILDDIR_NATIVE/isl"
     pushd "$BUILDDIR_NATIVE/isl"
 
@@ -215,7 +217,7 @@ if [ "$skip_native_build" != "yes" ] ; then
     #make check
     popd
 
-    echo Task [I-5] /"$HOST_NATIVE"/expat/ | tee -a "$BUILDDIR_NATIVE/.stage"
+    echo Task \[I-5\] /"$HOST_NATIVE"/expat/ | tee -a "$BUILDDIR_NATIVE/.stage"
     rm -rf "$BUILDDIR_NATIVE/expat" && mkdir -p "$BUILDDIR_NATIVE/expat"
     pushd "$BUILDDIR_NATIVE/expat"
 
