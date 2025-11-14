@@ -120,9 +120,15 @@ main() {
     local project_dir="$1"
     local build_dir="$2"
     
+    # Validate that project_dir exists before converting to absolute path
+    if [ ! -d "$project_dir" ]; then
+        echo "ERROR: Project directory does not exist: $project_dir"
+        exit 1
+    fi
+    
     # Convert to absolute paths
     project_dir=$(realpath "$project_dir")
-    build_dir=$(realpath "$build_dir")
+    build_dir=$(realpath -m "$build_dir")  # -m allows non-existent build_dir
     
     echo "================================================================"
     echo "Generic CMake Project Builder for ARM Toolchain"
