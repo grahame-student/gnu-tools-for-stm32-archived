@@ -18,7 +18,7 @@ echo "Verifying runtime libraries..."
 test -d "$INSTALLDIR_NATIVE/arm-none-eabi/lib" || { echo "Error: Runtime libraries not found"; exit 1; }
 
 # Display sample of installed libraries
-find "$INSTALLDIR_NATIVE/arm-none-eabi/lib" -maxdepth 1 -name "*.a" -type f -printf "%M %n %-8u %-8g %10s %TY-%Tm-%Td %TH:%TM %p\n" 2>/dev/null | head -10 || true
+find "$INSTALLDIR_NATIVE/arm-none-eabi/lib" -maxdepth 1 -name "*.a" -type f -ls 2>/dev/null | head -10 || true
 
 # Make toolchain binaries available in PATH
 echo "Making toolchain binaries available in /usr/local/bin..."
