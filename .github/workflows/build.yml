@@ -51,14 +51,15 @@ jobs:
           for script in *.sh; do
             if [ -f "$script" ]; then
               echo "Checking $script..."
-              if [ "$script" == "build-toolchain.sh" ]; then
-                # build-toolchain.sh is a legacy monolithic script (not used in Docker builds).
+              if [ "$script" == "build-toolchain-legacy.sh" ]; then
+                # build-toolchain-legacy.sh is the old monolithic script kept for reference.
+                # The new build-toolchain.sh is a wrapper that calls modular scripts.
                 # The modular scripts (build-prerequisites.sh, build-binutils-gcc-first.sh, etc.)
                 # have ZERO violations and are the preferred approach.
-                # For build-toolchain.sh, we also exclude SC2086 because:
+                # For build-toolchain-legacy.sh, we exclude SC2086, SC2102, SC2268, SC2016, SC2162 because:
                 # - All ERROR and WARNING level issues have been fixed
-                # - Remaining SC2086 (info) violations are intentional word-splitting patterns
-                #   for configuration options (e.g., ${GCC_CONFIG_OPTS} must split into args)
+                # - Remaining violations are info/style level in legacy code patterns
+                # - Configuration option variables (${GCC_CONFIG_OPTS}, etc.) require word splitting
                 # - The script uses 'set -u' to catch undefined variables
                 # - It runs in a controlled build environment with known variable values
                 # See docs/build-toolchain-linting-analysis.md for full analysis
