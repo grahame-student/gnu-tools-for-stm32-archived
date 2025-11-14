@@ -1,0 +1,119 @@
+---
+name: Validate Toolchain
+
+on:
+  workflow_dispatch:
+  pull_request:
+    # Run on pull requests to any branch
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  validate-toolchain:
+    name: Build and Validate Toolchain
+    runs-on: ubuntu-latest
+
+    permissions:
+      # contents: read - Required to checkout the repository code
+      contents: read
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v5.0.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.11.1
+
+      - name: Build Docker container with toolchain
+        run: |
+          echo "=== Building Docker container with GNU Tools for STM32 ==="
+          docker build -t gnu-tools-for-stm32:test .
+
+      - name: Verify toolchain is in container
+        run: |
+          echo "=== Verifying toolchain binaries ==="
+          docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "arm-none-eabi-gcc --version"
+
+      - name: Build test project using Docker container
+        run: |
+          echo "=== Building test project with containerized toolchain ==="
+          docker run --rm \
+            -v "${{ github.workspace }}/test_project:/project:ro" \
+            -v "${{ github.workspace }}/build_output:/build" \
+            gnu-tools-for-stm32:test \
+            /project /build
+
+      - name: List generated artifacts
+        run: |
+          echo "=== Generated artifacts ==="
+          ls -lh build_output/
+
+      - name: Compare artifacts with reference files
+        run: |
+          echo "=== Comparing generated artifacts with reference files ==="
+          
+          # Define the artifacts to compare
+          ARTIFACTS=("nucleo-u083rc.elf" "nucleo-u083rc.map" "nucleo-u083rc.hex" "nucleo-u083rc.bin")
+          
+          # Initialize comparison result
+          all_match=true
+          
+          # Compare each artifact
+          for artifact in "${ARTIFACTS[@]}"; do
+            echo ""
+            echo "Comparing $artifact..."
+            
+            if [ ! -f "build_output/$artifact" ]; then
+              echo "❌ ERROR: Generated artifact not found: $artifact"
+              all_match=false
+              continue
+            fi
+            
+            if [ ! -f "test_project/reference/$artifact" ]; then
+              echo "❌ ERROR: Reference artifact not found: $artifact"
+              all_match=false
+              continue
+            fi
+            
+            # Compare using cmp (binary comparison)
+            if cmp -s "build_output/$artifact" "test_project/reference/$artifact"; then
+              echo "✓ $artifact matches reference"
+            else
+              echo "❌ $artifact differs from reference"
+              
+              # Show file sizes for debugging
+              echo "  Generated: $(wc -c < "build_output/$artifact" | tr -d ' ') bytes"
+              echo "  Reference: $(wc -c < "test_project/reference/$artifact" | tr -d ' ') bytes"
+              
+              # For text files (.map), show diff summary
+              if [[ "$artifact" == *.map ]]; then
+                echo "  First 20 lines of diff:"
+                diff "build_output/$artifact" "test_project/reference/$artifact" | head -20 || true
+              fi
+              
+              all_match=false
+            fi
+          done
+          
+          echo ""
+          echo "================================================================"
+          if [ "$all_match" = true ]; then
+            echo "✓ All artifacts match reference files"
+            echo "================================================================"
+          else
+            echo "❌ Some artifacts differ from reference files"
+            echo "================================================================"
+            exit 1
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: toolchain-validation-artifacts
+          path: build_output/
+          retention-days: 7
