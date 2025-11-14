@@ -693,22 +693,21 @@ if [ "$skip_native_build" != "yes" ] ; then
     fi
 
     # Validate binaries on macos
-    if [ "$BUILD" == "x86_64-apple-darwin10" ]; then
+    if [ "x$BUILD" == "xx86_64-apple-darwin10" ]; then
         echo Task [III-14] /Validate tool dependencies/
         invalid=()
-        # shellcheck disable=SC2038  # This code path is macOS-specific and filenames are controlled  
-        while IFS= read -r line; do
+        while read line; do
           if objdump -macho --dylibs-used "$line" | grep -q '/usr/local/'; then
-            invalid+=("$line")
+            invalid+=($line)
           fi
-        done < <(find "$INSTALLDIR_NATIVE/" -type f -print0 | xargs -0 file | grep "Mach-O " | cut -d: -f1)
+        done <<< $(find $INSTALLDIR_NATIVE/ -type f |  xargs file | grep "Mach-O " | cut -d: -f1)
 
         if [ ${#invalid[@]} -ne 0 ]; then
-          echo -e "Illegal dependency detected!${invalid[*]/#/\\n}\nAborting..."
+          echo -e "Illegal dependency detected!${invalid[@]/#/\\n}\nAborting..."
           exit 1
         fi
     fi
-fi  #if [ "$skip_native_build" != "yes" ] ; then
+fi  #if [ "x$skip_native_build" != "xyes" ] ; then
 
 # skip building mingw32 toolchain if "--skip_mingw32" specified
 # this huge if statement controls all $BUILDDIR_MINGW tasks till "task [IV-8]"
@@ -953,8 +952,8 @@ if [ "x$skip_mingw32" != "xyes" ] ; then
     restoreenv
 
     echo Task [IV-8] /Package toolchain in zip format/
-    pushd "$(dirname "$INSTALLDIR_MINGW")"
-    ln -s "$(basename "$INSTALLDIR_MINGW")" "$PACKAGE_NAME"
+    pushd $(dirname $INSTALLDIR_MINGW)
+    ln -s $(basename $INSTALLDIR_MINGW) $PACKAGE_NAME
     rm -f $PACKAGEDIR/$PACKAGE_NAME_MINGW.zip
     zip -r9 $PACKAGEDIR/$PACKAGE_NAME_MINGW.zip $PACKAGE_NAME
     rm $PACKAGE_NAME
@@ -982,7 +981,6 @@ if [ "x$skip_package_sources" != "xyes" ]; then
 
     for prereq in $SRC_PREREQS; do
         eval prereq_pack="\$${prereq}_PACK"
-        # shellcheck disable=SC2154  # prereq_pack is set dynamically via eval
         cp "$SRCDIR/$prereq_pack" "$PACKAGE_NAME/src/"
     done
 
