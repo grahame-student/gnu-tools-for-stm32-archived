@@ -156,3 +156,5 @@ src/binutils/**/ltversion.m4
 src/binutils/**/lt~obsolete.m4
 # gprof has a generated config file
 src/binutils/gprof/gconfig.in
+*.pre-auto-fix
+*.before-final-fixes
