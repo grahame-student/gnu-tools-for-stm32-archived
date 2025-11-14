@@ -127,3 +127,88 @@ Runtime libraries include:
 - `libstdc++.a` - C++ standard library
 - `libsupc++.a` - C++ runtime support
 - Various nano variants (e.g., `libc_nano.a`) for size-optimized builds
+
+## Toolchain Validation
+
+The repository includes an automated validation workflow that verifies the generated toolchain by building a test project and comparing the output against reference artifacts.
+
+### Validation Workflow
+
+The validation is performed automatically via GitHub Actions (`.github/workflows/validate-toolchain.yml`) on every pull request. The workflow:
+
+1. **Builds the Docker container** - Creates a complete toolchain image
+2. **Builds the test project** - Uses the containerized toolchain to build `test_project/`
+3. **Compares artifacts** - Validates that generated `.elf`, `.map`, `.hex`, and `.bin` files match the reference files
+4. **Reports results** - Fails the build if any discrepancies are detected
+
+### Using the Docker Container for Custom Projects
+
+The Docker container includes a generic entrypoint script (`build-cmake-project.sh`) that can build any CMake project targeting the ARM toolchain.
+
+**Requirements for projects**:
+- Must have a `CMakeLists.txt` file
+- Must have an `arm-none-eabi-gcc.cmake` toolchain file
+
+**Usage**:
+```bash
+# Build the Docker container
+docker build -t gnu-tools-for-stm32 .
+
+# Build your project using the container
+docker run --rm \
+  -v /path/to/your/project:/project:ro \
+  -v /path/to/output:/build \
+  gnu-tools-for-stm32 \
+  /project /build
+```
+
+The entrypoint script accepts two arguments:
+1. **Project directory** - Path to directory containing CMakeLists.txt and arm-none-eabi-gcc.cmake
+2. **Build directory** - Path where build artifacts will be generated
+
+**Example with test_project**:
+```bash
+# From the repository root
+docker run --rm \
+  -v "$(pwd)/test_project:/project:ro" \
+  -v "$(pwd)/build_output:/build" \
+  gnu-tools-for-stm32 \
+  /project /build
+
+# Check generated artifacts
+ls -lh build_output/
+```
+
+### Manual Validation
+
+To manually validate the toolchain without Docker:
+
+1. **Build the toolchain** using local build scripts (see above)
+2. **Add toolchain to PATH**:
+   ```bash
+   export PATH="$PWD/install-native/bin:$PATH"
+   ```
+3. **Build the test project**:
+   ```bash
+   cd test_project
+   mkdir build
+   cd build
+   cmake -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE=../arm-none-eabi-gcc.cmake ..
+   cmake --build . --verbose -- -j 4
+   ```
+4. **Compare artifacts**:
+   ```bash
+   cmp nucleo-u083rc.elf ../reference/nucleo-u083rc.elf
+   cmp nucleo-u083rc.map ../reference/nucleo-u083rc.map
+   cmp nucleo-u083rc.hex ../reference/nucleo-u083rc.hex
+   cmp nucleo-u083rc.bin ../reference/nucleo-u083rc.bin
+   ```
+
+### Reference Artifacts
+
+The reference artifacts in `test_project/reference/` were built using:
+- **Toolchain**: STM32CubeIDE 1.19.0 (GNU Tools for STM32 13.3.rel1)
+- **Target**: STM32U083RC (Cortex-M0+)
+- **Build Configuration**: Debug mode with `-O0` optimization
+
+These reference files serve as the baseline for validation. Any changes to the toolchain that affect code generation will be detected by the validation workflow.

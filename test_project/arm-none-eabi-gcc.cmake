@@ -2,7 +2,16 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR ARM)
 
 set(TOOLCHAIN_PREFIX arm-none-eabi-)
-find_program(BINUTILS_PATH ${TOOLCHAIN_PREFIX}gcc HINTS "C:/ST/STM32CubeIDE_1.19.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin" NO_CACHE)
+
+# Try to find the toolchain in the system PATH first (for Docker/Linux environments)
+find_program(BINUTILS_PATH ${TOOLCHAIN_PREFIX}gcc NO_CACHE)
+
+# Fallback to Windows CubeIDE path if not found in PATH
+if (NOT BINUTILS_PATH)
+    find_program(BINUTILS_PATH ${TOOLCHAIN_PREFIX}gcc 
+        HINTS "C:/ST/STM32CubeIDE_1.19.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin" 
+        NO_CACHE)
+endif()
 
 if (NOT BINUTILS_PATH)
     message(FATAL_ERROR "ARM GCC toolchain not found")
@@ -21,9 +30,16 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 execute_process(COMMAND ${CMAKE_C_COMPILER} -print-sysroot
     OUTPUT_VARIABLE ARM_GCC_SYSROOT OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-set(CMAKE_C_COMPILER ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}gcc.exe)
+# Use platform-specific executable extensions
+if(WIN32)
+    set(EXECUTABLE_SUFFIX ".exe")
+else()
+    set(EXECUTABLE_SUFFIX "")
+endif()
+
+set(CMAKE_C_COMPILER ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}gcc${EXECUTABLE_SUFFIX})
 set(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER})
-set(CMAKE_CXX_COMPILER ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}g++.exe)
+set(CMAKE_CXX_COMPILER ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}g++${EXECUTABLE_SUFFIX})
 set(CMAKE_AR ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}gcc-ar)
 set(CMAKE_RANLIB ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}gcc-ranlib)
 
