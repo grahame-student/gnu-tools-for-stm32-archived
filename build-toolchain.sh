@@ -40,6 +40,31 @@ exec < /dev/null
 script_path=$(cd "$(dirname "$0")" && pwd -P)
 . "$script_path/build-common.sh"
 
+# ============================================================================
+# LEGACY MONOLITHIC BUILD SCRIPT
+# ============================================================================
+# This file contains a legacy monolithic sequence of commands used to build
+# the GNU Tools Arm Embedded toolchain.
+#
+# CURRENT STATUS:
+# - This script is NOT used in Docker builds
+# - Docker builds use the modular scripts: build-prerequisites.sh,
+#   build-binutils-gcc-first.sh, build-newlib.sh, build-gcc-final-gdb.sh,
+#   and build-runtime-libs-finalize.sh
+# - The modular scripts have ZERO linting violations
+# - This script is kept for reference and manual/local builds
+#
+# LINTING STATUS:
+# - All ERROR and WARNING level shellcheck violations have been fixed
+# - Remaining violations are INFO level SC2086 (unquoted variables)
+# - These are intentionally left unquoted in many cases for proper word
+#   splitting of configuration options (e.g., ${GCC_CONFIG_OPTS})
+#
+# RECOMMENDATION:
+# For new development, prefer using the modular build scripts which are
+# better maintained, fully linted, and actively used in CI/CD pipelines.
+# ============================================================================
+
 # This file contains the sequence of commands used to build the
 # GNU Tools Arm Embedded toolchain.
 usage ()
@@ -106,10 +131,10 @@ MULTILIB_LIST="--with-multilib-list=rmprofile,aprofile"
 for ac_arg; do
     case $ac_arg in
         --skip_steps=*)
-            skip_steps=$(echo $ac_arg | sed -e "s/--skip_steps=//g" -e "s/,/ /g")
+            skip_steps=$(echo "$ac_arg" | sed -e "s/--skip_steps=//g" -e "s/,/ /g")
             ;;
         --build_type=*)
-            build_type=$(echo $ac_arg | sed -e "s/--build_type=//g" -e "s/,/ /g")
+            build_type=$(echo "$ac_arg" | sed -e "s/--build_type=//g" -e "s/,/ /g")
             ;;
         --with-multilib-list=*)
             MULTILIB_LIST="--with-multilib-list=${ac_arg##*=}"
