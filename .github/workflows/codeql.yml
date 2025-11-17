@@ -4,7 +4,7 @@ name: CodeQL Security Analysis
 on:
   push:
     branches:
-      - main
+      - 13.3.rel1
   pull_request:
     # Run on pull requests to any branch
   schedule:
@@ -84,8 +84,9 @@ jobs:
           # Only include build-* files from the root directory that are shell scripts
           SCRIPTS=$(find . -type f -name "*.sh" | grep -v ".git" | sort -u)
           # Add root-level build-* scripts that don't end in .sh
+          shopt -s nullglob
           for file in ./build-*; do
-            if [ -f "$file" ] && [ ! -d "$file" ] && [[ "$file" != *.sh ]] && [[ "$file" != *.md ]]; then
+            if [ -f "$file" ] && [[ "$file" != *.sh ]] && [[ "$file" != *.md ]]; then
               # Check if file has a shell shebang
               if head -n 1 "$file" | grep -q '^#!.*sh'; then
                 SCRIPTS="$SCRIPTS"$'\n'"$file"
