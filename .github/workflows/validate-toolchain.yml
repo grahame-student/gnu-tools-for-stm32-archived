@@ -29,9 +29,13 @@ jobs:
         uses: docker/setup-buildx-action@v3.11.1
 
       - name: Build Docker container with toolchain
-        run: |
-          echo "=== Building Docker container with GNU Tools for STM32 ==="
-          docker build -t gnu-tools-for-stm32:test .
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          load: true
+          tags: gnu-tools-for-stm32:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Verify toolchain is in container
         run: |
