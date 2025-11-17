@@ -2,6 +2,9 @@
 name: CodeQL Security Analysis
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     # Run on pull requests to any branch
   schedule:
@@ -76,10 +79,20 @@ jobs:
       - name: Find shell scripts
         id: find-scripts
         run: |
-          # Find all shell scripts (both .sh files and build-* scripts)
+          # Find all shell scripts (.sh files and executable build-* scripts in root)
           # Exclude .git directory to avoid checking git internals
-          # Use sort -u to remove duplicates (e.g., build-common.sh matches both patterns)
-          SCRIPTS=$(find . -type f \( -name "*.sh" -o -name "build-*" \) | grep -v ".git" | sort -u | tr '\n' ' ')
+          # Only include build-* files from the root directory that are shell scripts
+          SCRIPTS=$(find . -type f -name "*.sh" | grep -v ".git" | sort -u)
+          # Add root-level build-* scripts that don't end in .sh
+          for file in ./build-*; do
+            if [ -f "$file" ] && [ ! -d "$file" ] && [[ "$file" != *.sh ]] && [[ "$file" != *.md ]]; then
+              # Check if file has a shell shebang
+              if head -n 1 "$file" | grep -q '^#!.*sh'; then
+                SCRIPTS="$SCRIPTS"$'\n'"$file"
+              fi
+            fi
+          done
+          SCRIPTS=$(echo "$SCRIPTS" | sort -u | tr '\n' ' ')
           echo "scripts=$SCRIPTS" >> $GITHUB_OUTPUT
           echo "Found scripts: $SCRIPTS"
 
@@ -117,17 +130,23 @@ jobs:
           mkdir -p shellcheck-results
           
           for script in $SHELL_SCRIPTS; do
-            script_name=$(basename "$script")
-            # Generate JSON output for artifact storage
-            shellcheck -f json "$script" > "shellcheck-results/${script_name}.json" || true
+            # Create a unique filename by replacing / with _ and removing leading ./
+            safe_name=$(echo "$script" | sed 's|^\./||' | sed 's|/|_|g')
+            # Generate JSON output for artifact storage (excluding the same checks as the main analysis)
+            shellcheck -e SC1091,SC2148 -f json "$script" > "shellcheck-results/${safe_name}.json" || true
           done
+          
+          # Verify that files were created
+          file_count=$(find shellcheck-results -name "*.json" -type f | wc -l)
+          echo "Created $file_count JSON result files"
 
       - name: Upload shellcheck results
-        # Upload results even if some checks failed
+        # Upload results even if some checks failed, but only if files exist
         if: always()
         continue-on-error: true
         uses: actions/upload-artifact@v5.0.0
         with:
           name: shellcheck-results
-          path: shellcheck-results/
+          path: shellcheck-results/*.json
+          if-no-files-found: warn
           retention-days: 30
