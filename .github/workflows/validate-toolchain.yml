@@ -37,11 +37,29 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Free up disk space before loading image
+        run: |
+          echo "=== Freeing up disk space ==="
+          df -h
+          
+          # Remove Docker build cache to free up space
+          docker buildx prune -af
+          
+          # Clean up other Docker resources
+          docker system prune -af
+          
+          df -h
+      
       - name: Load image into Docker
         run: |
           echo "=== Loading Docker image ==="
           docker load --input /tmp/gnu-tools-for-stm32.tar
+          
+          # Remove tar file after loading to free up space
+          rm -f /tmp/gnu-tools-for-stm32.tar
+          
           docker image ls -a
+          df -h
 
       - name: Verify toolchain is in container
         run: |
