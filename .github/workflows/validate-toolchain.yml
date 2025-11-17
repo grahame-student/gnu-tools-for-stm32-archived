@@ -32,10 +32,16 @@ jobs:
         uses: docker/build-push-action@v6.18.0
         with:
           context: .
-          load: true
           tags: gnu-tools-for-stm32:test
+          outputs: type=docker,dest=/tmp/gnu-tools-for-stm32.tar
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Load image into Docker
+        run: |
+          echo "=== Loading Docker image ==="
+          docker load --input /tmp/gnu-tools-for-stm32.tar
+          docker image ls -a
 
       - name: Verify toolchain is in container
         run: |
