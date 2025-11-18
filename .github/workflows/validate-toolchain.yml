@@ -90,11 +90,17 @@ jobs:
           echo "=== Debugging: Checking sysroot location ==="
           docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "arm-none-eabi-gcc -print-sysroot"
           
-          echo "=== Debugging: Checking sysroot contents ==="
-          docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "ls -la /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/ || echo 'Directory not found'"
+          echo "=== Debugging: Checking GCC library search paths ==="
+          docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "arm-none-eabi-gcc -print-search-dirs"
           
-          echo "=== Debugging: Searching for crti.o ==="
-          docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "find /root/build/gnu-tools-for-stm32/install-native -name 'crti.o' || echo 'crti.o not found'"
+          echo "=== Debugging: Checking install-native/lib/gcc structure ==="
+          docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "ls -la /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/ || echo 'GCC lib directory not found'"
+          
+          echo "=== Debugging: Searching for crti.o in entire installation ==="
+          docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "find /root/build/gnu-tools-for-stm32/install-native -name 'crti.o' -o -name 'crt0.o' -o -name 'crtbegin.o' | head -20"
+          
+          echo "=== Debugging: Checking if GCC version subdirectory exists ==="
+          docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "ls -la /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/ 2>/dev/null || echo 'GCC 13.3.1 lib directory not found'"
 
       - name: Build test project using Docker container
         if: steps.check_load.outputs.loaded == 'true'
