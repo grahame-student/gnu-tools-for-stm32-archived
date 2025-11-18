@@ -86,6 +86,15 @@ jobs:
         run: |
           echo "=== Verifying toolchain binaries ==="
           docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "arm-none-eabi-gcc --version"
+          
+          echo "=== Debugging: Checking sysroot location ==="
+          docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "arm-none-eabi-gcc -print-sysroot"
+          
+          echo "=== Debugging: Checking sysroot contents ==="
+          docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "ls -la /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/ || echo 'Directory not found'"
+          
+          echo "=== Debugging: Searching for crti.o ==="
+          docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "find /root/build/gnu-tools-for-stm32/install-native -name 'crti.o' || echo 'crti.o not found'"
 
       - name: Build test project using Docker container
         if: steps.check_load.outputs.loaded == 'true'
