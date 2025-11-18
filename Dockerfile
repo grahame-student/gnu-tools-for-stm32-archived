@@ -44,9 +44,24 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
 # - autogen:         For processing Makefile.def → Makefile.in (binutils, gcc, gdb, newlib)
 # - libtool:         For building shared/static libraries
 
-# Create build area and copy sources
+# Create build area
 RUN mkdir -p /root/build/gnu-tools-for-stm32/
-COPY . /root/build/gnu-tools-for-stm32/
+
+# Copy build scripts first (these change more frequently than source code)
+# Copying these separately allows Docker to cache the large source copy below
+WORKDIR /root/build/gnu-tools-for-stm32
+COPY build-common.sh build-toolchain-config.sh build-prerequisites.sh ./
+
+# Copy only the source directories needed for bootstrap stage
+# This separates frequently-changed scripts from rarely-changed source code
+COPY src/gmp ./src/gmp
+COPY src/mpfr ./src/mpfr
+COPY src/mpc ./src/mpc
+COPY src/isl ./src/isl
+COPY src/expat ./src/expat
+COPY src/libiconv ./src/libiconv
+COPY src/zlib-1.2.12 ./src/zlib-1.2.12
+COPY src/liblongpath-win32 ./src/liblongpath-win32
 
 # Build bootstrap prerequisites (foundational libraries needed by GCC)
 # Script: build-prerequisites.sh
@@ -70,7 +85,6 @@ COPY . /root/build/gnu-tools-for-stm32/
 # The regenerate_autotools() function (build-common.sh) regenerates configure, Makefile.in,
 # and other autotools files for GMP, MPFR, MPC, ISL, Expat, and libiconv before building using
 # modern autoconf 2.71 (Ubuntu 24.04 default). Only binutils/gcc/gdb/newlib use legacy autoconf 2.69.
-WORKDIR /root/build/gnu-tools-for-stm32
 RUN ./build-prerequisites.sh --skip_steps=mingw && \
     # Clean up temporary build directories to free up space.
     # Note: Installed libraries in build-native/host-libs/usr/lib/ are preserved for the toolchain build.
@@ -106,6 +120,12 @@ RUN ./build-prerequisites.sh --skip_steps=mingw && \
 FROM bootstrap AS binutils-gcc-first
 
 WORKDIR /root/build/gnu-tools-for-stm32
+
+# Copy build script and source code needed for this stage
+COPY build-binutils-gcc-first.sh ./
+COPY src/binutils ./src/binutils
+COPY src/gcc ./src/gcc
+
 RUN chmod +x build-binutils-gcc-first.sh && \
     ./build-binutils-gcc-first.sh
 
@@ -139,6 +159,11 @@ RUN chmod +x build-binutils-gcc-first.sh && \
 FROM binutils-gcc-first AS newlib
 
 WORKDIR /root/build/gnu-tools-for-stm32
+
+# Copy build script and source code needed for this stage
+COPY build-newlib.sh ./
+COPY src/newlib ./src/newlib
+
 RUN chmod +x build-newlib.sh && \
     ./build-newlib.sh
 
@@ -176,6 +201,14 @@ RUN chmod +x build-newlib.sh && \
 FROM newlib AS gcc-final-gdb
 
 WORKDIR /root/build/gnu-tools-for-stm32
+
+# Copy build script and source code needed for this stage
+# Note: gcc source was already copied in binutils-gcc-first stage,
+# but we need to copy it again since we're in a new stage
+COPY build-gcc-final-gdb.sh ./
+COPY src/gcc ./src/gcc
+COPY src/gdb ./src/gdb
+
 RUN chmod +x build-gcc-final-gdb.sh && \
     ./build-gcc-final-gdb.sh
 
@@ -201,6 +234,10 @@ RUN chmod +x build-gcc-final-gdb.sh && \
 FROM gcc-final-gdb AS runtime-libs
 
 WORKDIR /root/build/gnu-tools-for-stm32
+
+# Copy build script needed for this stage
+COPY build-runtime-libs-finalize.sh ./
+
 RUN chmod +x build-runtime-libs-finalize.sh && \
     ./build-runtime-libs-finalize.sh
 

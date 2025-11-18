@@ -1,0 +1,31 @@
+# Exclude build artifacts and intermediate files
+build-native/
+build-mingw/
+install-native/
+install-mingw/
+pkg/
+
+# Exclude git repository to reduce context size
+.git/
+
+# Exclude GitHub workflows (not needed for build)
+.github/workflows/
+.github/dependabot.yml
+
+# Exclude documentation (not needed for build)
+*.md
+docs/
+
+# Exclude build output directories
+build_output/
+
+# Exclude editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Exclude temporary files
+*.tmp
+tmp/
