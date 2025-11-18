@@ -52,6 +52,11 @@ RUN mkdir -p /root/build/gnu-tools-for-stm32/
 WORKDIR /root/build/gnu-tools-for-stm32
 COPY build-common.sh build-toolchain-config.sh build-prerequisites.sh ./
 
+# Copy GCC BASE-VER file needed by build-common.sh for version detection
+# This is a small file that rarely changes, but is needed by all build scripts
+RUN mkdir -p ./src/gcc/gcc
+COPY src/gcc/gcc/BASE-VER ./src/gcc/gcc/BASE-VER
+
 # Copy only the source directories needed for bootstrap stage
 # This separates frequently-changed scripts from rarely-changed source code
 COPY src/gmp ./src/gmp
