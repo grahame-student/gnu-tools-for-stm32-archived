@@ -83,11 +83,10 @@ popd
 # Note: GCC runtime startup files (crt*.o) are installed directly to
 # $INSTALLDIR_NATIVE/lib/gcc/arm-none-eabi/13.3.1/ and multilib subdirectories
 # They are NOT in $BUILDDIR_NATIVE/target-libs, so no copying is needed.
-# The files are already in the correct location after 'make install-gcc'.
+# The files are already in the correct location after 'make install'.
 
 # Clean up GCC final build artifacts
-# Note: Do NOT delete $BUILDDIR_NATIVE/target-libs if it contains files needed for final install
-# Only clean up the actual build directory
+# Only clean up the actual build directory; $BUILDDIR_NATIVE/target-libs is intentionally preserved.
 rm -rf "$BUILDDIR_NATIVE/gcc-final"
 
 # Build GDB
