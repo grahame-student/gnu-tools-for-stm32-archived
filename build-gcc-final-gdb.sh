@@ -65,7 +65,7 @@ fi
     --with-newlib \
     --with-headers=yes \
     --with-python-dir=share/gcc-arm-none-eabi \
-    --with-sysroot="$BUILDDIR_NATIVE/target-libs/arm-none-eabi" \
+    --with-sysroot="$INSTALLDIR_NATIVE/arm-none-eabi" \
     --build="$BUILD" \
     --host="$HOST_NATIVE" \
     $GCC_CONFIG_OPTS \
@@ -80,31 +80,15 @@ make install
 restoreenv
 popd
 
-# Copy GCC runtime startup files from build directory to installation BEFORE cleanup
-# These files (crt*.o) are essential for linking and must be preserved
-echo "Copying GCC runtime startup files to installation directory..."
-if [ -d "$BUILDDIR_NATIVE/target-libs/arm-none-eabi" ]; then
-  # Find all crt*.o files in the build directory and copy them to the installation
-  find "$BUILDDIR_NATIVE/target-libs/arm-none-eabi" -name 'crt*.o' -type f | while read -r crtfile; do
-    # Get the relative path from target-libs/arm-none-eabi
-    rel_path="${crtfile#"$BUILDDIR_NATIVE"/target-libs/arm-none-eabi/}"
-    dest_file="$INSTALLDIR_NATIVE/arm-none-eabi/$rel_path"
-    dest_dir=$(dirname "$dest_file")
-    
-    # Create destination directory if it doesn't exist
-    mkdir -p "$dest_dir"
-    
-    # Copy the file with verbose output
-    cp -v "$crtfile" "$dest_file"
-  done
-  echo "GCC runtime startup files copied successfully"
-else
-  echo "Warning: Build directory $BUILDDIR_NATIVE/target-libs/arm-none-eabi not found"
-fi
+# Note: GCC runtime startup files (crt*.o) are installed directly to
+# $INSTALLDIR_NATIVE/lib/gcc/arm-none-eabi/13.3.1/ and multilib subdirectories
+# They are NOT in $BUILDDIR_NATIVE/target-libs, so no copying is needed.
+# The files are already in the correct location after 'make install-gcc'.
 
 # Clean up GCC final build artifacts
+# Note: Do NOT delete $BUILDDIR_NATIVE/target-libs if it contains files needed for final install
+# Only clean up the actual build directory
 rm -rf "$BUILDDIR_NATIVE/gcc-final"
-rm -rf "$BUILDDIR_NATIVE/target-libs"
 
 # Build GDB
 echo "Task [III-6] /$HOST_NATIVE/gdb/"

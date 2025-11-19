@@ -17,10 +17,6 @@ echo "Finalizing runtime library installation and cleaning up build artifacts...
 echo "Verifying runtime libraries..."
 test -d "$INSTALLDIR_NATIVE/arm-none-eabi/lib" || { echo "Error: Runtime libraries not found"; exit 1; }
 
-# Note: GCC runtime startup files (crt*.o) are now copied in build-gcc-final-gdb.sh
-# before the build directory is cleaned up. This ensures they are available in the
-# final installation.
-
 # Display sample of installed libraries
 ls -la "$INSTALLDIR_NATIVE/arm-none-eabi/lib"/*.a | head -10 || true
 
