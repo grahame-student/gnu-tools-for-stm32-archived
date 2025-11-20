@@ -85,9 +85,9 @@ popd
 # They are NOT in $BUILDDIR_NATIVE/target-libs, so no copying is needed.
 # The files are already in the correct location after 'make install'.
 
-# Clean up GCC final build artifacts
-# Only clean up the actual build directory; $BUILDDIR_NATIVE/target-libs is intentionally preserved.
+# Clean up GCC final build artifacts to save disk space
 rm -rf "$BUILDDIR_NATIVE/gcc-final"
+rm -rf "$BUILDDIR_NATIVE/target-libs"
 
 # Build GDB
 echo "Task [III-6] /$HOST_NATIVE/gdb/"
