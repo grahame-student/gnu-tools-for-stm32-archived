@@ -34,14 +34,26 @@ jobs:
         with:
           context: .
           tags: gnu-tools-for-stm32:test
-          outputs: type=docker,dest=/tmp/gnu-tools-for-stm32.tar
+          load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
         # Continue on error to ensure cache is saved even if build fails
-        continue-on-error: false
+        continue-on-error: true
 
-      - name: Free up disk space before loading image
-        if: success()
+      - name: Check if build completed successfully
+        id: check_build
+        if: always()
+        run: |
+          if [ "${{ steps.build.outcome }}" == "success" ]; then
+            echo "built=true" >> $GITHUB_OUTPUT
+          else
+            echo "built=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Build failed, but Docker cache has been saved for next run"
+            exit 1
+          fi
+      
+      - name: Free up disk space after build
+        if: steps.check_build.outputs.built == 'true'
         run: |
           echo "=== Freeing up disk space ==="
           df -h
@@ -49,40 +61,13 @@ jobs:
           # Remove Docker build cache to free up space
           docker buildx prune -af
           
-          # Clean up other Docker resources
+          # Clean up other Docker resources  
           docker system prune -af
           
           df -h
-      
-      - name: Load image into Docker
-        if: success()
-        id: load
-        run: |
-          echo "=== Loading Docker image ==="
-          docker load --input /tmp/gnu-tools-for-stm32.tar
-          
-          # Remove tar file after loading to free up space
-          rm -f /tmp/gnu-tools-for-stm32.tar
-          
-          docker image ls -a
-          df -h
-        # Continue workflow even if load fails - cache is already saved
-        continue-on-error: true
-
-      - name: Check if image loaded successfully
-        id: check_load
-        if: always()
-        run: |
-          if [ "${{ steps.load.outcome }}" == "success" ]; then
-            echo "loaded=true" >> $GITHUB_OUTPUT
-          else
-            echo "loaded=false" >> $GITHUB_OUTPUT
-            echo "⚠️ Image loading failed, but Docker cache has been saved for next run"
-            exit 1
-          fi
 
       - name: Verify toolchain is in container
-        if: steps.check_load.outputs.loaded == 'true'
+        if: steps.check_build.outputs.built == 'true'
         run: |
           echo "=== Verifying toolchain binaries ==="
           docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "arm-none-eabi-gcc --version"
@@ -103,7 +88,7 @@ jobs:
           docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "ls -la /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/ 2>/dev/null || echo 'GCC 13.3.1 lib directory not found'"
 
       - name: Build test project using Docker container
-        if: steps.check_load.outputs.loaded == 'true'
+        if: steps.check_build.outputs.built == 'true'
         run: |
           echo "=== Building test project with containerized toolchain ==="
           docker run --rm \
@@ -113,13 +98,13 @@ jobs:
             /project /build
 
       - name: List generated artifacts
-        if: steps.check_load.outputs.loaded == 'true'
+        if: steps.check_build.outputs.built == 'true'
         run: |
           echo "=== Generated artifacts ==="
           ls -lh build_output/
 
       - name: Compare artifacts with reference files
-        if: steps.check_load.outputs.loaded == 'true'
+        if: steps.check_build.outputs.built == 'true'
         run: |
           echo "=== Comparing generated artifacts with reference files ==="
           
