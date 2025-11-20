@@ -13,12 +13,11 @@ concurrency:
 permissions: {}
 
 jobs:
-  validate-toolchain:
-    name: Build and Validate Toolchain
+  build-toolchain:
+    name: Build Toolchain Container
     runs-on: ubuntu-latest
 
     permissions:
-      # contents: read - Required to checkout the repository code
       contents: read
 
     steps:
@@ -34,61 +33,44 @@ jobs:
         with:
           context: .
           tags: gnu-tools-for-stm32:test
-          load: true
+          outputs: type=docker,dest=/tmp/toolchain-image.tar
           cache-from: type=gha
           cache-to: type=gha,mode=max
-        # Continue on error to ensure cache is saved even if build fails
-        continue-on-error: true
 
-      - name: Check if build completed successfully
-        id: check_build
-        if: always()
-        run: |
-          if [ "${{ steps.build.outcome }}" == "success" ]; then
-            echo "built=true" >> $GITHUB_OUTPUT
-          else
-            echo "built=false" >> $GITHUB_OUTPUT
-            echo "⚠️ Build failed, but Docker cache has been saved for next run"
-            exit 1
-          fi
-      
-      - name: Free up disk space after build
-        if: steps.check_build.outputs.built == 'true'
-        run: |
-          echo "=== Freeing up disk space ==="
-          df -h
-          
-          # Remove Docker build cache to free up space
-          docker buildx prune -af
-          
-          # Clean up other Docker resources  
-          docker system prune -af
-          
-          df -h
+      - name: Upload toolchain image
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolchain-image
+          path: /tmp/toolchain-image.tar
+          retention-days: 1
 
-      - name: Verify toolchain is in container
-        if: steps.check_build.outputs.built == 'true'
+  test-toolchain:
+    name: Test Toolchain with CMake Project
+    needs: build-toolchain
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v5.0.0
+
+      - name: Download toolchain image
+        uses: actions/download-artifact@v4
+        with:
+          name: toolchain-image
+          path: /tmp
+
+      - name: Load toolchain image
         run: |
+          docker load --input /tmp/toolchain-image.tar
+          docker images
+
           echo "=== Verifying toolchain binaries ==="
           docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "arm-none-eabi-gcc --version"
-          
-          echo "=== Debugging: Checking sysroot location ==="
-          docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "arm-none-eabi-gcc -print-sysroot"
-          
-          echo "=== Debugging: Checking GCC library search paths ==="
-          docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "arm-none-eabi-gcc -print-search-dirs"
-          
-          echo "=== Debugging: Checking install-native/lib/gcc structure ==="
-          docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "ls -la /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/ || echo 'GCC lib directory not found'"
-          
-          echo "=== Debugging: Searching for crti.o in entire installation ==="
-          docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "find /root/build/gnu-tools-for-stm32/install-native -name 'crti.o' -o -name 'crt0.o' -o -name 'crtbegin.o' | head -20"
-          
-          echo "=== Debugging: Checking if GCC version subdirectory exists ==="
-          docker run --rm --entrypoint /bin/bash gnu-tools-for-stm32:test -c "ls -la /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/ 2>/dev/null || echo 'GCC 13.3.1 lib directory not found'"
 
       - name: Build test project using Docker container
-        if: steps.check_build.outputs.built == 'true'
         run: |
           echo "=== Building test project with containerized toolchain ==="
           docker run --rm \
@@ -98,13 +80,11 @@ jobs:
             /project /build
 
       - name: List generated artifacts
-        if: steps.check_build.outputs.built == 'true'
         run: |
           echo "=== Generated artifacts ==="
           ls -lh build_output/
 
       - name: Compare artifacts with reference files
-        if: steps.check_build.outputs.built == 'true'
         run: |
           echo "=== Comparing generated artifacts with reference files ==="
           
