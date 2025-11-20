@@ -65,7 +65,7 @@ fi
     --with-newlib \
     --with-headers=yes \
     --with-python-dir=share/gcc-arm-none-eabi \
-    --with-sysroot="$BUILDDIR_NATIVE/target-libs/arm-none-eabi" \
+    --with-sysroot="$INSTALLDIR_NATIVE/arm-none-eabi" \
     --build="$BUILD" \
     --host="$HOST_NATIVE" \
     $GCC_CONFIG_OPTS \
@@ -80,7 +80,12 @@ make install
 restoreenv
 popd
 
-# Clean up GCC final build artifacts
+# Note: GCC runtime startup files (crt*.o) are installed directly to
+# $INSTALLDIR_NATIVE/lib/gcc/arm-none-eabi/13.3.1/ and multilib subdirectories
+# They are NOT in $BUILDDIR_NATIVE/target-libs, so no copying is needed.
+# The files are already in the correct location after 'make install'.
+
+# Clean up GCC final build artifacts to save disk space
 rm -rf "$BUILDDIR_NATIVE/gcc-final"
 rm -rf "$BUILDDIR_NATIVE/target-libs"
 
