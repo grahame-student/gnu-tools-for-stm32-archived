@@ -65,6 +65,7 @@ fi
     --with-newlib \
     --with-headers=yes \
     --with-python-dir=share/gcc-arm-none-eabi \
+    --with-build-sysroot="$BUILDDIR_NATIVE/target-libs/arm-none-eabi" \
     --with-sysroot="$INSTALLDIR_NATIVE/arm-none-eabi" \
     --build="$BUILD" \
     --host="$HOST_NATIVE" \
