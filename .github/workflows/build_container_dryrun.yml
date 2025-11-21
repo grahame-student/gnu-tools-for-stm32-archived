@@ -49,8 +49,8 @@ jobs:
           cache-from: type=gha,scope=bootstrap
           cache-to: type=gha,mode=max,scope=bootstrap
           push: false
-          # Export layer cache even on failure
-          # This preserves partial progress for debugging
+          # Export layer cache on success for reuse
+          # Bootstrap cache is preserved and reused across workflow runs
 
       # Build full container, leveraging cached bootstrap stage
       - name: Dry Run Build (Full Toolchain)
