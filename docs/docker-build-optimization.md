@@ -93,9 +93,39 @@ RUN echo "=== Bootstrap Stage: Building prerequisite libraries ===" && \
 
 ## Maximizing Cache Reusability
 
-### Building with Cache
+### GitHub Actions Workflow Caching (Recommended)
 
-Docker automatically caches layers. To build:
+The repository's container build workflow (`.github/workflows/build_container_dryrun.yml`) is configured with **automatic caching** using GitHub Actions cache:
+
+```yaml
+# Bootstrap stage is built and cached separately
+- name: Build and Cache Bootstrap Stage
+  uses: docker/build-push-action@v6.18.0
+  with:
+    target: bootstrap
+    cache-from: type=gha,scope=bootstrap
+    cache-to: type=gha,mode=max,scope=bootstrap
+
+# Full build leverages cached bootstrap
+- name: Dry Run Build (Full Toolchain)
+  uses: docker/build-push-action@v6.18.0
+  with:
+    cache-from: |
+      type=gha,scope=bootstrap
+      type=gha,scope=build
+    cache-to: type=gha,mode=max,scope=build
+    continue-on-error: true  # Preserves cache even on failure
+```
+
+**Benefits:**
+- **Automatic cache preservation:** Bootstrap cache is saved even if later stages fail
+- **Shared cache across runs:** Subsequent workflow runs reuse cached layers
+- **No manual intervention:** Cache is managed automatically by GitHub Actions
+- **Scoped caching:** Bootstrap and build stages have separate cache scopes for better isolation
+
+### Local Development Caching
+
+For local development, Docker automatically caches layers:
 
 ```bash
 # Build entire toolchain
@@ -108,6 +138,13 @@ docker build --target binutils-gcc-first -t gnu-tools-for-stm32:binutils-gcc-fir
 
 ### Preserving Cache When Builds Fail
 
+**In GitHub Actions:**
+- The workflow is configured with `continue-on-error: true` for the full build step
+- Bootstrap cache is always saved, even if later stages fail
+- The workflow explicitly builds the bootstrap stage first to ensure it's cached
+- Subsequent runs automatically reuse the cached bootstrap layer
+
+**In Local Development:**
 If a build fails, Docker **automatically preserves** the cache for all successfully completed stages. You can:
 
 1. **Rebuild from cached layers:**
@@ -132,7 +169,9 @@ If a build fails, Docker **automatically preserves** the cache for all successfu
 
 ### Using BuildKit for Advanced Caching
 
-Docker BuildKit provides more advanced caching options:
+**GitHub Actions:** BuildKit is automatically enabled in the workflow via `docker/setup-buildx-action`.
+
+**Local Development:** Docker BuildKit provides more advanced caching options:
 
 ```bash
 # Enable BuildKit (if not already enabled)
@@ -141,6 +180,16 @@ export DOCKER_BUILDKIT=1
 # Build with inline cache
 docker build --build-arg BUILDKIT_INLINE_CACHE=1 -t gnu-tools-for-stm32 .
 
+# Use GitHub Actions cache locally (requires GitHub CLI auth)
+docker buildx build \
+  --cache-from type=gha \
+  --cache-to type=gha,mode=max \
+  -t gnu-tools-for-stm32 .
+```
+
+For local development with registry caching:
+
+```bash
 # Export cache to a registry (for CI/CD)
 docker build --cache-to type=registry,ref=myregistry.com/gnu-tools-for-stm32:cache .
 
