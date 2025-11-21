@@ -3,10 +3,6 @@ name: create container - dry run
 
 on:
   workflow_dispatch:
-#  merge_group:
-
-#  pull_request_target:
-#    branches: ['dependabot/**']
 
   pull_request:
     # Run on pull requests (default types: opened, synchronize, reopened)
@@ -28,15 +24,6 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v5.0.0
-
-#      - name: clone repo
-#        shell: bash
-#        run: |
-#          git clone \
-#          --recursive \
-#          https://github.com/grahame-student/gnu-tools-for-stm32.git \
-#          .
-#          ls -la .
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.11.1
