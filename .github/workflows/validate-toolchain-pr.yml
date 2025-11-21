@@ -3,7 +3,7 @@ name: Validate Toolchain on PR
 
 on:
   pull_request:
-    # Run on pull requests to validate toolchain
+    types: [opened, synchronize, reopened]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

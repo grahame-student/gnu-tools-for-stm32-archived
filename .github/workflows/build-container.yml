@@ -7,7 +7,7 @@ on:
     branches:
       - main
   pull_request:
-    # Run on pull requests to validate container builds
+    types: [opened, synchronize, reopened]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
