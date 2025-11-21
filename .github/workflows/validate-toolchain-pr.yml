@@ -12,8 +12,8 @@ concurrency:
 permissions: {}
 
 jobs:
-  validate-toolchain-pr:
-    name: Build and Validate Toolchain
+  build-container:
+    name: Build Container for PR
     runs-on: ubuntu-latest
 
     permissions:
@@ -50,90 +50,24 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Create output directory
-        run: |
-          mkdir -p ${{ github.workspace }}/build-output
-          chmod 777 ${{ github.workspace }}/build-output
+  validate:
+    name: Run Validation
+    needs: build-container
+    uses: ./.github/workflows/validate-toolchain-reusable.yml
+    permissions:
+      contents: read
+    with:
+      container-image: gnu-tools-for-stm32:pr-${{ github.event.pull_request.number }}
+      artifact-name-suffix: -pr-${{ github.event.pull_request.number }}
 
-      - name: Build test project in container
-        run: |
-          echo "Building test project..."
-          docker run --rm \
-            -v ${{ github.workspace }}/test_project:/project:ro \
-            -v ${{ github.workspace }}/build-output:/output \
-            gnu-tools-for-stm32:pr-${{ github.event.pull_request.number }} \
-            /project /output
+  cleanup:
+    name: Cleanup
+    runs-on: ubuntu-latest
+    needs: validate
+    if: always()
 
-      - name: List build artifacts
-        run: |
-          echo "=== Build Artifacts ==="
-          ls -lh ${{ github.workspace }}/build-output/
-
-      - name: Compare artifacts with reference files
-        run: |
-          echo "=== Comparing Build Artifacts with Reference Files ==="
-          
-          # Define artifacts to compare
-          ARTIFACTS=("nucleo-u083rc.elf" "nucleo-u083rc.map" "nucleo-u083rc.hex" "nucleo-u083rc.bin")
-          
-          DIFFERENCES_FOUND=0
-          
-          for artifact in "${ARTIFACTS[@]}"; do
-            echo ""
-            echo "Comparing $artifact..."
-            
-            if [ ! -f "${{ github.workspace }}/build-output/$artifact" ]; then
-              echo "ERROR: Build artifact not found: $artifact"
-              DIFFERENCES_FOUND=1
-              continue
-            fi
-            
-            if [ ! -f "${{ github.workspace }}/test_project/reference/$artifact" ]; then
-              echo "WARNING: Reference file not found: $artifact"
-              echo "This may be expected for a new artifact type"
-              continue
-            fi
-            
-            # Compare files byte-by-byte
-            if cmp -s "${{ github.workspace }}/build-output/$artifact" \
-                     "${{ github.workspace }}/test_project/reference/$artifact"; then
-              echo "✓ $artifact matches reference"
-            else
-              echo "✗ $artifact differs from reference"
-              DIFFERENCES_FOUND=1
-              
-              # Show file sizes for debugging
-              echo "  Build artifact size: $(stat -c%s ${{ github.workspace }}/build-output/$artifact) bytes"
-              echo "  Reference file size: $(stat -c%s ${{ github.workspace }}/test_project/reference/$artifact) bytes"
-              
-              # For text files (map), show a diff sample
-              if [[ "$artifact" == *.map ]]; then
-                echo "  First 20 lines of diff:"
-                diff -u "${{ github.workspace }}/test_project/reference/$artifact" \
-                       "${{ github.workspace }}/build-output/$artifact" | head -20 || true
-              fi
-            fi
-          done
-          
-          echo ""
-          if [ $DIFFERENCES_FOUND -eq 0 ]; then
-            echo "=== SUCCESS: All artifacts match reference files ==="
-            exit 0
-          else
-            echo "=== FAILURE: One or more artifacts differ from reference files ==="
-            exit 1
-          fi
-
-      - name: Upload build artifacts
-        if: always()
-        uses: actions/upload-artifact@v4.5.0
-        with:
-          name: build-artifacts-pr-${{ github.event.pull_request.number }}
-          path: ${{ github.workspace }}/build-output/
-          retention-days: 7
-
+    steps:
       - name: Clean up Docker images
-        if: always()
         run: |
           echo "=== Cleaning up Docker images ==="
           docker image rm gnu-tools-for-stm32:pr-${{ github.event.pull_request.number }} || true

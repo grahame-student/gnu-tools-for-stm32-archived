@@ -80,13 +80,24 @@ cmake --build . --verbose -- -j "$(nproc)"
 echo ""
 echo "=== Copying Build Artifacts ==="
 
+# Enable nullglob to handle cases where no files match the pattern
+shopt -s nullglob
+
 # Find all .elf, .map, .hex, and .bin files in the build directory
+ARTIFACTS_FOUND=0
 for artifact in *.elf *.map *.hex *.bin; do
     if [ -f "$artifact" ]; then
         echo "Copying $artifact to $OUTPUT_DIR/"
         cp "$artifact" "$OUTPUT_DIR/"
+        ARTIFACTS_FOUND=$((ARTIFACTS_FOUND + 1))
     fi
 done
+
+shopt -u nullglob
+
+if [ $ARTIFACTS_FOUND -eq 0 ]; then
+    echo "WARNING: No build artifacts found"
+fi
 
 # List output directory contents
 echo ""
