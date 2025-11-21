@@ -47,12 +47,12 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
 # Create build area and copy only files needed for bootstrap stage
 # This improves Docker layer caching - changes to main toolchain sources (gcc, gdb, binutils, newlib)
 # won't invalidate the bootstrap layer cache
-RUN mkdir -p /root/build/gnu-tools-for-stm32/src/gcc/gcc
 
 # Copy build scripts required for bootstrap
 COPY build-common.sh build-toolchain-config.sh build-prerequisites.sh /root/build/gnu-tools-for-stm32/
 
 # Copy GCC version file needed by build-common.sh (even though we don't build gcc yet)
+# COPY automatically creates the necessary directory structure
 COPY src/gcc/gcc/BASE-VER /root/build/gnu-tools-for-stm32/src/gcc/gcc/BASE-VER
 
 # Copy only bootstrap library sources (prerequisites for GCC)
