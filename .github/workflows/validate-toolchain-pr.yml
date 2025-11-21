@@ -80,6 +80,7 @@ jobs:
     uses: ./.github/workflows/validate-toolchain-reusable.yml
     permissions:
       contents: read
+      packages: read
     with:
       container-image: gnu-tools-for-stm32:pr-${{ github.event.pull_request.number }}
       artifact-name-suffix: -pr-${{ github.event.pull_request.number }}
