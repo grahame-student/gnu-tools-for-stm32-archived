@@ -214,8 +214,27 @@ RUN chmod +x build-runtime-libs-finalize.sh && \
 ### previous stages. No additional    ###
 ### build operations or autotools     ###
 ### usage in this stage.              ###
+###                                    ###
+### Installs CMake for building       ###
+### CMake-based projects and sets up  ###
+### generic entrypoint script.        ###
 ##########################################
 FROM runtime-libs AS main
+
+# Install CMake for building CMake-based projects
+RUN apt-get update && \
+    apt-get install --yes --no-install-recommends cmake && \
+    rm -rf /var/lib/apt/lists/*
+
+# Add toolchain binaries to PATH
+ENV PATH="/root/build/gnu-tools-for-stm32/install-native/bin:${PATH}"
+
+# Copy the generic build script
+COPY build-cmake-project.sh /usr/local/bin/build-cmake-project.sh
+RUN chmod +x /usr/local/bin/build-cmake-project.sh
+
+# Set the entrypoint to the generic build script
+ENTRYPOINT ["/usr/local/bin/build-cmake-project.sh"]
 
 # Final stage - toolchain is ready for use with runtime libraries
 WORKDIR /root/build/gnu-tools-for-stm32
