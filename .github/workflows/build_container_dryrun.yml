@@ -53,7 +53,26 @@ jobs:
         # The workflow will still fail later if bootstrap failed (see Report Build Status)
         continue-on-error: true
 
-      # Build full container, leveraging cached bootstrap stage
+      # Build and cache the binutils-gcc-first stage explicitly
+      # This ensures the binutils-gcc-first layer is cached even if later stages fail
+      - name: Build and Cache Binutils-GCC-First Stage
+        id: binutils-gcc-first
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          target: binutils-gcc-first
+          tags: |
+            ghcr.io/${{ github.repository }}:binutils-gcc-first-${{ github.sha }}
+            ghcr.io/${{ github.repository }}:binutils-gcc-first-latest
+          cache-from: |
+            type=gha,scope=bootstrap
+            type=gha,scope=binutils-gcc-first
+          cache-to: type=gha,mode=max,scope=binutils-gcc-first
+          push: false
+        # Continue even if this step fails to preserve any successfully built layers
+        continue-on-error: true
+
+      # Build full container, leveraging cached bootstrap and binutils-gcc-first stages
       - name: Dry Run Build (Full Toolchain)
         id: docker_build
         uses: docker/build-push-action@v6.18.0
@@ -62,6 +81,7 @@ jobs:
           # Use GitHub Actions cache with broader scope for all stages
           cache-from: |
             type=gha,scope=bootstrap
+            type=gha,scope=binutils-gcc-first
             type=gha,scope=build
           cache-to: type=gha,mode=max,scope=build
           push: false
@@ -75,6 +95,7 @@ jobs:
         run: |
           echo "=== Build Summary ==="
           echo "Bootstrap stage: ${{ steps.bootstrap.outcome }}"
+          echo "Binutils-GCC-First stage: ${{ steps.binutils-gcc-first.outcome }}"
           echo "Full build: ${{ steps.docker_build.outcome }}"
           
           if [ "${{ steps.bootstrap.outcome }}" = "success" ]; then
@@ -85,6 +106,14 @@ jobs:
             echo "✗ Bootstrap stage failed"
           fi
           
+          if [ "${{ steps.binutils-gcc-first.outcome }}" = "success" ]; then
+            echo "✓ Binutils-GCC-First stage cached successfully"
+            echo "  - Future builds will reuse binutils-gcc-first cache"
+            echo "  - Cache scope: binutils-gcc-first"
+          else
+            echo "✗ Binutils-GCC-First stage failed (bootstrap cache preserved)"
+          fi
+          
           if [ "${{ steps.docker_build.outcome }}" = "success" ]; then
             echo "✓ Full build completed"
             # Show image size if build succeeded
@@ -92,10 +121,17 @@ jobs:
               echo "Image size: $(du -h /tmp/gnu-tools-for-stm32.tar | cut -f1)"
             fi
           else
-            echo "✗ Full build failed (bootstrap cache preserved)"
+            echo "✗ Full build failed (earlier stage caches preserved)"
           fi
           
           # Fail the job if bootstrap failed (critical)
           if [ "${{ steps.bootstrap.outcome }}" != "success" ]; then
+            echo "ERROR: Bootstrap stage is critical and must succeed"
+            exit 1
+          fi
+          
+          # Fail the job if binutils-gcc-first failed (critical)
+          if [ "${{ steps.binutils-gcc-first.outcome }}" != "success" ]; then
+            echo "ERROR: Binutils-GCC-First stage is critical and must succeed"
             exit 1
           fi
