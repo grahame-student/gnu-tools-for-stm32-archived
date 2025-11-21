@@ -104,34 +104,9 @@ RUN ./build-prerequisites.sh --skip_steps=mingw && \
 **What's kept:** Installed libraries in `build-native/host-libs/` (needed by later stages)  
 **What's removed:** Temporary build directories for individual libraries
 
-### Binutils-GCC-First Stage
-```dockerfile
-RUN ./build-binutils-gcc-first.sh && \
-    # Build artifacts already cleaned by build script:
-    # - build-native/binutils (removed after building)
-    # - build-native/gcc-first (removed after building)
-    # - *.o object files (removed via find)
-    # - *.la libtool files (removed via find)
-    # Additional housekeeping:
-    rm -rf build-native/*.log build-native/*.txt 2>/dev/null || true && \
-    find build-native -type d -name ".deps" -exec rm -rf {} + 2>/dev/null || true && \
-    find . -name "*~" -delete 2>/dev/null || true && \
-    find . -name "*.orig" -delete 2>/dev/null || true && \
-    find . -name "*.rej" -delete 2>/dev/null || true
-```
-
-**What's kept:** 
-- Installed binaries in `install-native/bin/`
-- Installed libraries in `install-native/lib/`  
-
-**What's removed:** 
-- Build directories: `build-native/binutils/`, `build-native/gcc-first/`
-- Build artifacts: `*.o`, `*.la`, `.deps/` directories
-- Temporary files: logs, backup files
-
 ### Future Housekeeping Opportunities
-- Clean up source directories after they're no longer needed in `gcc-final-gdb` stage
-- Remove intermediate build artifacts in `newlib` stage
+- Clean up source directories after they're no longer needed
+- Remove intermediate build artifacts in `gcc-final-gdb` stage
 - Remove documentation and tests from source trees before copying
 
 ## Layer Size Reporting
