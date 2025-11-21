@@ -72,7 +72,27 @@ jobs:
         # Continue even if this step fails to preserve any successfully built layers
         continue-on-error: true
 
-      # Build full container, leveraging cached bootstrap and binutils-gcc-first stages
+      # Build and cache the newlib stage explicitly
+      # This ensures the newlib layer is cached even if later stages fail
+      - name: Build and Cache Newlib Stage
+        id: newlib
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          target: newlib
+          tags: |
+            ghcr.io/${{ github.repository }}:newlib-${{ github.sha }}
+            ghcr.io/${{ github.repository }}:newlib-latest
+          cache-from: |
+            type=gha,scope=bootstrap
+            type=gha,scope=binutils-gcc-first
+            type=gha,scope=newlib
+          cache-to: type=gha,mode=max,scope=newlib
+          push: false
+        # Continue even if this step fails to preserve any successfully built layers
+        continue-on-error: true
+
+      # Build full container, leveraging cached bootstrap, binutils-gcc-first, and newlib stages
       - name: Dry Run Build (Full Toolchain)
         id: docker_build
         uses: docker/build-push-action@v6.18.0
@@ -82,6 +102,7 @@ jobs:
           cache-from: |
             type=gha,scope=bootstrap
             type=gha,scope=binutils-gcc-first
+            type=gha,scope=newlib
             type=gha,scope=build
           cache-to: type=gha,mode=max,scope=build
           push: false
@@ -96,6 +117,7 @@ jobs:
           echo "=== Build Summary ==="
           echo "Bootstrap stage: ${{ steps.bootstrap.outcome }}"
           echo "Binutils-GCC-First stage: ${{ steps.binutils-gcc-first.outcome }}"
+          echo "Newlib stage: ${{ steps.newlib.outcome }}"
           echo "Full build: ${{ steps.docker_build.outcome }}"
           
           if [ "${{ steps.bootstrap.outcome }}" = "success" ]; then
@@ -112,6 +134,14 @@ jobs:
             echo "  - Cache scope: binutils-gcc-first"
           else
             echo "✗ Binutils-GCC-First stage failed (bootstrap cache preserved)"
+          fi
+          
+          if [ "${{ steps.newlib.outcome }}" = "success" ]; then
+            echo "✓ Newlib stage cached successfully"
+            echo "  - Future builds will reuse newlib cache"
+            echo "  - Cache scope: newlib"
+          else
+            echo "✗ Newlib stage failed (earlier stage caches preserved)"
           fi
           
           if [ "${{ steps.docker_build.outcome }}" = "success" ]; then
@@ -133,5 +163,11 @@ jobs:
           # Fail the job if binutils-gcc-first failed (critical)
           if [ "${{ steps.binutils-gcc-first.outcome }}" != "success" ]; then
             echo "ERROR: Binutils-GCC-First stage is critical and must succeed"
+            exit 1
+          fi
+          
+          # Fail the job if newlib failed (critical)
+          if [ "${{ steps.newlib.outcome }}" != "success" ]; then
+            echo "ERROR: Newlib stage is critical and must succeed"
             exit 1
           fi

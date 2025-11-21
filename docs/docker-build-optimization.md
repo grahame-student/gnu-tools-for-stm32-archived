@@ -255,24 +255,36 @@ The repository's container build workflow (`.github/workflows/build_container_dr
       type=gha,scope=binutils-gcc-first
     cache-to: type=gha,mode=max,scope=binutils-gcc-first
 
-# Full build leverages cached bootstrap and binutils-gcc-first stages
+# Newlib stage is built and cached separately
+- name: Build and Cache Newlib Stage
+  uses: docker/build-push-action@v6.18.0
+  with:
+    target: newlib
+    cache-from: |
+      type=gha,scope=bootstrap
+      type=gha,scope=binutils-gcc-first
+      type=gha,scope=newlib
+    cache-to: type=gha,mode=max,scope=newlib
+
+# Full build leverages cached bootstrap, binutils-gcc-first, and newlib stages
 - name: Dry Run Build (Full Toolchain)
   uses: docker/build-push-action@v6.18.0
   with:
     cache-from: |
       type=gha,scope=bootstrap
       type=gha,scope=binutils-gcc-first
+      type=gha,scope=newlib
       type=gha,scope=build
     cache-to: type=gha,mode=max,scope=build
     continue-on-error: true  # Preserves cache even on failure
 ```
 
 **Benefits:**
-- **Automatic cache preservation:** Bootstrap and binutils-gcc-first caches are saved even if later stages fail
+- **Automatic cache preservation:** Bootstrap, binutils-gcc-first, and newlib caches are saved even if later stages fail
 - **Shared cache across runs:** Subsequent workflow runs reuse cached layers
 - **No manual intervention:** Cache is managed automatically by GitHub Actions
-- **Scoped caching:** Bootstrap, binutils-gcc-first, and build stages have separate cache scopes for better isolation
-- **Incremental builds:** Changes to later stages (newlib, gdb) don't invalidate earlier stage caches
+- **Scoped caching:** Bootstrap, binutils-gcc-first, newlib, and build stages have separate cache scopes for better isolation
+- **Incremental builds:** Changes to later stages (gcc-final-gdb) don't invalidate earlier stage caches
 
 ### Local Development Caching
 
@@ -285,15 +297,16 @@ docker build -t gnu-tools-for-stm32 .
 # Build specific stage (useful for testing)
 docker build --target bootstrap -t gnu-tools-for-stm32:bootstrap .
 docker build --target binutils-gcc-first -t gnu-tools-for-stm32:binutils-gcc-first .
+docker build --target newlib -t gnu-tools-for-stm32:newlib .
 ```
 
 ### Preserving Cache When Builds Fail
 
 **In GitHub Actions:**
 - The workflow is configured with `continue-on-error: true` for the full build step
-- Bootstrap cache is always saved, even if later stages fail
-- The workflow explicitly builds the bootstrap stage first to ensure it's cached
-- Subsequent runs automatically reuse the cached bootstrap layer
+- Bootstrap, binutils-gcc-first, and newlib caches are always saved, even if later stages fail
+- The workflow explicitly builds each stage separately to ensure they're cached
+- Subsequent runs automatically reuse the cached layers
 
 **In Local Development:**
 If a build fails, Docker **automatically preserves** the cache for all successfully completed stages. You can:
@@ -311,6 +324,9 @@ If a build fails, Docker **automatically preserves** the cache for all successfu
    
    # Build up to binutils-gcc-first
    docker build --target binutils-gcc-first -t gnu-tools-for-stm32:stage1 .
+   
+   # Build up to newlib
+   docker build --target newlib -t gnu-tools-for-stm32:newlib .
    ```
 
 3. **Check cached images:**
