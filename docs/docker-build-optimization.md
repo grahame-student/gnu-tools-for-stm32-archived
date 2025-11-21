@@ -211,7 +211,7 @@ RUN echo "=== Binutils-GCC-First Stage: Building binutils and gcc first pass ===
     find . -name "*.orig" -delete 2>/dev/null || true && \
     find . -name "*.rej" -delete 2>/dev/null || true && \
     echo "Layer size after build and cleanup:" && du -sh /root/build/gnu-tools-for-stm32 && \
-    echo "Installed binaries size:" && du -sh install-native/bin 2>/dev/null || echo "No binaries installed yet"
+    echo "Installed binaries size:" && du -sh install-native/bin
 ```
 
 **Newlib Stage:**
