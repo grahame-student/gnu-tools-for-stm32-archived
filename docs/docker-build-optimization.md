@@ -181,22 +181,34 @@ The repository's container build workflow (`.github/workflows/build_container_dr
     cache-from: type=gha,scope=bootstrap
     cache-to: type=gha,mode=max,scope=bootstrap
 
-# Full build leverages cached bootstrap
+# Binutils-GCC-First stage is built and cached separately
+- name: Build and Cache Binutils-GCC-First Stage
+  uses: docker/build-push-action@v6.18.0
+  with:
+    target: binutils-gcc-first
+    cache-from: |
+      type=gha,scope=bootstrap
+      type=gha,scope=binutils-gcc-first
+    cache-to: type=gha,mode=max,scope=binutils-gcc-first
+
+# Full build leverages cached bootstrap and binutils-gcc-first stages
 - name: Dry Run Build (Full Toolchain)
   uses: docker/build-push-action@v6.18.0
   with:
     cache-from: |
       type=gha,scope=bootstrap
+      type=gha,scope=binutils-gcc-first
       type=gha,scope=build
     cache-to: type=gha,mode=max,scope=build
     continue-on-error: true  # Preserves cache even on failure
 ```
 
 **Benefits:**
-- **Automatic cache preservation:** Bootstrap cache is saved even if later stages fail
+- **Automatic cache preservation:** Bootstrap and binutils-gcc-first caches are saved even if later stages fail
 - **Shared cache across runs:** Subsequent workflow runs reuse cached layers
 - **No manual intervention:** Cache is managed automatically by GitHub Actions
-- **Scoped caching:** Bootstrap and build stages have separate cache scopes for better isolation
+- **Scoped caching:** Bootstrap, binutils-gcc-first, and build stages have separate cache scopes for better isolation
+- **Incremental builds:** Changes to later stages (newlib, gdb) don't invalidate earlier stage caches
 
 ### Local Development Caching
 
