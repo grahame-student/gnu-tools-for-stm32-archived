@@ -23,6 +23,9 @@ if (NOT BINUTILS_PATH)
     message(FATAL_ERROR "ARM GCC toolchain not found")
 endif ()
 
+# Extract the directory containing the toolchain binaries
+# BINUTILS_PATH is the full path to arm-none-eabi-gcc (e.g., /path/to/bin/arm-none-eabi-gcc)
+# ARM_TOOLCHAIN_DIR will be the directory (e.g., /path/to/bin)
 get_filename_component(ARM_TOOLCHAIN_DIR ${BINUTILS_PATH} DIRECTORY)
 # Without that flag CMake is not able to pass test compilation check
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
