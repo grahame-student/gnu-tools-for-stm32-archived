@@ -2,6 +2,9 @@
 name: CodeQL Security Analysis
 
 on:
+  push:
+    branches:
+      - '13.3.rel1'  # Run on pushes to the default branch
   pull_request:
     types: [opened, synchronize, reopened]
   schedule:
@@ -119,8 +122,14 @@ jobs:
           for script in $SHELL_SCRIPTS; do
             script_name=$(basename "$script")
             # Generate JSON output for artifact storage
-            shellcheck -f json "$script" > "shellcheck-results/${script_name}.json" || true
+            # Use -e SC1091,SC2148 to match the main analysis step
+            shellcheck -e SC1091,SC2148 -f json "$script" > "shellcheck-results/${script_name}.json" || true
           done
+          
+          # Ensure at least one file exists to avoid upload artifact warning
+          if [ -z "$(ls -A shellcheck-results/)" ]; then
+            echo '[]' > shellcheck-results/no-issues.json
+          fi
 
       - name: Upload shellcheck results
         # Upload results even if some checks failed
