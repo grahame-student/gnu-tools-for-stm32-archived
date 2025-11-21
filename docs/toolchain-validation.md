@@ -15,8 +15,7 @@ The validation system ensures that the custom-built ARM GCC toolchain produces b
 ### Workflow Files
 
 1. **`build-container.yml`** - Builds and publishes the toolchain container
-   - Triggers: Push to main, manual (workflow_dispatch)
-   - **Does NOT run on pull requests** (PRs handled by validate-toolchain-pr.yml)
+   - Triggers: Push to main, pull requests, manual
    - Pushes to GHCR only on main branch or manual trigger
    - Uses GitHub Actions cache for build layers
 
@@ -31,8 +30,7 @@ The validation system ensures that the custom-built ARM GCC toolchain produces b
    - Uses reusable workflow for validation
 
 4. **`validate-toolchain-pr.yml`** - Validates PRs
-   - Triggers: Pull requests (all events: opened, synchronize, reopened)
-   - **Comprehensive PR validation** - builds container AND validates toolchain
+   - Triggers: Pull requests
    - **Two separate jobs to avoid disk space issues:**
      - Job 1: Build container and save as GitHub Actions artifact
      - Job 2: Download artifact, load container, and validate (separate runner)

@@ -6,7 +6,8 @@ on:
   push:
     branches:
       - main
-  # Note: pull_request trigger removed - PR validation is handled by validate-toolchain-pr.yml
+  pull_request:
+    # Run on pull requests to validate container builds
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
