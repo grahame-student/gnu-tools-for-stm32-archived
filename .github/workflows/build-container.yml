@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - 13.3.rel1
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -53,8 +53,8 @@ jobs:
         uses: docker/build-push-action@v6.18.0
         with:
           context: .
-          # Push only on main branch or workflow_dispatch
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' }}
+          # Push only on default branch (13.3.rel1) or workflow_dispatch
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/13.3.rel1' || github.event_name == 'workflow_dispatch' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha

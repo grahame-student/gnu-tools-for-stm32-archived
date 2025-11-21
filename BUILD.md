@@ -161,7 +161,7 @@ The repository includes a GitHub Actions workflow (`.github/workflows/validate-t
 3. Compares the generated artifacts (`.elf`, `.map`, `.hex`, `.bin`) with reference files
 4. Fails if any artifacts differ from the reference
 
-This workflow runs automatically after the container build workflow completes on the `main` branch.
+This workflow runs automatically after the container build workflow completes on the `13.3.rel1` (default) branch.
 
 ### Reference Artifacts
 

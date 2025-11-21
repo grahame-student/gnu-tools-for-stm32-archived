@@ -8,7 +8,7 @@ on:
     types:
       - completed
     branches:
-      - main
+      - 13.3.rel1
 
 permissions: {}
 

@@ -15,8 +15,8 @@ The validation system ensures that the custom-built ARM GCC toolchain produces b
 ### Workflow Files
 
 1. **`build-container.yml`** - Builds and publishes the toolchain container
-   - Triggers: Push to main, pull requests, manual
-   - Pushes to GHCR only on main branch or manual trigger
+   - Triggers: Push to 13.3.rel1 (default branch), pull requests, manual
+   - Pushes to GHCR only on default branch or manual trigger
    - Uses GitHub Actions cache for build layers
 
 2. **`validate-toolchain-reusable.yml`** - Reusable validation workflow
@@ -25,7 +25,7 @@ The validation system ensures that the custom-built ARM GCC toolchain produces b
    - Used by both main and PR validation workflows
 
 3. **`validate-toolchain.yml`** - Validates released toolchain
-   - Triggers: After container build completes on main, manual
+   - Triggers: After container build completes on 13.3.rel1 (default branch), manual
    - Pulls pre-built container from GHCR
    - Uses reusable workflow for validation
 
@@ -75,11 +75,11 @@ The PR validation workflow uses a **two-job architecture** to prevent disk space
 - Avoids pushing temporary PR containers to GHCR
 - Automatic cleanup after 1 day retention period
 - No manual cleanup required
-- Keeps GHCR clean with only main branch images
+- Keeps GHCR clean with only default branch images
 
 ### Container Tagging Strategy
 
-- **Main branch**: `ghcr.io/{owner}/gnu-tools-for-stm32:latest`
+- **Default branch (13.3.rel1)**: `ghcr.io/{owner}/gnu-tools-for-stm32:latest`
 - **SHA tags**: `ghcr.io/{owner}/gnu-tools-for-stm32:{branch}-{sha}`
 - **Pull requests**: Not pushed to GHCR; stored as GitHub Actions artifacts instead
 
