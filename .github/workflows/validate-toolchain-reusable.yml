@@ -15,6 +15,16 @@ on:
         required: false
         type: string
         default: ''
+      load-from-artifact:
+        description: 'Whether to load container from artifact instead of pulling from registry'
+        required: false
+        type: boolean
+        default: false
+      artifact-name:
+        description: 'Name of the artifact containing the container image (required if load-from-artifact is true)'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   validate:
@@ -29,9 +39,27 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v5.0.0
 
+      - name: Download container artifact
+        if: inputs.load-from-artifact
+        uses: actions/download-artifact@v4.5.0
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: /tmp
+
+      - name: Load container from artifact
+        if: inputs.load-from-artifact
+        run: |
+          echo "=== Loading Docker image from artifact ==="
+          gunzip /tmp/toolchain-image.tar.gz
+          docker load --input /tmp/toolchain-image.tar
+          rm /tmp/toolchain-image.tar
+          
+          echo "=== Loaded images ==="
+          docker images
+
       - name: Login to GitHub Container Registry
-        # Only login if pulling from GHCR
-        if: startsWith(inputs.container-image, 'ghcr.io/')
+        # Only login if pulling from GHCR (not loading from artifact)
+        if: ${{ !inputs.load-from-artifact && startsWith(inputs.container-image, 'ghcr.io/') }}
         uses: docker/login-action@v3.6.0
         with:
           registry: ghcr.io
@@ -39,6 +67,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Pull container image
+        if: ${{ !inputs.load-from-artifact }}
         run: |
           echo "Pulling container image: ${{ inputs.container-image }}"
           docker pull ${{ inputs.container-image }}
