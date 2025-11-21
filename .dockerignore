@@ -1,0 +1,33 @@
+# Docker build context exclusions
+# These files/directories are not needed in the Docker build and excluding them
+# reduces the build context size and improves build performance
+
+# Git repository metadata (not needed for build)
+.git/
+.gitignore
+
+# Build artifacts (will be created inside the container)
+build-native/
+build-mingw/
+install-native/
+install-mingw/
+pkg/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Autotools cache (regenerated during build)
+**/autom4te.cache/
+
+# Temporary files
+*.tmp
+.cache/
+
+# Note: We keep .github/, docs/, test_project/, and *.md files for now
+# as they may be referenced by build scripts or documentation
+# Future optimization can exclude these if proven unnecessary
