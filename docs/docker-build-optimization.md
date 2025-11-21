@@ -8,7 +8,8 @@ This document describes the incremental build optimization strategy implemented 
 
 The Dockerfile uses multi-stage builds with the following stages:
 
-1. **bootstrap** - Install build tools and build prerequisite libraries (GMP, MPFR, MPC, ISL, Expat, zlib, libiconv)
+1. **bootstrap** - Install build tools and build prerequisite libraries (GMP, MPFR, MPC, ISL, Expat, zlib)
+   - Note: libiconv source is copied but only built for MinGW (Windows) builds, not in Docker native builds
 2. **binutils-gcc-first** - Build GNU Binutils and GCC first pass (C compiler only)
 3. **newlib** - Build Newlib C standard library
 4. **gcc-final-gdb** - Build GCC final pass (with C++) and GDB debugger
@@ -38,6 +39,10 @@ COPY src/libiconv /root/build/gnu-tools-for-stm32/src/libiconv
 - Bootstrap layer size: ~102M (vs ~2GB if all sources were copied)
 - Changes to GCC, GDB, Binutils, or Newlib sources don't invalidate bootstrap cache
 - Faster rebuilds when only main toolchain sources change
+
+**Libraries built in Docker native build:**
+- zlib, GMP, MPFR, MPC, ISL, Expat
+- Note: libiconv is copied but only built for MinGW (Windows) targets, not in Docker builds which use `--skip_steps=mingw`
 
 **Files excluded from bootstrap:**
 - Main toolchain sources: `src/gcc/*`, `src/gdb/*`, `src/binutils/*`, `src/newlib/*` (except BASE-VER)
@@ -203,7 +208,8 @@ The Docker cache will be invalidated (rebuilt) when:
 
 1. **Bootstrap stage:**
    - Build scripts change (`build-common.sh`, `build-toolchain-config.sh`, `build-prerequisites.sh`)
-   - Bootstrap library sources change (gmp, mpfr, mpc, isl, expat, zlib, libiconv)
+   - Bootstrap library sources change (gmp, mpfr, mpc, isl, expat, zlib)
+   - libiconv source changes (copied but not built in Docker native builds)
    - GCC version changes (`src/gcc/gcc/BASE-VER`)
    - Ubuntu base image updates
 
