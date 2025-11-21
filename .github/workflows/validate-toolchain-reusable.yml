@@ -23,10 +23,25 @@ jobs:
 
     permissions:
       contents: read
+      packages: read
 
     steps:
       - name: Checkout source code
         uses: actions/checkout@v5.0.0
+
+      - name: Login to GitHub Container Registry
+        # Only login if pulling from GHCR
+        if: startsWith(inputs.container-image, 'ghcr.io/')
+        uses: docker/login-action@v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull container image
+        run: |
+          echo "Pulling container image: ${{ inputs.container-image }}"
+          docker pull ${{ inputs.container-image }}
 
       - name: Create output directory
         run: |

@@ -13,35 +13,15 @@ on:
 permissions: {}
 
 jobs:
-  validate-toolchain:
-    name: Validate with Pre-built Container
-    runs-on: ubuntu-latest
-    # Only run if the container build succeeded
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
-
-    permissions:
-      contents: read
-      packages: read
-
-    steps:
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3.6.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Pull toolchain container
-        run: |
-          echo "Pulling toolchain container..."
-          docker pull ghcr.io/${{ github.repository_owner }}/gnu-tools-for-stm32:latest
-
   validate:
     name: Run Validation
-    needs: validate-toolchain
+    # Only run if the container build succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     uses: ./.github/workflows/validate-toolchain-reusable.yml
     permissions:
       contents: read
+      packages: read
     with:
       container-image: ghcr.io/${{ github.repository_owner }}/gnu-tools-for-stm32:latest
       artifact-name-suffix: ''
+    secrets: inherit
