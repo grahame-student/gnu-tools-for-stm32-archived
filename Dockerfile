@@ -47,10 +47,13 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
 # Create build area and copy only files needed for bootstrap stage
 # This improves Docker layer caching - changes to main toolchain sources (gcc, gdb, binutils, newlib)
 # won't invalidate the bootstrap layer cache
-RUN mkdir -p /root/build/gnu-tools-for-stm32/src
+RUN mkdir -p /root/build/gnu-tools-for-stm32/src/gcc/gcc
 
 # Copy build scripts required for bootstrap
 COPY build-common.sh build-toolchain-config.sh build-prerequisites.sh /root/build/gnu-tools-for-stm32/
+
+# Copy GCC version file needed by build-common.sh (even though we don't build gcc yet)
+COPY src/gcc/gcc/BASE-VER /root/build/gnu-tools-for-stm32/src/gcc/gcc/BASE-VER
 
 # Copy only bootstrap library sources (prerequisites for GCC)
 # Excluding main toolchain sources (gcc, gdb, binutils, newlib) - they're not needed until later stages
@@ -124,19 +127,13 @@ RUN echo "=== Bootstrap Stage: Building prerequisite libraries ===" && \
 ##########################################
 FROM bootstrap AS binutils-gcc-first
 
-# Copy additional build script needed for this stage
-COPY build-binutils-gcc-first.sh /root/build/gnu-tools-for-stm32/
-
-# Copy sources needed for binutils and gcc
-COPY src/binutils /root/build/gnu-tools-for-stm32/src/binutils
-COPY src/gcc /root/build/gnu-tools-for-stm32/src/gcc
+# Copy remaining sources needed for subsequent build stages
+# TODO: Future optimization - copy incrementally per stage
+COPY . /root/build/gnu-tools-for-stm32/
 
 WORKDIR /root/build/gnu-tools-for-stm32
-RUN echo "=== Stage 1: Building Binutils + GCC First Pass ===" && \
-    echo "Layer size before build:" && du -sh /root/build/gnu-tools-for-stm32 && \
-    chmod +x build-binutils-gcc-first.sh && \
-    ./build-binutils-gcc-first.sh && \
-    echo "Layer size after build:" && du -sh /root/build/gnu-tools-for-stm32
+RUN chmod +x build-binutils-gcc-first.sh && \
+    ./build-binutils-gcc-first.sh
 
 ##########################################
 ### Stage 2: Newlib                   ###
@@ -167,16 +164,9 @@ RUN echo "=== Stage 1: Building Binutils + GCC First Pass ===" && \
 ##########################################
 FROM binutils-gcc-first AS newlib
 
-# Copy build script and newlib sources needed for this stage
-COPY build-newlib.sh /root/build/gnu-tools-for-stm32/
-COPY src/newlib /root/build/gnu-tools-for-stm32/src/newlib
-
 WORKDIR /root/build/gnu-tools-for-stm32
-RUN echo "=== Stage 2: Building Newlib ===" && \
-    echo "Layer size before build:" && du -sh /root/build/gnu-tools-for-stm32 && \
-    chmod +x build-newlib.sh && \
-    ./build-newlib.sh && \
-    echo "Layer size after build:" && du -sh /root/build/gnu-tools-for-stm32
+RUN chmod +x build-newlib.sh && \
+    ./build-newlib.sh
 
 ##########################################
 ### Stage 3: GCC Final + GDB          ###
@@ -211,21 +201,9 @@ RUN echo "=== Stage 2: Building Newlib ===" && \
 ##########################################
 FROM newlib AS gcc-final-gdb
 
-# Copy build script and gdb sources needed for this stage
-# Note: GCC sources were already copied in binutils-gcc-first stage
-COPY build-gcc-final-gdb.sh /root/build/gnu-tools-for-stm32/
-COPY src/gdb /root/build/gnu-tools-for-stm32/src/gdb
-
 WORKDIR /root/build/gnu-tools-for-stm32
-RUN echo "=== Stage 3: Building GCC Final + GDB ===" && \
-    echo "Layer size before build:" && du -sh /root/build/gnu-tools-for-stm32 && \
-    chmod +x build-gcc-final-gdb.sh && \
-    ./build-gcc-final-gdb.sh && \
-    echo "=== Housekeeping: Cleaning up intermediate build artifacts ===" && \
-    # Clean up build directories that are no longer needed
-    # Keep install-native as it contains the final toolchain
-    rm -rf build-native && \
-    echo "Layer size after build and cleanup:" && du -sh /root/build/gnu-tools-for-stm32
+RUN chmod +x build-gcc-final-gdb.sh && \
+    ./build-gcc-final-gdb.sh
 
 ##########################################
 ### Stage 4: Runtime Libraries        ###
@@ -248,19 +226,9 @@ RUN echo "=== Stage 3: Building GCC Final + GDB ===" && \
 ##########################################
 FROM gcc-final-gdb AS runtime-libs
 
-# Copy finalization script
-COPY build-runtime-libs-finalize.sh /root/build/gnu-tools-for-stm32/
-
 WORKDIR /root/build/gnu-tools-for-stm32
-RUN echo "=== Stage 4: Finalizing Runtime Libraries ===" && \
-    echo "Layer size before finalization:" && du -sh /root/build/gnu-tools-for-stm32 && \
-    chmod +x build-runtime-libs-finalize.sh && \
-    ./build-runtime-libs-finalize.sh && \
-    echo "=== Housekeeping: Final cleanup ===" && \
-    # Clean up source directories - they're no longer needed in the final image
-    rm -rf src && \
-    echo "Layer size after finalization and cleanup:" && du -sh /root/build/gnu-tools-for-stm32 && \
-    echo "Final toolchain size:" && du -sh install-native
+RUN chmod +x build-runtime-libs-finalize.sh && \
+    ./build-runtime-libs-finalize.sh
 
 ##########################################
 ### Main: Final Stage                 ###
