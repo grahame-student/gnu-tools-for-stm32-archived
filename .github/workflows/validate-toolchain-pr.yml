@@ -18,7 +18,9 @@ jobs:
 
     permissions:
       contents: read
-      packages: write
+
+    outputs:
+      image-digest: ${{ steps.docker_build.outputs.digest }}
 
     steps:
       - name: Checkout source code
@@ -41,33 +43,31 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.11.1
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3.6.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata for Docker
-        id: meta
-        uses: docker/metadata-action@v5.7.0
-        with:
-          images: ghcr.io/${{ github.repository_owner }}/gnu-tools-for-stm32
-          tags: |
-            type=ref,event=pr
-
-      - name: Build and push Docker container
+      - name: Build Docker container
         id: docker_build
         uses: docker/build-push-action@v6.18.0
         with:
           context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: gnu-tools-for-stm32:pr-${{ github.event.pull_request.number }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          # Don't load to local daemon - save disk space
-          outputs: type=registry
+          # Export to Docker format for saving as artifact
+          outputs: type=docker,dest=/tmp/toolchain-image.tar
+
+      - name: Compress Docker image
+        run: |
+          echo "=== Compressing Docker image ==="
+          gzip /tmp/toolchain-image.tar
+          ls -lh /tmp/toolchain-image.tar.gz
+          echo "Image size: $(du -h /tmp/toolchain-image.tar.gz | cut -f1)"
+
+      - name: Upload Docker image as artifact
+        uses: actions/upload-artifact@v4.5.0
+        with:
+          name: toolchain-container-pr-${{ github.event.pull_request.number }}
+          path: /tmp/toolchain-image.tar.gz
+          retention-days: 1
+          compression-level: 0  # Already compressed with gzip
 
       - name: Check disk space after build
         run: |
@@ -75,31 +75,111 @@ jobs:
           df -h
 
   validate:
-    name: Run Validation
+    name: Validate Toolchain
     needs: build-container
-    uses: ./.github/workflows/validate-toolchain-reusable.yml
+    runs-on: ubuntu-latest
+
     permissions:
       contents: read
-      packages: read
-    with:
-      container-image: ghcr.io/${{ github.repository_owner }}/gnu-tools-for-stm32:pr-${{ github.event.pull_request.number }}
-      artifact-name-suffix: -pr-${{ github.event.pull_request.number }}
-    secrets: inherit
-
-  cleanup:
-    name: Cleanup PR Container
-    runs-on: ubuntu-latest
-    needs: [build-container, validate]
-    if: always()
-
-    permissions:
-      packages: write
 
     steps:
-      - name: Delete PR container image
+      - name: Checkout source code
+        uses: actions/checkout@v5.0.0
+
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4.5.0
+        with:
+          name: toolchain-container-pr-${{ github.event.pull_request.number }}
+          path: /tmp
+
+      - name: Load Docker image
         run: |
-          echo "Deleting PR container image from GHCR..."
-          # Note: This requires the GitHub CLI and appropriate permissions
-          # For now, we rely on GHCR's automatic cleanup of untagged images
-          # Manual cleanup can be done via GitHub UI or API if needed
-          echo "PR container ghcr.io/${{ github.repository_owner }}/gnu-tools-for-stm32:pr-${{ github.event.pull_request.number }} will be cleaned up automatically"
+          echo "=== Loading Docker image ==="
+          gunzip /tmp/toolchain-image.tar.gz
+          docker load --input /tmp/toolchain-image.tar
+          rm /tmp/toolchain-image.tar
+          
+          echo "=== Loaded images ==="
+          docker images
+
+      - name: Create output directory
+        run: |
+          mkdir -p ${{ github.workspace }}/build-output
+          chmod 777 ${{ github.workspace }}/build-output
+
+      - name: Build test project in container
+        run: |
+          echo "Building test project..."
+          docker run --rm \
+            -v ${{ github.workspace }}/test_project:/project:ro \
+            -v ${{ github.workspace }}/build-output:/output \
+            gnu-tools-for-stm32:pr-${{ github.event.pull_request.number }} \
+            /project /output
+
+      - name: List build artifacts
+        run: |
+          echo "=== Build Artifacts ==="
+          ls -lh ${{ github.workspace }}/build-output/
+
+      - name: Compare artifacts with reference files
+        run: |
+          echo "=== Comparing Build Artifacts with Reference Files ==="
+          
+          # Define artifacts to compare
+          ARTIFACTS=("nucleo-u083rc.elf" "nucleo-u083rc.map" "nucleo-u083rc.hex" "nucleo-u083rc.bin")
+          
+          DIFFERENCES_FOUND=0
+          
+          for artifact in "${ARTIFACTS[@]}"; do
+            echo ""
+            echo "Comparing $artifact..."
+            
+            if [ ! -f "${{ github.workspace }}/build-output/$artifact" ]; then
+              echo "ERROR: Build artifact not found: $artifact"
+              DIFFERENCES_FOUND=1
+              continue
+            fi
+            
+            if [ ! -f "${{ github.workspace }}/test_project/reference/$artifact" ]; then
+              echo "WARNING: Reference file not found: $artifact"
+              echo "This may be expected for a new artifact type"
+              continue
+            fi
+            
+            # Compare files byte-by-byte
+            if cmp -s "${{ github.workspace }}/build-output/$artifact" \
+                     "${{ github.workspace }}/test_project/reference/$artifact"; then
+              echo "✓ $artifact matches reference"
+            else
+              echo "✗ $artifact differs from reference"
+              DIFFERENCES_FOUND=1
+              
+              # Show file sizes for debugging
+              echo "  Build artifact size: $(stat -c%s ${{ github.workspace }}/build-output/$artifact) bytes"
+              echo "  Reference file size: $(stat -c%s ${{ github.workspace }}/test_project/reference/$artifact) bytes"
+              
+              # For text files (map), show a diff sample
+              if [[ "$artifact" == *.map ]]; then
+                echo "  First 20 lines of diff:"
+                diff -u "${{ github.workspace }}/test_project/reference/$artifact" \
+                       "${{ github.workspace }}/build-output/$artifact" | head -20 || true
+              fi
+            fi
+          done
+          
+          echo ""
+          if [ $DIFFERENCES_FOUND -eq 0 ]; then
+            echo "=== SUCCESS: All artifacts match reference files ==="
+            exit 0
+          else
+            echo "=== FAILURE: One or more artifacts differ from reference files ==="
+            exit 1
+          fi
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4.5.0
+        with:
+          name: build-artifacts-pr-${{ github.event.pull_request.number }}
+          path: ${{ github.workspace }}/build-output/
+          retention-days: 7

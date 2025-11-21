@@ -32,10 +32,11 @@ The validation system ensures that the custom-built ARM GCC toolchain produces b
 4. **`validate-toolchain-pr.yml`** - Validates PRs
    - Triggers: Pull requests
    - **Two separate jobs to avoid disk space issues:**
-     - Job 1: Build and push PR container to GHCR
-     - Job 2: Pull container and validate (separate runner)
-   - Uses reusable workflow for validation
-   - Cleans up PR container after validation
+     - Job 1: Build container and save as GitHub Actions artifact
+     - Job 2: Download artifact, load container, and validate (separate runner)
+   - Uses GitHub Actions artifacts instead of pushing to GHCR
+   - Container artifact auto-deleted after 1 day
+   - Does not clutter GHCR with PR containers
 
 ### Disk Space Optimization
 
@@ -46,23 +47,21 @@ The PR validation workflow uses a **two-job architecture** to prevent disk space
 │ Job 1: build-container              │
 │ - Free up disk space                │
 │ - Build Docker container            │
-│ - Push to GHCR (don't load locally) │
+│ - Export to tar file                │
+│ - Compress with gzip                │
+│ - Upload as GitHub Actions artifact │
 │ - Container layers cached in GHA    │
 └─────────────────────────────────────┘
                   │
                   ▼
 ┌─────────────────────────────────────┐
-│ Job 2: validate (reusable workflow) │
+│ Job 2: validate                     │
 │ - Fresh runner (no build artifacts) │
-│ - Pull container from GHCR          │
+│ - Download artifact                 │
+│ - Load container from tar           │
 │ - Build test project                │
 │ - Compare with reference            │
-└─────────────────────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────┐
-│ Job 3: cleanup                      │
-│ - Note: PR containers auto-cleanup  │
+│ - Artifact auto-deleted after 1 day │
 └─────────────────────────────────────┘
 ```
 
@@ -72,11 +71,17 @@ The PR validation workflow uses a **two-job architecture** to prevent disk space
 - Keeping both in the same job caused frequent disk exhaustion
 - Separate jobs run on different runners with fresh disk space
 
+**Why GitHub Actions artifacts instead of GHCR?**
+- Avoids pushing temporary PR containers to GHCR
+- Automatic cleanup after 1 day retention period
+- No manual cleanup required
+- Keeps GHCR clean with only main branch images
+
 ### Container Tagging Strategy
 
 - **Main branch**: `ghcr.io/{owner}/gnu-tools-for-stm32:latest`
-- **Pull requests**: `ghcr.io/{owner}/gnu-tools-for-stm32:pr-{number}`
 - **SHA tags**: `ghcr.io/{owner}/gnu-tools-for-stm32:{branch}-{sha}`
+- **Pull requests**: Not pushed to GHCR; stored as GitHub Actions artifacts instead
 
 ## Entrypoint Script
 
