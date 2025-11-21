@@ -8,8 +8,8 @@ on:
 #  pull_request_target:
 #    branches: ['dependabot/**']
 
-  pull_request:
-    # Run on pull requests (default types: opened, synchronize, reopened)
+# Note: pull_request trigger removed to avoid duplicate runs with validate-toolchain.yml
+# The validate-toolchain workflow now handles full validation on PRs
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
