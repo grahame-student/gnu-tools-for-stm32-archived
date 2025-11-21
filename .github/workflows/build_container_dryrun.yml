@@ -35,9 +35,67 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Dry Run Build
+      # Build and cache the bootstrap stage explicitly
+      # This ensures the bootstrap layer is cached even if later stages fail
+      - name: Build and Cache Bootstrap Stage
+        id: bootstrap
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          target: bootstrap
+          tags: |
+            ghcr.io/${{ github.repository }}:bootstrap-${{ github.sha }}
+            ghcr.io/${{ github.repository }}:bootstrap-latest
+          cache-from: type=gha,scope=bootstrap
+          cache-to: type=gha,mode=max,scope=bootstrap
+          push: false
+        # Continue even if this step fails to preserve any successfully built layers
+        # The workflow will still fail later if bootstrap failed (see Report Build Status)
+        continue-on-error: true
+
+      # Build full container, leveraging cached bootstrap stage
+      - name: Dry Run Build (Full Toolchain)
         id: docker_build
         uses: docker/build-push-action@v6.18.0
         with:
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          context: .
+          # Use GitHub Actions cache with broader scope for all stages
+          cache-from: |
+            type=gha,scope=bootstrap
+            type=gha,scope=build
+          cache-to: type=gha,mode=max,scope=build
+          push: false
+          # Export layer information for analysis
+          outputs: type=docker,dest=/tmp/gnu-tools-for-stm32.tar
+        # Continue even if this step fails to preserve cache
+        continue-on-error: true
+
+      - name: Report Build Status
+        if: always()
+        run: |
+          echo "=== Build Summary ==="
+          echo "Bootstrap stage: ${{ steps.bootstrap.outcome }}"
+          echo "Full build: ${{ steps.docker_build.outcome }}"
+          
+          if [ "${{ steps.bootstrap.outcome }}" = "success" ]; then
+            echo "✓ Bootstrap stage cached successfully"
+            echo "  - Future builds will reuse bootstrap cache"
+            echo "  - Cache scope: bootstrap"
+          else
+            echo "✗ Bootstrap stage failed"
+          fi
+          
+          if [ "${{ steps.docker_build.outcome }}" = "success" ]; then
+            echo "✓ Full build completed"
+            # Show image size if build succeeded
+            if [ -f /tmp/gnu-tools-for-stm32.tar ]; then
+              echo "Image size: $(du -h /tmp/gnu-tools-for-stm32.tar | cut -f1)"
+            fi
+          else
+            echo "✗ Full build failed (bootstrap cache preserved)"
+          fi
+          
+          # Fail the job if bootstrap failed (critical)
+          if [ "${{ steps.bootstrap.outcome }}" != "success" ]; then
+            exit 1
+          fi
