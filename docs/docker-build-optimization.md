@@ -170,8 +170,9 @@ RUN echo "=== Binutils-GCC-First Stage: Building binutils and gcc first pass ===
 
 ### GitHub Actions Workflow Caching (Recommended)
 
-The repository's container build workflow (`.github/workflows/build_container_dryrun.yml`) is configured with **automatic caching** using GitHub Actions cache:
+The repository's container build workflow (`.github/workflows/build_container_dryrun.yml`) is configured with **automatic caching** using GitHub Actions cache with a **multi-job strategy** to avoid disk space issues:
 
+**Job 1: Build Critical Stages** (runs on all PRs)
 ```yaml
 # Bootstrap stage is built and cached separately
 - name: Build and Cache Bootstrap Stage
@@ -190,9 +191,12 @@ The repository's container build workflow (`.github/workflows/build_container_dr
       type=gha,scope=bootstrap
       type=gha,scope=binutils-gcc-first
     cache-to: type=gha,mode=max,scope=binutils-gcc-first
+```
 
+**Job 2: Build Full Toolchain** (optional, runs on manual dispatch)
+```yaml
 # Full build leverages cached bootstrap and binutils-gcc-first stages
-- name: Dry Run Build (Full Toolchain)
+- name: Build Full Toolchain
   uses: docker/build-push-action@v6.18.0
   with:
     cache-from: |
@@ -200,7 +204,6 @@ The repository's container build workflow (`.github/workflows/build_container_dr
       type=gha,scope=binutils-gcc-first
       type=gha,scope=build
     cache-to: type=gha,mode=max,scope=build
-    continue-on-error: true  # Preserves cache even on failure
 ```
 
 **Benefits:**
@@ -209,6 +212,8 @@ The repository's container build workflow (`.github/workflows/build_container_dr
 - **No manual intervention:** Cache is managed automatically by GitHub Actions
 - **Scoped caching:** Bootstrap, binutils-gcc-first, and build stages have separate cache scopes for better isolation
 - **Incremental builds:** Changes to later stages (newlib, gdb) don't invalidate earlier stage caches
+- **Disk space optimization:** Critical stages run in separate job to avoid disk space issues during full build
+- **PR validation:** All PRs validate critical stages; full build can be triggered manually when needed
 
 ### Local Development Caching
 
