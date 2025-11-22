@@ -57,7 +57,7 @@ mkdir -p "$OUTPUT_DIR"
 # Create a temporary build directory outside the project path
 # This allows the project to be mounted read-only
 BUILD_DIR=$(mktemp -d)
-trap 'rm -rf "$BUILD_DIR"' EXIT
+trap "rm -rf \"$BUILD_DIR\"" EXIT
 
 echo "Using build directory: $BUILD_DIR"
 cd "$BUILD_DIR"
