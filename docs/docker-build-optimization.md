@@ -170,9 +170,9 @@ RUN echo "=== Binutils-GCC-First Stage: Building binutils and gcc first pass ===
 
 ### GitHub Actions Workflow Caching (Recommended)
 
-The repository's container build workflow (`.github/workflows/build_container_dryrun.yml`) is configured with **automatic caching** using GitHub Actions cache with a **multi-job strategy** to avoid disk space issues:
+The repository's container build workflow (`.github/workflows/build_container_dryrun.yml`) is configured with **automatic caching** using GitHub Actions cache with a **single-job strategy** for optimal cache performance:
 
-**Job 1: Build Critical Stages** (runs on all PRs)
+**Build Critical Stages** (runs on all PRs)
 ```yaml
 # Bootstrap stage is built and cached separately
 - name: Build and Cache Bootstrap Stage
@@ -191,29 +191,18 @@ The repository's container build workflow (`.github/workflows/build_container_dr
       type=gha,scope=bootstrap
       type=gha,scope=binutils-gcc-first
     cache-to: type=gha,mode=max,scope=binutils-gcc-first
-```
 
-**Job 2: Build Full Toolchain** (runs after critical stages)
-```yaml
-# Full build leverages cached bootstrap and binutils-gcc-first stages
-- name: Build Full Toolchain
-  uses: docker/build-push-action@v6.18.0
-  with:
-    cache-from: |
-      type=gha,scope=bootstrap
-      type=gha,scope=binutils-gcc-first
-      type=gha,scope=build
-    cache-to: type=gha,mode=max,scope=build
+# Future stages (newlib, gcc-final-gdb, runtime-libs) will be added incrementally
 ```
 
 **Benefits:**
 - **Automatic cache preservation:** Bootstrap and binutils-gcc-first caches are saved even if later stages fail
 - **Shared cache across runs:** Subsequent workflow runs reuse cached layers
 - **No manual intervention:** Cache is managed automatically by GitHub Actions
-- **Scoped caching:** Bootstrap, binutils-gcc-first, and build stages have separate cache scopes for better isolation
+- **Scoped caching:** Bootstrap and binutils-gcc-first stages have separate cache scopes for better isolation
 - **Incremental builds:** Changes to later stages (newlib, gdb) don't invalidate earlier stage caches
-- **Disk space optimization:** Critical stages run in separate job to avoid disk space issues during full build
-- **Complete validation:** All PRs validate both critical stages and full toolchain build
+- **Single-job efficiency:** Docker local cache works optimally within a single job
+- **Incremental validation:** Currently validates bootstrap and binutils-gcc-first; later stages will be added in future PRs
 
 ### Local Development Caching
 
