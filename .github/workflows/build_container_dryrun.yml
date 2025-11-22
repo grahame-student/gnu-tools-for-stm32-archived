@@ -94,6 +94,21 @@ jobs:
         # Continue even if this step fails to preserve any successfully built layers
         continue-on-error: true
 
+      # Free up disk space before building gcc-final-gdb (the largest stage)
+      # GitHub Actions runners have ~14GB free space, and building all stages can exhaust it
+      - name: Free Disk Space Before GCC-Final-GDB Build
+        run: |
+          echo "=== Disk space before cleanup ==="
+          df -h
+          echo "=== Removing unnecessary software ==="
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af
+          echo "=== Disk space after cleanup ==="
+          df -h
+
       # Build and cache the gcc-final-gdb stage explicitly
       # This ensures the gcc-final-gdb layer is cached even if later stages fail
       - name: Build and Cache GCC-Final-GDB Stage
