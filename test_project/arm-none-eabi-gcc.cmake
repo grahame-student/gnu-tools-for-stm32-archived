@@ -45,8 +45,12 @@ set(CMAKE_RANLIB ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}gcc-ranlib${EXECUTABLE_
 set(CMAKE_OBJCOPY ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}objcopy${EXECUTABLE_SUFFIX} CACHE INTERNAL "objcopy tool")
 set(CMAKE_SIZE_UTIL ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}size${EXECUTABLE_SUFFIX} CACHE INTERNAL "size tool")
 
-# Don't set CMAKE_SYSROOT - let the compiler use its default sysroot
-# The toolchain has libraries installed relative to its bin directory
+# Don't set CMAKE_SYSROOT - let the compiler use its built-in library search paths.
+# The compiler was configured at build time with --with-sysroot pointing to the
+# build directory, but the toolchain is now installed in a different location.
+# By not overriding CMAKE_SYSROOT, the compiler uses its default search paths
+# which correctly locate runtime libraries (crti.o, crtbegin.o, libc, etc.)
+# relative to the bin directory in the installed location.
 set(CMAKE_FIND_ROOT_PATH ${BINUTILS_PATH})
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
