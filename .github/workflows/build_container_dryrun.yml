@@ -170,7 +170,7 @@ jobs:
           
           echo ""
           echo "✓ All critical stages completed successfully"
-          echo "  - Bootstrap and binutils-gcc-first caches are available for full build"
+          echo "  - Bootstrap, binutils-gcc-first, and newlib caches are available for full build"
 
   # Job 2: Build full toolchain (optional, runs on workflow_dispatch or after critical stages succeed)
   # This job is separate to avoid disk space issues on the critical stages job
@@ -198,7 +198,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build full container, leveraging cached bootstrap and binutils-gcc-first stages
+      # Build full container, leveraging cached bootstrap, binutils-gcc-first, and newlib stages
       - name: Build Full Toolchain
         id: docker_build
         uses: docker/build-push-action@v6.18.0
@@ -208,6 +208,7 @@ jobs:
           cache-from: |
             type=gha,scope=bootstrap
             type=gha,scope=binutils-gcc-first
+            type=gha,scope=newlib
             type=gha,scope=build
           cache-to: type=gha,mode=max,scope=build
           push: false
@@ -230,6 +231,6 @@ jobs:
             fi
           else
             echo "✗ Full build failed (earlier stage caches preserved)"
-            echo "Note: Critical stages (bootstrap, binutils-gcc-first) completed successfully"
+            echo "Note: Critical stages (bootstrap, binutils-gcc-first, newlib) completed successfully"
             exit 1
           fi

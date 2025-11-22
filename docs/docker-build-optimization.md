@@ -259,7 +259,7 @@ The repository's container build workflow (`.github/workflows/build_container_dr
 
 **Job 2: Build Full Toolchain** (optional, runs on manual dispatch)
 ```yaml
-# Full build leverages cached bootstrap and binutils-gcc-first stages
+# Full build leverages cached bootstrap, binutils-gcc-first, and newlib stages
 - name: Build Full Toolchain
   uses: docker/build-push-action@v6.18.0
   with:
@@ -275,8 +275,8 @@ The repository's container build workflow (`.github/workflows/build_container_dr
 - **Automatic cache preservation:** Bootstrap, binutils-gcc-first, and newlib caches are saved even if later stages fail
 - **Shared cache across runs:** Subsequent workflow runs reuse cached layers
 - **No manual intervention:** Cache is managed automatically by GitHub Actions
-- **Scoped caching:** Bootstrap, binutils-gcc-first, and build stages have separate cache scopes for better isolation
-- **Incremental builds:** Changes to later stages (newlib, gdb) don't invalidate earlier stage caches
+- **Scoped caching:** Bootstrap, binutils-gcc-first, newlib, and build stages have separate cache scopes for better isolation
+- **Incremental builds:** Changes to later stages (gcc-final-gdb) don't invalidate earlier stage caches
 - **Disk space optimization:** Critical stages run in separate job to avoid disk space issues during full build
 - **PR validation:** All PRs validate critical stages; full build can be triggered manually when needed
 
