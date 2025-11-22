@@ -256,17 +256,28 @@ The repository's container build workflow (`.github/workflows/build_container_dr
       type=gha,scope=binutils-gcc-first
     cache-to: type=gha,mode=max,scope=binutils-gcc-first
 
-# Future stages (newlib, gcc-final-gdb, runtime-libs) will be added incrementally
+# Newlib stage is built and cached separately
+- name: Build and Cache Newlib Stage
+  uses: docker/build-push-action@v6.18.0
+  with:
+    target: newlib
+    cache-from: |
+      type=gha,scope=bootstrap
+      type=gha,scope=binutils-gcc-first
+      type=gha,scope=newlib
+    cache-to: type=gha,mode=max,scope=newlib
+
+# Future stages (gcc-final-gdb, runtime-libs) will be added incrementally
 ```
 
 **Benefits:**
 - **Automatic cache preservation:** Bootstrap, binutils-gcc-first, and newlib caches are saved even if later stages fail
 - **Shared cache across runs:** Subsequent workflow runs reuse cached layers
 - **No manual intervention:** Cache is managed automatically by GitHub Actions
-- **Scoped caching:** Bootstrap and binutils-gcc-first stages have separate cache scopes for better isolation
-- **Incremental builds:** Changes to later stages (newlib, gdb) don't invalidate earlier stage caches
+- **Scoped caching:** Bootstrap, binutils-gcc-first, and newlib stages have separate cache scopes for better isolation
+- **Incremental builds:** Changes to later stages (gcc-final-gdb) don't invalidate earlier stage caches
 - **Single-job efficiency:** Docker local cache works optimally within a single job
-- **Incremental validation:** Currently validates bootstrap and binutils-gcc-first; later stages will be added in future PRs
+- **Incremental validation:** Currently validates bootstrap, binutils-gcc-first, and newlib; later stages will be added in future PRs
 
 ### Local Development Caching
 
