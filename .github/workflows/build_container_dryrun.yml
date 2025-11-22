@@ -133,7 +133,6 @@ jobs:
           echo "Bootstrap stage: ${{ steps.bootstrap.outcome }}"
           echo "Binutils-GCC-First stage: ${{ steps.binutils-gcc-first.outcome }}"
           echo "Newlib stage: ${{ steps.newlib.outcome }}"
-          echo "Full build: ${{ steps.docker_build.outcome }}"
           
           if [ "${{ steps.bootstrap.outcome }}" = "success" ]; then
             echo "✓ Bootstrap stage completed successfully"
@@ -157,16 +156,6 @@ jobs:
             echo "  - Cache scope: newlib"
           else
             echo "✗ Newlib stage failed (earlier stage caches preserved)"
-          fi
-          
-          if [ "${{ steps.docker_build.outcome }}" = "success" ]; then
-            echo "✓ Full build completed"
-            # Show image size if build succeeded
-            if [ -f /tmp/gnu-tools-for-stm32.tar ]; then
-              echo "Image size: $(du -h /tmp/gnu-tools-for-stm32.tar | cut -f1)"
-            fi
-          else
-            echo "✗ Full build failed (earlier stage caches preserved)"
           fi
           
           # Fail the job if bootstrap failed (critical)
