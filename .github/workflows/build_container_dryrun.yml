@@ -14,7 +14,9 @@ concurrency:
 permissions: {}
 
 jobs:
-  dry-run-docker-build:
+  # Build and validate critical stages (bootstrap and binutils-gcc-first)
+  # Later stages (newlib, gcc-final-gdb, runtime-libs) will be incrementally added in future PRs
+  build-critical-stages:
     runs-on: ubuntu-latest
 
     permissions:
@@ -53,49 +55,108 @@ jobs:
         # The workflow will still fail later if bootstrap failed (see Report Build Status)
         continue-on-error: true
 
-      # Build full container, leveraging cached bootstrap stage
-      - name: Dry Run Build (Full Toolchain)
-        id: docker_build
+      # Build and cache the binutils-gcc-first stage explicitly
+      # This ensures the binutils-gcc-first layer is cached even if later stages fail
+      - name: Build and Cache Binutils-GCC-First Stage
+        id: binutils-gcc-first
         uses: docker/build-push-action@v6.18.0
         with:
           context: .
-          # Use GitHub Actions cache with broader scope for all stages
+          target: binutils-gcc-first
+          tags: |
+            ghcr.io/${{ github.repository }}:binutils-gcc-first-${{ github.sha }}
+            ghcr.io/${{ github.repository }}:binutils-gcc-first-latest
           cache-from: |
             type=gha,scope=bootstrap
-            type=gha,scope=build
-          cache-to: type=gha,mode=max,scope=build
+            type=gha,scope=binutils-gcc-first
+          cache-to: type=gha,mode=max,scope=binutils-gcc-first
           push: false
-          # Export layer information for analysis
-          outputs: type=docker,dest=/tmp/gnu-tools-for-stm32.tar
-        # Continue even if this step fails to preserve cache
+        # Continue even if this step fails to preserve any successfully built layers
         continue-on-error: true
+
+      # TODO: Future optimization - add newlib stage build
+      # - name: Build and Cache Newlib Stage
+      #   id: newlib
+      #   uses: docker/build-push-action@v6.18.0
+      #   with:
+      #     context: .
+      #     target: newlib
+      #     cache-from: |
+      #       type=gha,scope=bootstrap
+      #       type=gha,scope=binutils-gcc-first
+      #       type=gha,scope=newlib
+      #     cache-to: type=gha,mode=max,scope=newlib
+      #     push: false
+      #   continue-on-error: true
+
+      # TODO: Future optimization - add gcc-final-gdb stage build
+      # - name: Build and Cache GCC-Final-GDB Stage
+      #   id: gcc-final-gdb
+      #   uses: docker/build-push-action@v6.18.0
+      #   with:
+      #     context: .
+      #     target: gcc-final-gdb
+      #     cache-from: |
+      #       type=gha,scope=bootstrap
+      #       type=gha,scope=binutils-gcc-first
+      #       type=gha,scope=newlib
+      #       type=gha,scope=gcc-final-gdb
+      #     cache-to: type=gha,mode=max,scope=gcc-final-gdb
+      #     push: false
+      #   continue-on-error: true
+
+      # TODO: Future optimization - add full build
+      # - name: Build Full Toolchain
+      #   id: docker_build
+      #   uses: docker/build-push-action@v6.18.0
+      #   with:
+      #     context: .
+      #     cache-from: |
+      #       type=gha,scope=bootstrap
+      #       type=gha,scope=binutils-gcc-first
+      #       type=gha,scope=newlib
+      #       type=gha,scope=gcc-final-gdb
+      #       type=gha,scope=build
+      #     cache-to: type=gha,mode=max,scope=build
+      #     push: false
+      #   continue-on-error: true
 
       - name: Report Build Status
         if: always()
         run: |
-          echo "=== Build Summary ==="
+          echo "=== Build Status Summary ==="
           echo "Bootstrap stage: ${{ steps.bootstrap.outcome }}"
-          echo "Full build: ${{ steps.docker_build.outcome }}"
+          echo "Binutils-GCC-First stage: ${{ steps.binutils-gcc-first.outcome }}"
           
           if [ "${{ steps.bootstrap.outcome }}" = "success" ]; then
-            echo "✓ Bootstrap stage cached successfully"
+            echo "✓ Bootstrap stage completed successfully"
             echo "  - Future builds will reuse bootstrap cache"
             echo "  - Cache scope: bootstrap"
           else
             echo "✗ Bootstrap stage failed"
           fi
           
-          if [ "${{ steps.docker_build.outcome }}" = "success" ]; then
-            echo "✓ Full build completed"
-            # Show image size if build succeeded
-            if [ -f /tmp/gnu-tools-for-stm32.tar ]; then
-              echo "Image size: $(du -h /tmp/gnu-tools-for-stm32.tar | cut -f1)"
-            fi
+          if [ "${{ steps.binutils-gcc-first.outcome }}" = "success" ]; then
+            echo "✓ Binutils-GCC-First stage completed successfully"
+            echo "  - Future builds will reuse binutils-gcc-first cache"
+            echo "  - Cache scope: binutils-gcc-first"
           else
-            echo "✗ Full build failed (bootstrap cache preserved)"
+            echo "✗ Binutils-GCC-First stage failed (bootstrap cache preserved)"
           fi
           
           # Fail the job if bootstrap failed (critical)
           if [ "${{ steps.bootstrap.outcome }}" != "success" ]; then
+            echo "ERROR: Bootstrap stage is critical and must succeed"
             exit 1
           fi
+          
+          # Fail the job if binutils-gcc-first failed (critical)
+          if [ "${{ steps.binutils-gcc-first.outcome }}" != "success" ]; then
+            echo "ERROR: Binutils-GCC-First stage is critical and must succeed"
+            exit 1
+          fi
+          
+          echo ""
+          echo "✓ All active stages completed successfully"
+          echo "  - Bootstrap and binutils-gcc-first validated"
+          echo "  - Later stages (newlib, gcc-final-gdb, runtime-libs) will be added in future PRs"

@@ -50,16 +50,44 @@ COPY src/libiconv /root/build/gnu-tools-for-stm32/src/libiconv
 - Test project: `test_project/`
 - Other build scripts used in later stages
 
+### Binutils-GCC-First Stage (Optimized)
+
+The binutils-gcc-first stage uses **incremental copying** to minimize the layer size and improve cache reusability:
+
+```dockerfile
+# Copy only what's needed for binutils-gcc-first
+COPY build-binutils-gcc-first.sh /root/build/gnu-tools-for-stm32/
+COPY src/binutils /root/build/gnu-tools-for-stm32/src/binutils
+COPY src/gcc /root/build/gnu-tools-for-stm32/src/gcc
+```
+
+**Benefits:**
+- Binutils-gcc-first layer size: ~2.5G (includes binutils, gcc sources, and built binaries)
+- Installed binaries: ~345M
+- Changes to Newlib or GDB sources don't invalidate binutils-gcc-first cache
+- Faster rebuilds when only later-stage sources change
+- Build time: ~12 minutes
+
+**Components built:**
+- GNU Binutils (assembler, linker, binary utilities)
+- GCC First Pass (C compiler only, no standard library)
+
+**Files excluded from binutils-gcc-first:**
+- Later-stage sources: `src/newlib/*`, `src/gdb/*`
+- Documentation: `docs/`, `README.md`, `BUILD.md`, etc.
+- Test project: `test_project/`
+- Other build scripts used in later stages
+
 ### Later Stages (To Be Optimized)
 
-Currently, the `binutils-gcc-first` stage uses a blanket copy:
+Currently, the `newlib` stage uses a blanket copy:
 
 ```dockerfile
 # TODO: Future optimization - copy incrementally per stage
 COPY . /root/build/gnu-tools-for-stm32/
 ```
 
-This is intentional to keep the initial optimization focused and manageable. Future PRs can incrementally optimize each stage.
+This is intentional to keep the optimization incremental and manageable. Future PRs can incrementally optimize each remaining stage.
 
 ## Housekeeping
 
@@ -76,15 +104,41 @@ RUN ./build-prerequisites.sh --skip_steps=mingw && \
 **What's kept:** Installed libraries in `build-native/host-libs/` (needed by later stages)  
 **What's removed:** Temporary build directories for individual libraries
 
+### Binutils-GCC-First Stage
+```dockerfile
+RUN ./build-binutils-gcc-first.sh && \
+    # Build artifacts already cleaned by build script:
+    # - build-native/binutils (removed after building)
+    # - build-native/gcc-first (removed after building)
+    # - *.o object files (removed via find)
+    # - *.la libtool files (removed via find)
+    # Additional housekeeping:
+    rm -rf build-native/*.log build-native/*.txt 2>/dev/null || true && \
+    find build-native -type d -name ".deps" -exec rm -rf {} + 2>/dev/null || true && \
+    find . -name "*~" -delete 2>/dev/null || true && \
+    find . -name "*.orig" -delete 2>/dev/null || true && \
+    find . -name "*.rej" -delete 2>/dev/null || true
+```
+
+**What's kept:** 
+- Installed binaries in `install-native/bin/`
+- Installed libraries in `install-native/lib/`  
+
+**What's removed:** 
+- Build directories: `build-native/binutils/`, `build-native/gcc-first/`
+- Build artifacts: `*.o`, `*.la`, `.deps/` directories
+- Temporary files: logs, backup files
+
 ### Future Housekeeping Opportunities
-- Clean up source directories after they're no longer needed
-- Remove intermediate build artifacts in `gcc-final-gdb` stage
+- Clean up source directories after they're no longer needed in `gcc-final-gdb` stage
+- Remove intermediate build artifacts in `newlib` stage
 - Remove documentation and tests from source trees before copying
 
 ## Layer Size Reporting
 
 Each optimized stage includes size reporting for visibility:
 
+**Bootstrap Stage:**
 ```dockerfile
 RUN echo "=== Bootstrap Stage: Building prerequisite libraries ===" && \
     echo "Layer size before build:" && du -sh /root/build/gnu-tools-for-stm32 && \
@@ -96,12 +150,29 @@ RUN echo "=== Bootstrap Stage: Building prerequisite libraries ===" && \
     echo "Installed libraries size:" && du -sh build-native/host-libs
 ```
 
+**Binutils-GCC-First Stage:**
+```dockerfile
+RUN echo "=== Binutils-GCC-First Stage: Building binutils and gcc first pass ===" && \
+    echo "Layer size before build:" && du -sh /root/build/gnu-tools-for-stm32 && \
+    chmod +x build-binutils-gcc-first.sh && \
+    ./build-binutils-gcc-first.sh && \
+    echo "=== Housekeeping: Cleaning up build artifacts ===" && \
+    rm -rf build-native/*.log build-native/*.txt 2>/dev/null || true && \
+    find build-native -type d -name ".deps" -exec rm -rf {} + 2>/dev/null || true && \
+    find . -name "*~" -delete 2>/dev/null || true && \
+    find . -name "*.orig" -delete 2>/dev/null || true && \
+    find . -name "*.rej" -delete 2>/dev/null || true && \
+    echo "Layer size after build and cleanup:" && du -sh /root/build/gnu-tools-for-stm32 && \
+    echo "Installed binaries size:" && du -sh install-native/bin
+```
+
 ## Maximizing Cache Reusability
 
 ### GitHub Actions Workflow Caching (Recommended)
 
-The repository's container build workflow (`.github/workflows/build_container_dryrun.yml`) is configured with **automatic caching** using GitHub Actions cache:
+The repository's container build workflow (`.github/workflows/build_container_dryrun.yml`) is configured with **automatic caching** using GitHub Actions cache with a **single-job strategy** for optimal cache performance:
 
+**Build Critical Stages** (runs on all PRs)
 ```yaml
 # Bootstrap stage is built and cached separately
 - name: Build and Cache Bootstrap Stage
@@ -111,22 +182,27 @@ The repository's container build workflow (`.github/workflows/build_container_dr
     cache-from: type=gha,scope=bootstrap
     cache-to: type=gha,mode=max,scope=bootstrap
 
-# Full build leverages cached bootstrap
-- name: Dry Run Build (Full Toolchain)
+# Binutils-GCC-First stage is built and cached separately
+- name: Build and Cache Binutils-GCC-First Stage
   uses: docker/build-push-action@v6.18.0
   with:
+    target: binutils-gcc-first
     cache-from: |
       type=gha,scope=bootstrap
-      type=gha,scope=build
-    cache-to: type=gha,mode=max,scope=build
-    continue-on-error: true  # Preserves cache even on failure
+      type=gha,scope=binutils-gcc-first
+    cache-to: type=gha,mode=max,scope=binutils-gcc-first
+
+# Future stages (newlib, gcc-final-gdb, runtime-libs) will be added incrementally
 ```
 
 **Benefits:**
-- **Automatic cache preservation:** Bootstrap cache is saved even if later stages fail
+- **Automatic cache preservation:** Bootstrap and binutils-gcc-first caches are saved even if later stages fail
 - **Shared cache across runs:** Subsequent workflow runs reuse cached layers
 - **No manual intervention:** Cache is managed automatically by GitHub Actions
-- **Scoped caching:** Bootstrap and build stages have separate cache scopes for better isolation
+- **Scoped caching:** Bootstrap and binutils-gcc-first stages have separate cache scopes for better isolation
+- **Incremental builds:** Changes to later stages (newlib, gdb) don't invalidate earlier stage caches
+- **Single-job efficiency:** Docker local cache works optimally within a single job
+- **Incremental validation:** Currently validates bootstrap and binutils-gcc-first; later stages will be added in future PRs
 
 ### Local Development Caching
 
@@ -213,8 +289,14 @@ The Docker cache will be invalidated (rebuilt) when:
    - GCC version changes (`src/gcc/gcc/BASE-VER`)
    - Ubuntu base image updates
 
-2. **Later stages:**
-   - Currently: **ANY** file in the repository changes (due to blanket `COPY .`)
+2. **Binutils-gcc-first stage:**
+   - Build script changes (`build-binutils-gcc-first.sh`)
+   - Binutils source changes (`src/binutils/*`)
+   - GCC source changes (`src/gcc/*`)
+   - Any changes that invalidate bootstrap stage
+
+3. **Later stages:**
+   - Currently: **ANY** file in the repository changes (due to blanket `COPY .` in newlib stage)
    - After optimization: Only relevant sources for each stage
 
 ## Testing Cache Effectiveness
@@ -256,29 +338,30 @@ Current layer sizes (as of optimization):
   - Installed libraries: ~9.1M
   - Source files: ~93M
 
+- **Binutils-gcc-first stage:** ~2.5G (after cleanup)
+  - Installed binaries: ~345M
+  - Source files (binutils + gcc): ~1.8G
+  - Build artifacts and host libs: ~370M
+
 - **Full build:** (TODO: measure after complete build)
 
 ## Future Optimization Opportunities
 
-1. **Stage 1 (binutils-gcc-first):**
-   - Copy only: `src/binutils/`, `src/gcc/`, build scripts
-   - Exclude: `src/newlib/`, `src/gdb/`, docs, test_project
-
-2. **Stage 2 (newlib):**
+1. **Stage 2 (newlib):**
    - Copy only: `src/newlib/`, build script
    - Exclude: `src/gdb/`, docs, test_project
 
-3. **Stage 3 (gcc-final-gdb):**
-   - Copy only: `src/gdb/`, build script
+2. **Stage 3 (gcc-final-gdb):**
+   - Copy only: `src/gdb/`, build script  
    - Exclude: docs, test_project
 
-4. **Exclude test and doc directories:**
+3. **Exclude test and doc directories:**
    - Use `.dockerignore` or selective COPY to exclude:
      - `src/*/tests/`
      - `src/*/doc/`
      - `src/*/examples/`
 
-5. **Multi-architecture builds:**
+4. **Multi-architecture builds:**
    - Use BuildKit's cache mounts for cross-compilation
 
 ## Best Practices
