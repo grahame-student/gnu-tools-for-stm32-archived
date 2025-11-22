@@ -78,9 +78,34 @@ COPY src/gcc /root/build/gnu-tools-for-stm32/src/gcc
 - Test project: `test_project/`
 - Other build scripts used in later stages
 
+### Newlib Stage (Optimized)
+
+The newlib stage uses **incremental copying** to minimize the layer size and improve cache reusability:
+
+```dockerfile
+# Copy only what's needed for newlib
+COPY build-newlib.sh /root/build/gnu-tools-for-stm32/
+COPY src/newlib /root/build/gnu-tools-for-stm32/src/newlib
+```
+
+**Benefits:**
+- Newlib layer size: ~2.6G (includes newlib sources and built libraries)
+- Installed libraries: target-specific libraries in `install-native/arm-none-eabi/lib/`
+- Changes to GDB sources don't invalidate newlib cache
+- Faster rebuilds when only later-stage sources change
+
+**Components built:**
+- Newlib C standard library (libc.a, libm.a, libg.a, crt0.o startup files)
+
+**Files excluded from newlib:**
+- Later-stage sources: `src/gdb/*`
+- Documentation: `docs/`, `README.md`, `BUILD.md`, etc.
+- Test project: `test_project/`
+- Other build scripts used in later stages
+
 ### Later Stages (To Be Optimized)
 
-Currently, the `newlib` stage uses a blanket copy:
+Currently, the `gcc-final-gdb` stage uses a blanket copy:
 
 ```dockerfile
 # TODO: Future optimization - copy incrementally per stage
@@ -129,9 +154,32 @@ RUN ./build-binutils-gcc-first.sh && \
 - Build artifacts: `*.o`, `*.la`, `.deps/` directories
 - Temporary files: logs, backup files
 
+### Newlib Stage
+```dockerfile
+RUN ./build-newlib.sh && \
+    # Build artifacts already cleaned by build script:
+    # - build-native/newlib (removed after building)
+    # - *.o object files (removed via find)
+    # - *.la libtool files (removed via find)
+    # Additional housekeeping:
+    rm -rf build-native/*.log build-native/*.txt 2>/dev/null || true && \
+    find build-native -type d -name ".deps" -exec rm -rf {} + 2>/dev/null || true && \
+    find . -name "*~" -delete 2>/dev/null || true && \
+    find . -name "*.orig" -delete 2>/dev/null || true && \
+    find . -name "*.rej" -delete 2>/dev/null || true
+```
+
+**What's kept:** 
+- Installed libraries in `install-native/arm-none-eabi/lib/`
+- Previously installed binaries from earlier stages
+
+**What's removed:** 
+- Build directories: `build-native/newlib/`
+- Build artifacts: `*.o`, `*.la`, `.deps/` directories
+- Temporary files: logs, backup files
+
 ### Future Housekeeping Opportunities
 - Clean up source directories after they're no longer needed in `gcc-final-gdb` stage
-- Remove intermediate build artifacts in `newlib` stage
 - Remove documentation and tests from source trees before copying
 
 ## Layer Size Reporting
@@ -166,6 +214,22 @@ RUN echo "=== Binutils-GCC-First Stage: Building binutils and gcc first pass ===
     echo "Installed binaries size:" && du -sh install-native/bin
 ```
 
+**Newlib Stage:**
+```dockerfile
+RUN echo "=== Newlib Stage: Building newlib C standard library ===" && \
+    echo "Layer size before build:" && du -sh /root/build/gnu-tools-for-stm32 && \
+    chmod +x build-newlib.sh && \
+    ./build-newlib.sh && \
+    echo "=== Housekeeping: Cleaning up build artifacts ===" && \
+    rm -rf build-native/*.log build-native/*.txt 2>/dev/null || true && \
+    find build-native -type d -name ".deps" -exec rm -rf {} + 2>/dev/null || true && \
+    find . -name "*~" -delete 2>/dev/null || true && \
+    find . -name "*.orig" -delete 2>/dev/null || true && \
+    find . -name "*.rej" -delete 2>/dev/null || true && \
+    echo "Layer size after build and cleanup:" && du -sh /root/build/gnu-tools-for-stm32 && \
+    echo "Installed libraries size:" && du -sh install-native/arm-none-eabi/lib 2>/dev/null || echo "Libraries not yet installed"
+```
+
 ## Maximizing Cache Reusability
 
 ### GitHub Actions Workflow Caching (Recommended)
@@ -192,17 +256,28 @@ The repository's container build workflow (`.github/workflows/build_container_dr
       type=gha,scope=binutils-gcc-first
     cache-to: type=gha,mode=max,scope=binutils-gcc-first
 
-# Future stages (newlib, gcc-final-gdb, runtime-libs) will be added incrementally
+# Newlib stage is built and cached separately
+- name: Build and Cache Newlib Stage
+  uses: docker/build-push-action@v6.18.0
+  with:
+    target: newlib
+    cache-from: |
+      type=gha,scope=bootstrap
+      type=gha,scope=binutils-gcc-first
+      type=gha,scope=newlib
+    cache-to: type=gha,mode=max,scope=newlib
+
+# Future stages (gcc-final-gdb, runtime-libs) will be added incrementally
 ```
 
 **Benefits:**
-- **Automatic cache preservation:** Bootstrap and binutils-gcc-first caches are saved even if later stages fail
+- **Automatic cache preservation:** Bootstrap, binutils-gcc-first, and newlib caches are saved even if later stages fail
 - **Shared cache across runs:** Subsequent workflow runs reuse cached layers
 - **No manual intervention:** Cache is managed automatically by GitHub Actions
-- **Scoped caching:** Bootstrap and binutils-gcc-first stages have separate cache scopes for better isolation
-- **Incremental builds:** Changes to later stages (newlib, gdb) don't invalidate earlier stage caches
+- **Scoped caching:** Bootstrap, binutils-gcc-first, and newlib stages have separate cache scopes for better isolation
+- **Incremental builds:** Changes to later stages (gcc-final-gdb) don't invalidate earlier stage caches
 - **Single-job efficiency:** Docker local cache works optimally within a single job
-- **Incremental validation:** Currently validates bootstrap and binutils-gcc-first; later stages will be added in future PRs
+- **Incremental validation:** Currently validates bootstrap, binutils-gcc-first, and newlib; later stages will be added in future PRs
 
 ### Local Development Caching
 
@@ -215,15 +290,16 @@ docker build -t gnu-tools-for-stm32 .
 # Build specific stage (useful for testing)
 docker build --target bootstrap -t gnu-tools-for-stm32:bootstrap .
 docker build --target binutils-gcc-first -t gnu-tools-for-stm32:binutils-gcc-first .
+docker build --target newlib -t gnu-tools-for-stm32:newlib .
 ```
 
 ### Preserving Cache When Builds Fail
 
 **In GitHub Actions:**
 - The workflow is configured with `continue-on-error: true` for the full build step
-- Bootstrap cache is always saved, even if later stages fail
-- The workflow explicitly builds the bootstrap stage first to ensure it's cached
-- Subsequent runs automatically reuse the cached bootstrap layer
+- Bootstrap, binutils-gcc-first, and newlib caches are always saved, even if later stages fail
+- The workflow explicitly builds each stage separately to ensure they're cached
+- Subsequent runs automatically reuse the cached layers
 
 **In Local Development:**
 If a build fails, Docker **automatically preserves** the cache for all successfully completed stages. You can:
@@ -241,6 +317,9 @@ If a build fails, Docker **automatically preserves** the cache for all successfu
    
    # Build up to binutils-gcc-first
    docker build --target binutils-gcc-first -t gnu-tools-for-stm32:stage1 .
+   
+   # Build up to newlib
+   docker build --target newlib -t gnu-tools-for-stm32:newlib .
    ```
 
 3. **Check cached images:**
@@ -295,8 +374,13 @@ The Docker cache will be invalidated (rebuilt) when:
    - GCC source changes (`src/gcc/*`)
    - Any changes that invalidate bootstrap stage
 
-3. **Later stages:**
-   - Currently: **ANY** file in the repository changes (due to blanket `COPY .` in newlib stage)
+3. **Newlib stage:**
+   - Build script changes (`build-newlib.sh`)
+   - Newlib source changes (`src/newlib/*`)
+   - Any changes that invalidate earlier stages
+
+4. **Later stages:**
+   - Currently: **ANY** file in the repository changes (due to blanket `COPY .` in gcc-final-gdb stage)
    - After optimization: Only relevant sources for each stage
 
 ## Testing Cache Effectiveness
@@ -343,25 +427,26 @@ Current layer sizes (as of optimization):
   - Source files (binutils + gcc): ~1.8G
   - Build artifacts and host libs: ~370M
 
+- **Newlib stage:** ~2.6G (after cleanup)
+  - Installed libraries: target-specific libraries in `install-native/arm-none-eabi/lib/`
+  - Source files (newlib): ~72M
+  - Build artifacts: cleaned after build
+
 - **Full build:** (TODO: measure after complete build)
 
 ## Future Optimization Opportunities
 
-1. **Stage 2 (newlib):**
-   - Copy only: `src/newlib/`, build script
-   - Exclude: `src/gdb/`, docs, test_project
-
-2. **Stage 3 (gcc-final-gdb):**
+1. **Stage 3 (gcc-final-gdb):**
    - Copy only: `src/gdb/`, build script  
    - Exclude: docs, test_project
 
-3. **Exclude test and doc directories:**
+2. **Exclude test and doc directories:**
    - Use `.dockerignore` or selective COPY to exclude:
      - `src/*/tests/`
      - `src/*/doc/`
      - `src/*/examples/`
 
-4. **Multi-architecture builds:**
+3. **Multi-architecture builds:**
    - Use BuildKit's cache mounts for cross-compilation
 
 ## Best Practices
