@@ -41,7 +41,7 @@ jobs:
 
       - name: Download container artifact
         if: inputs.load-from-artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6.0.0
         with:
           name: ${{ inputs.artifact-name }}
           path: /tmp
@@ -148,7 +148,7 @@ jobs:
 
       - name: Upload build artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: build-artifacts${{ inputs.artifact-name-suffix }}
           path: ${{ github.workspace }}/build-output/

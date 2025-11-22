@@ -62,7 +62,7 @@ jobs:
           echo "Image size: $(du -h /tmp/toolchain-image.tar.gz | cut -f1)"
 
       - name: Upload Docker image as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: toolchain-container-pr-${{ github.event.pull_request.number }}
           path: /tmp/toolchain-image.tar.gz
