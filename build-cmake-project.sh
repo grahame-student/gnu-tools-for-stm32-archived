@@ -54,22 +54,21 @@ echo ""
 # Create output directory if it doesn't exist
 mkdir -p "$OUTPUT_DIR"
 
-# Change to project directory
-cd "$PROJECT_PATH"
+# Create a temporary build directory outside the project path
+# This allows the project to be mounted read-only
+BUILD_DIR=$(mktemp -d)
+trap 'rm -rf "$BUILD_DIR"' EXIT
 
-# Clean any previous build artifacts
-echo "Cleaning previous build artifacts..."
-rm -rf build/
-mkdir -p build
-cd build
+echo "Using build directory: $BUILD_DIR"
+cd "$BUILD_DIR"
 
 # Configure CMake with the toolchain file
 echo ""
 echo "=== Configuring CMake ==="
 cmake -G "Unix Makefiles" \
-    -DCMAKE_TOOLCHAIN_FILE=../arm-none-eabi-gcc.cmake \
+    -DCMAKE_TOOLCHAIN_FILE="$PROJECT_PATH/arm-none-eabi-gcc.cmake" \
     -DCMAKE_BUILD_TYPE=Release \
-    ..
+    "$PROJECT_PATH"
 
 # Build the project
 echo ""
