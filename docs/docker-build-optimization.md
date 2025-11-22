@@ -193,7 +193,7 @@ The repository's container build workflow (`.github/workflows/build_container_dr
     cache-to: type=gha,mode=max,scope=binutils-gcc-first
 ```
 
-**Job 2: Build Full Toolchain** (optional, runs on manual dispatch)
+**Job 2: Build Full Toolchain** (runs after critical stages)
 ```yaml
 # Full build leverages cached bootstrap and binutils-gcc-first stages
 - name: Build Full Toolchain
@@ -213,7 +213,7 @@ The repository's container build workflow (`.github/workflows/build_container_dr
 - **Scoped caching:** Bootstrap, binutils-gcc-first, and build stages have separate cache scopes for better isolation
 - **Incremental builds:** Changes to later stages (newlib, gdb) don't invalidate earlier stage caches
 - **Disk space optimization:** Critical stages run in separate job to avoid disk space issues during full build
-- **PR validation:** All PRs validate critical stages; full build can be triggered manually when needed
+- **Complete validation:** All PRs validate both critical stages and full toolchain build
 
 ### Local Development Caching
 
