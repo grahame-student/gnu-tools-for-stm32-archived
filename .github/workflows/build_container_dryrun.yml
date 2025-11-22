@@ -172,13 +172,11 @@ jobs:
           echo "✓ All critical stages completed successfully"
           echo "  - Bootstrap, binutils-gcc-first, and newlib caches are available for full build"
 
-  # Job 2: Build full toolchain (optional, runs on workflow_dispatch or after critical stages succeed)
+  # Job 2: Build full toolchain (runs after critical stages succeed)
   # This job is separate to avoid disk space issues on the critical stages job
   build-full-toolchain:
     runs-on: ubuntu-latest
     needs: build-critical-stages
-    # Only run full build on manual dispatch, or can be configured for specific branches
-    if: github.event_name == 'workflow_dispatch'
 
     permissions:
       contents: read
