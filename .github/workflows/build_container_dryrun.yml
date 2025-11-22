@@ -14,8 +14,8 @@ concurrency:
 permissions: {}
 
 jobs:
-  # Build and validate critical stages (bootstrap, binutils-gcc-first, and newlib)
-  # Later stages (gcc-final-gdb, runtime-libs) will be incrementally added in future PRs
+  # Build and validate critical stages (bootstrap, binutils-gcc-first, newlib, and gcc-final-gdb)
+  # Later stages (runtime-libs) will be incrementally added in future PRs
   build-critical-stages:
     runs-on: ubuntu-latest
 
@@ -94,21 +94,26 @@ jobs:
         # Continue even if this step fails to preserve any successfully built layers
         continue-on-error: true
 
-      # TODO: Future optimization - add gcc-final-gdb stage build
-      # - name: Build and Cache GCC-Final-GDB Stage
-      #   id: gcc-final-gdb
-      #   uses: docker/build-push-action@v6.18.0
-      #   with:
-      #     context: .
-      #     target: gcc-final-gdb
-      #     cache-from: |
-      #       type=gha,scope=bootstrap
-      #       type=gha,scope=binutils-gcc-first
-      #       type=gha,scope=newlib
-      #       type=gha,scope=gcc-final-gdb
-      #     cache-to: type=gha,mode=max,scope=gcc-final-gdb
-      #     push: false
-      #   continue-on-error: true
+      # Build and cache the gcc-final-gdb stage explicitly
+      # This ensures the gcc-final-gdb layer is cached even if later stages fail
+      - name: Build and Cache GCC-Final-GDB Stage
+        id: gcc-final-gdb
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          target: gcc-final-gdb
+          tags: |
+            ghcr.io/${{ github.repository }}:gcc-final-gdb-${{ github.sha }}
+            ghcr.io/${{ github.repository }}:gcc-final-gdb-latest
+          cache-from: |
+            type=gha,scope=bootstrap
+            type=gha,scope=binutils-gcc-first
+            type=gha,scope=newlib
+            type=gha,scope=gcc-final-gdb
+          cache-to: type=gha,mode=max,scope=gcc-final-gdb
+          push: false
+        # Continue even if this step fails to preserve any successfully built layers
+        continue-on-error: true
 
       # TODO: Future optimization - add full build
       # - name: Build Full Toolchain
@@ -133,6 +138,7 @@ jobs:
           echo "Bootstrap stage: ${{ steps.bootstrap.outcome }}"
           echo "Binutils-GCC-First stage: ${{ steps.binutils-gcc-first.outcome }}"
           echo "Newlib stage: ${{ steps.newlib.outcome }}"
+          echo "GCC-Final-GDB stage: ${{ steps.gcc-final-gdb.outcome }}"
           
           if [ "${{ steps.bootstrap.outcome }}" = "success" ]; then
             echo "✓ Bootstrap stage completed successfully"
@@ -158,6 +164,14 @@ jobs:
             echo "✗ Newlib stage failed (earlier stage caches preserved)"
           fi
           
+          if [ "${{ steps.gcc-final-gdb.outcome }}" = "success" ]; then
+            echo "✓ GCC-Final-GDB stage cached successfully"
+            echo "  - Future builds will reuse gcc-final-gdb cache"
+            echo "  - Cache scope: gcc-final-gdb"
+          else
+            echo "✗ GCC-Final-GDB stage failed (earlier stage caches preserved)"
+          fi
+          
           # Fail the job if bootstrap failed (critical)
           if [ "${{ steps.bootstrap.outcome }}" != "success" ]; then
             echo "ERROR: Bootstrap stage is critical and must succeed"
@@ -176,7 +190,13 @@ jobs:
             exit 1
           fi
           
+          # Fail the job if gcc-final-gdb failed (critical)
+          if [ "${{ steps.gcc-final-gdb.outcome }}" != "success" ]; then
+            echo "ERROR: GCC-Final-GDB stage is critical and must succeed"
+            exit 1
+          fi
+          
           echo ""
           echo "✓ All active stages completed successfully"
-          echo "  - Bootstrap, binutils-gcc-first, and newlib validated"
-          echo "  - Later stages (gcc-final-gdb, runtime-libs) will be added in future PRs"
+          echo "  - Bootstrap, binutils-gcc-first, newlib, and gcc-final-gdb validated"
+          echo "  - Later stages (runtime-libs) will be added in future PRs"
