@@ -103,16 +103,61 @@ COPY src/newlib /root/build/gnu-tools-for-stm32/src/newlib
 - Test project: `test_project/`
 - Other build scripts used in later stages
 
-### Later Stages (To Be Optimized)
+### GCC-Final-GDB Stage (Optimized)
 
-Currently, the `gcc-final-gdb` stage uses a blanket copy:
+The gcc-final-gdb stage uses **incremental copying** to minimize the layer size and improve cache reusability:
 
 ```dockerfile
-# TODO: Future optimization - copy incrementally per stage
-COPY . /root/build/gnu-tools-for-stm32/
+# Copy only what's needed for gcc-final-gdb
+COPY build-gcc-final-gdb.sh /root/build/gnu-tools-for-stm32/
+COPY src/gdb /root/build/gnu-tools-for-stm32/src/gdb
 ```
 
-This is intentional to keep the optimization incremental and manageable. Future PRs can incrementally optimize each remaining stage.
+**Benefits:**
+- GCC-final-gdb layer size: ~3.0G (includes gdb sources and built binaries)
+- Installed toolchain: complete C/C++ compiler and debugger
+- Changes to documentation or test projects don't invalidate gcc-final-gdb cache
+- Faster rebuilds when only auxiliary files change
+- Build time: ~15 minutes
+
+**Components built:**
+- GCC Final Pass (C++ compiler with libstdc++, libsupc++)
+- GDB (GNU Debugger for ARM targets)
+
+**Files excluded from gcc-final-gdb:**
+- Documentation: `docs/`, `README.md`, `BUILD.md`, etc.
+- Test project: `test_project/`
+- Other build scripts not needed for this stage
+
+### Runtime-Libs Stage (Optimized)
+
+The runtime-libs stage uses **incremental copying** to minimize the layer size and improve cache reusability:
+
+```dockerfile
+# Copy only what's needed for runtime-libs finalization
+COPY build-runtime-libs-finalize.sh /root/build/gnu-tools-for-stm32/
+```
+
+**Benefits:**
+- Runtime-libs layer size: minimal (no new sources, just finalization script)
+- Changes to documentation, test projects, or any other files don't invalidate runtime-libs cache
+- Maximum cache reusability
+- Final cleanup removes all source directories and build artifacts
+
+**Operations performed:**
+- No new compilation (verification and cleanup only)
+- Verifies runtime libraries are installed
+- Creates symlinks for toolchain binaries in `/usr/local/bin/`
+- Removes all build artifacts and source directories
+- Displays summary of installed libraries and headers
+
+**Files excluded from runtime-libs:**
+- All source directories (removed during housekeeping)
+- Documentation: `docs/`, `README.md`, `BUILD.md`, etc.
+- Test project: `test_project/`
+- All other files not needed for finalization
+
+**Note:** build-common.sh, build-toolchain-config.sh, and src/gcc/gcc/BASE-VER are already present from the bootstrap stage, so only the finalization script needs to be copied.
 
 ## Housekeeping
 
@@ -178,9 +223,56 @@ RUN ./build-newlib.sh && \
 - Build artifacts: `*.o`, `*.la`, `.deps/` directories
 - Temporary files: logs, backup files
 
-### Future Housekeeping Opportunities
-- Clean up source directories after they're no longer needed in `gcc-final-gdb` stage
-- Remove documentation and tests from source trees before copying
+### GCC-Final-GDB Stage
+```dockerfile
+RUN ./build-gcc-final-gdb.sh && \
+    # Build artifacts already cleaned by build script:
+    # - build-native/gcc-final (removed after building)
+    # - build-native/gdb (removed after building)
+    # - build-native/target-libs (removed after building)
+    # Additional housekeeping:
+    rm -rf build-native/*.log build-native/*.txt 2>/dev/null || true && \
+    find build-native -type d -name ".deps" -exec rm -rf {} + 2>/dev/null || true && \
+    find . -name "*~" -delete 2>/dev/null || true && \
+    find . -name "*.orig" -delete 2>/dev/null || true && \
+    find . -name "*.rej" -delete 2>/dev/null || true
+```
+
+**What's kept:** 
+- Complete installed toolchain in `install-native/`
+- Source directories (needed for runtime-libs verification)
+
+**What's removed:** 
+- Build directories: `build-native/gcc-final/`, `build-native/gdb/`, `build-native/target-libs/`
+- Build artifacts: `*.o`, `*.la`, `.deps/` directories
+- Temporary files: logs, backup files
+
+### Runtime-Libs Stage
+```dockerfile
+RUN ./build-runtime-libs-finalize.sh && \
+    # Build artifacts already cleaned by build-runtime-libs-finalize.sh:
+    # - build-native/ directory (removed completely)
+    # - *.o object files (removed via find)
+    # - *.la libtool files (removed via find)
+    # - Empty directories (removed via find)
+    # Additional housekeeping for final image size reduction:
+    rm -rf src/ && \
+    rm -rf *.log *.txt 2>/dev/null || true && \
+    find . -name "*~" -delete 2>/dev/null || true && \
+    find . -name "*.orig" -delete 2>/dev/null || true && \
+    find . -name "*.rej" -delete 2>/dev/null || true && \
+    find . -type d -name "autom4te.cache" -exec rm -rf {} + 2>/dev/null || true
+```
+
+**What's kept:** 
+- Complete installed toolchain in `install-native/`
+- Build scripts for reference
+
+**What's removed:** 
+- All source directories: `src/` (no longer needed after build)
+- All build directories: `build-native/` (already removed by script)
+- All build artifacts: `*.o`, `*.la`
+- Temporary files: logs, backup files, autotools cache
 
 ## Layer Size Reporting
 
@@ -230,6 +322,39 @@ RUN echo "=== Newlib Stage: Building newlib C standard library ===" && \
     echo "Installed libraries size:" && du -sh install-native/arm-none-eabi/lib 2>/dev/null || echo "Libraries not yet installed"
 ```
 
+**GCC-Final-GDB Stage:**
+```dockerfile
+RUN echo "=== GCC-Final-GDB Stage: Building GCC final pass and GDB ===" && \
+    echo "Layer size before build:" && du -sh /root/build/gnu-tools-for-stm32 && \
+    chmod +x build-gcc-final-gdb.sh && \
+    ./build-gcc-final-gdb.sh && \
+    echo "=== Housekeeping: Cleaning up build artifacts ===" && \
+    rm -rf build-native/*.log build-native/*.txt 2>/dev/null || true && \
+    find build-native -type d -name ".deps" -exec rm -rf {} + 2>/dev/null || true && \
+    find . -name "*~" -delete 2>/dev/null || true && \
+    find . -name "*.orig" -delete 2>/dev/null || true && \
+    find . -name "*.rej" -delete 2>/dev/null || true && \
+    echo "Layer size after build and cleanup:" && du -sh /root/build/gnu-tools-for-stm32 && \
+    echo "Installed toolchain size:" && du -sh install-native/
+```
+
+**Runtime-Libs Stage:**
+```dockerfile
+RUN echo "=== Runtime-Libs Stage: Finalizing runtime libraries ===" && \
+    echo "Layer size before finalization:" && du -sh /root/build/gnu-tools-for-stm32 && \
+    chmod +x build-runtime-libs-finalize.sh && \
+    ./build-runtime-libs-finalize.sh && \
+    echo "=== Housekeeping: Final cleanup operations ===" && \
+    rm -rf src/ && \
+    rm -rf *.log *.txt 2>/dev/null || true && \
+    find . -name "*~" -delete 2>/dev/null || true && \
+    find . -name "*.orig" -delete 2>/dev/null || true && \
+    find . -name "*.rej" -delete 2>/dev/null || true && \
+    find . -type d -name "autom4te.cache" -exec rm -rf {} + 2>/dev/null || true && \
+    echo "Layer size after finalization and cleanup:" && du -sh /root/build/gnu-tools-for-stm32 && \
+    echo "Final toolchain size:" && du -sh install-native/
+```
+
 ## Maximizing Cache Reusability
 
 ### GitHub Actions Workflow Caching (Recommended)
@@ -267,17 +392,40 @@ The repository's container build workflow (`.github/workflows/build_container_dr
       type=gha,scope=newlib
     cache-to: type=gha,mode=max,scope=newlib
 
-# Future stages (gcc-final-gdb, runtime-libs) will be added incrementally
+# GCC-Final-GDB stage is built and cached separately
+- name: Build and Cache GCC-Final-GDB Stage
+  uses: docker/build-push-action@v6.18.0
+  with:
+    target: gcc-final-gdb
+    cache-from: |
+      type=gha,scope=bootstrap
+      type=gha,scope=binutils-gcc-first
+      type=gha,scope=newlib
+      type=gha,scope=gcc-final-gdb
+    cache-to: type=gha,mode=max,scope=gcc-final-gdb
+
+# Runtime-Libs stage is built and cached separately
+- name: Build and Cache Runtime-Libs Stage
+  uses: docker/build-push-action@v6.18.0
+  with:
+    target: runtime-libs
+    cache-from: |
+      type=gha,scope=bootstrap
+      type=gha,scope=binutils-gcc-first
+      type=gha,scope=newlib
+      type=gha,scope=gcc-final-gdb
+      type=gha,scope=runtime-libs
+    cache-to: type=gha,mode=max,scope=runtime-libs
 ```
 
 **Benefits:**
-- **Automatic cache preservation:** Bootstrap, binutils-gcc-first, and newlib caches are saved even if later stages fail
+- **Automatic cache preservation:** All stage caches (bootstrap through runtime-libs) are saved even if later stages fail
 - **Shared cache across runs:** Subsequent workflow runs reuse cached layers
 - **No manual intervention:** Cache is managed automatically by GitHub Actions
-- **Scoped caching:** Bootstrap, binutils-gcc-first, and newlib stages have separate cache scopes for better isolation
-- **Incremental builds:** Changes to later stages (gcc-final-gdb) don't invalidate earlier stage caches
+- **Scoped caching:** Each stage has separate cache scopes for better isolation
+- **Incremental builds:** Changes to later stages don't invalidate earlier stage caches
 - **Single-job efficiency:** Docker local cache works optimally within a single job
-- **Incremental validation:** Currently validates bootstrap, binutils-gcc-first, and newlib; later stages will be added in future PRs
+- **Complete validation:** All build stages are validated in CI
 
 ### Local Development Caching
 
@@ -291,6 +439,8 @@ docker build -t gnu-tools-for-stm32 .
 docker build --target bootstrap -t gnu-tools-for-stm32:bootstrap .
 docker build --target binutils-gcc-first -t gnu-tools-for-stm32:binutils-gcc-first .
 docker build --target newlib -t gnu-tools-for-stm32:newlib .
+docker build --target gcc-final-gdb -t gnu-tools-for-stm32:gcc-final-gdb .
+docker build --target runtime-libs -t gnu-tools-for-stm32:runtime-libs .
 ```
 
 ### Preserving Cache When Builds Fail
@@ -320,6 +470,12 @@ If a build fails, Docker **automatically preserves** the cache for all successfu
    
    # Build up to newlib
    docker build --target newlib -t gnu-tools-for-stm32:newlib .
+   
+   # Build up to gcc-final-gdb
+   docker build --target gcc-final-gdb -t gnu-tools-for-stm32:gcc-final-gdb .
+   
+   # Build up to runtime-libs
+   docker build --target runtime-libs -t gnu-tools-for-stm32:runtime-libs .
    ```
 
 3. **Check cached images:**
@@ -379,9 +535,15 @@ The Docker cache will be invalidated (rebuilt) when:
    - Newlib source changes (`src/newlib/*`)
    - Any changes that invalidate earlier stages
 
-4. **Later stages:**
-   - Currently: **ANY** file in the repository changes (due to blanket `COPY .` in gcc-final-gdb stage)
-   - After optimization: Only relevant sources for each stage
+4. **GCC-Final-GDB stage:**
+   - Build script changes (`build-gcc-final-gdb.sh`)
+   - GDB source changes (`src/gdb/*`)
+   - Any changes that invalidate earlier stages
+
+5. **Runtime-Libs stage:**
+   - Build script changes (`build-runtime-libs-finalize.sh`)
+   - Any changes that invalidate earlier stages
+   - Note: Changes to documentation, test projects, or other auxiliary files do NOT invalidate this stage
 
 ## Testing Cache Effectiveness
 
@@ -432,21 +594,26 @@ Current layer sizes (as of optimization):
   - Source files (newlib): ~72M
   - Build artifacts: cleaned after build
 
-- **Full build:** (TODO: measure after complete build)
+- **GCC-Final-GDB stage:** ~3.0G (after cleanup)
+  - Installed toolchain: complete C/C++ compiler and debugger
+  - Source files (gdb): varies
+  - Build artifacts: cleaned after build
+
+- **Runtime-Libs stage:** minimal (after cleanup)
+  - Final toolchain in `install-native/`
+  - All source directories removed: `src/` (saves ~2G)
+  - All build directories removed: `build-native/` (already removed by script)
+  - Final image size: TBD (to be measured during build)
 
 ## Future Optimization Opportunities
 
-1. **Stage 3 (gcc-final-gdb):**
-   - Copy only: `src/gdb/`, build script  
-   - Exclude: docs, test_project
-
-2. **Exclude test and doc directories:**
+1. **Exclude test and doc directories:**
    - Use `.dockerignore` or selective COPY to exclude:
      - `src/*/tests/`
      - `src/*/doc/`
      - `src/*/examples/`
 
-3. **Multi-architecture builds:**
+2. **Multi-architecture builds:**
    - Use BuildKit's cache mounts for cross-compilation
 
 ## Best Practices

@@ -351,14 +351,50 @@ RUN echo "=== GCC-Final-GDB Stage: Building GCC final pass and GDB ===" && \
 ##########################################
 FROM gcc-final-gdb AS runtime-libs
 
-# Copy any remaining files needed for runtime library finalization
-# This includes documentation, test projects, and other auxiliary files
-# that weren't needed in earlier build stages
-COPY . /root/build/gnu-tools-for-stm32/
+# Copy only files needed for runtime-libs finalization
+# This improves Docker layer caching - changes to documentation, test projects, etc.
+# won't invalidate the runtime-libs layer cache
+#
+# Note: build-common.sh, build-toolchain-config.sh, and src/gcc/gcc/BASE-VER
+# are already present from the bootstrap stage, so we only need the finalization script
 
+# Copy build script required for runtime-libs finalization
+COPY build-runtime-libs-finalize.sh /root/build/gnu-tools-for-stm32/
+
+# Build runtime libraries finalization
+# Script: build-runtime-libs-finalize.sh
+#
+# Operations performed (no compilation, verification and cleanup only):
+# 1. Verify runtime libraries are installed (libstdc++.a, libc.a, libm.a, etc.)
+# 2. Create symlinks for toolchain binaries in /usr/local/bin/
+# 3. Clean up all build artifacts to reduce image size
+# 4. Display summary of installed libraries and headers
+#
+# No autotools usage in this stage - all libraries were built in previous stages.
 WORKDIR /root/build/gnu-tools-for-stm32
-RUN chmod +x build-runtime-libs-finalize.sh && \
-    ./build-runtime-libs-finalize.sh
+RUN echo "=== Runtime-Libs Stage: Finalizing runtime libraries ===" && \
+    echo "Layer size before finalization:" && du -sh /root/build/gnu-tools-for-stm32 && \
+    chmod +x build-runtime-libs-finalize.sh && \
+    ./build-runtime-libs-finalize.sh && \
+    echo "=== Housekeeping: Final cleanup operations ===" && \
+    # Build artifacts already cleaned by build-runtime-libs-finalize.sh:
+    # - build-native/ directory (removed completely)
+    # - *.o object files (removed via find)
+    # - *.la libtool files (removed via find)
+    # - Empty directories (removed via find)
+    # Clean up additional unnecessary files to reduce layer size:
+    # - Source directories are no longer needed after final build
+    rm -rf src/ && \
+    # - Build logs and temporary files
+    rm -rf *.log *.txt 2>/dev/null || true && \
+    # - Clean up any backup files that may have been created
+    find . -name "*~" -delete 2>/dev/null || true && \
+    find . -name "*.orig" -delete 2>/dev/null || true && \
+    find . -name "*.rej" -delete 2>/dev/null || true && \
+    # - Clean up any remaining autotools cache directories
+    find . -type d -name "autom4te.cache" -exec rm -rf {} + 2>/dev/null || true && \
+    echo "Layer size after finalization and cleanup:" && du -sh /root/build/gnu-tools-for-stm32 && \
+    echo "Final toolchain size:" && du -sh install-native/
 
 ##########################################
 ### Main: Final Stage                 ###
