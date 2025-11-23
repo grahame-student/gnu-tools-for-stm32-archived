@@ -290,11 +290,8 @@ FROM newlib AS gcc-final-gdb
 # Copy build script required for gcc-final-gdb
 COPY build-gcc-final-gdb.sh /root/build/gnu-tools-for-stm32/
 
-# Copy only gcc and gdb sources (prerequisites, binutils, and newlib already built in earlier stages)
-# Note: gcc was already copied in binutils-gcc-first stage, but we copy it again to ensure
-# the gcc-final-gdb layer has the complete gcc source tree for the final build pass
+# Copy only gdb sources (prerequisites, binutils, gcc, and newlib already built in earlier stages)
 # Excluding later-stage sources - they're not needed until later stages
-COPY src/gcc /root/build/gnu-tools-for-stm32/src/gcc
 COPY src/gdb /root/build/gnu-tools-for-stm32/src/gdb
 
 # Build GCC final pass and GDB
