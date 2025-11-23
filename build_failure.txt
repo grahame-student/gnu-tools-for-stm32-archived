@@ -1,0 +1,413 @@
+2025-11-23T15:01:45.0924983Z Current runner version: '2.329.0'
+2025-11-23T15:01:45.0975252Z ##[group]Runner Image Provisioner
+2025-11-23T15:01:45.0976159Z Hosted Compute Agent
+2025-11-23T15:01:45.0976705Z Version: 20251016.436
+2025-11-23T15:01:45.0977360Z Commit: 8ab8ac8bfd662a3739dab9fe09456aba92132568
+2025-11-23T15:01:45.0977995Z Build Date: 2025-10-15T20:44:12Z
+2025-11-23T15:01:45.0978656Z ##[endgroup]
+2025-11-23T15:01:45.0979138Z ##[group]Operating System
+2025-11-23T15:01:45.0979677Z Ubuntu
+2025-11-23T15:01:45.0980176Z 24.04.3
+2025-11-23T15:01:45.0980639Z LTS
+2025-11-23T15:01:45.0981488Z ##[endgroup]
+2025-11-23T15:01:45.0982176Z ##[group]Runner Image
+2025-11-23T15:01:45.0982722Z Image: ubuntu-24.04
+2025-11-23T15:01:45.0983199Z Version: 20251112.124.1
+2025-11-23T15:01:45.0984272Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20251112.124/images/ubuntu/Ubuntu2404-Readme.md
+2025-11-23T15:01:45.0985865Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20251112.124
+2025-11-23T15:01:45.0986980Z ##[endgroup]
+2025-11-23T15:01:45.0988047Z ##[group]GITHUB_TOKEN Permissions
+2025-11-23T15:01:45.0990110Z Contents: read
+2025-11-23T15:01:45.0990658Z Metadata: read
+2025-11-23T15:01:45.0991510Z Packages: read
+2025-11-23T15:01:45.0992169Z ##[endgroup]
+2025-11-23T15:01:45.0994432Z Secret source: Actions
+2025-11-23T15:01:45.0995147Z Prepare workflow directory
+2025-11-23T15:01:45.1337085Z Prepare all required actions
+2025-11-23T15:01:45.1377341Z Getting action download info
+2025-11-23T15:01:45.4953946Z Download action repository 'actions/checkout@v5.0.0' (SHA:08c6903cd8c0fde910a37f88322edcfb5dd907a8)
+2025-11-23T15:01:45.6163505Z Download action repository 'actions/download-artifact@v6.0.0' (SHA:018cc2cf5baa6db3ef3c5f8a56943fffe632ef53)
+2025-11-23T15:01:45.9447994Z Download action repository 'docker/login-action@v3.6.0' (SHA:5e57cd118135c172c3672efd75eb46360885c0ef)
+2025-11-23T15:01:46.2103244Z Download action repository 'actions/upload-artifact@v5.0.0' (SHA:330a01c490aca151604b8cf639adc76d48f6c5d4)
+2025-11-23T15:01:46.4142885Z Uses: grahame-student/gnu-tools-for-stm32/.github/workflows/validate-toolchain-reusable.yml@refs/pull/105/merge (24350082381ede4d85d9557d22f178749e777534)
+2025-11-23T15:01:46.4149571Z ##[group] Inputs
+2025-11-23T15:01:46.4150532Z   container-image: gnu-tools-for-stm32:pr-105
+2025-11-23T15:01:46.4151919Z   artifact-name-suffix: -pr-105
+2025-11-23T15:01:46.4153293Z   load-from-artifact: true
+2025-11-23T15:01:46.4154278Z   artifact-name: toolchain-container-pr-105
+2025-11-23T15:01:46.4155335Z ##[endgroup]
+2025-11-23T15:01:46.4156248Z Complete job name: Run Validation / Validate Toolchain
+2025-11-23T15:01:46.5051936Z ##[group]Run actions/checkout@v5.0.0
+2025-11-23T15:01:46.5053337Z with:
+2025-11-23T15:01:46.5054144Z   repository: grahame-student/gnu-tools-for-stm32
+2025-11-23T15:01:46.5055536Z   token: ***
+2025-11-23T15:01:46.5056201Z   ssh-strict: true
+2025-11-23T15:01:46.5056899Z   ssh-user: git
+2025-11-23T15:01:46.5057597Z   persist-credentials: true
+2025-11-23T15:01:46.5058383Z   clean: true
+2025-11-23T15:01:46.5059117Z   sparse-checkout-cone-mode: true
+2025-11-23T15:01:46.5060005Z   fetch-depth: 1
+2025-11-23T15:01:46.5060687Z   fetch-tags: false
+2025-11-23T15:01:46.5061716Z   show-progress: true
+2025-11-23T15:01:46.5062435Z   lfs: false
+2025-11-23T15:01:46.5063083Z   submodules: false
+2025-11-23T15:01:46.5063805Z   set-safe-directory: true
+2025-11-23T15:01:46.5065024Z ##[endgroup]
+2025-11-23T15:01:46.6032561Z Syncing repository: grahame-student/gnu-tools-for-stm32
+2025-11-23T15:01:46.6035540Z ##[group]Getting Git version info
+2025-11-23T15:01:46.6037180Z Working directory is '/home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32'
+2025-11-23T15:01:46.6039449Z [command]/usr/bin/git version
+2025-11-23T15:01:46.6095508Z git version 2.51.2
+2025-11-23T15:01:46.6151538Z ##[endgroup]
+2025-11-23T15:01:46.6166797Z Temporarily overriding HOME='/home/runner/work/_temp/0d5de9f3-0983-4a80-9c25-979a004a5685' before making global git config changes
+2025-11-23T15:01:46.6170600Z Adding repository directory to the temporary git global config as a safe directory
+2025-11-23T15:01:46.6175420Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32
+2025-11-23T15:01:46.6218547Z Deleting the contents of '/home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32'
+2025-11-23T15:01:46.6221895Z ##[group]Initializing the repository
+2025-11-23T15:01:46.6227704Z [command]/usr/bin/git init /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32
+2025-11-23T15:01:46.6346536Z hint: Using 'master' as the name for the initial branch. This default branch name
+2025-11-23T15:01:46.6349155Z hint: is subject to change. To configure the initial branch name to use in all
+2025-11-23T15:01:46.6351739Z hint: of your new repositories, which will suppress this warning, call:
+2025-11-23T15:01:46.6354018Z hint:
+2025-11-23T15:01:46.6355382Z hint: 	git config --global init.defaultBranch <name>
+2025-11-23T15:01:46.6357152Z hint:
+2025-11-23T15:01:46.6358905Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2025-11-23T15:01:46.6361976Z hint: 'development'. The just-created branch can be renamed via this command:
+2025-11-23T15:01:46.6364265Z hint:
+2025-11-23T15:01:46.6365370Z hint: 	git branch -m <name>
+2025-11-23T15:01:46.6366593Z hint:
+2025-11-23T15:01:46.6368292Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2025-11-23T15:01:46.6371940Z Initialized empty Git repository in /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/.git/
+2025-11-23T15:01:46.6375390Z [command]/usr/bin/git remote add origin https://github.com/grahame-student/gnu-tools-for-stm32
+2025-11-23T15:01:46.6409118Z ##[endgroup]
+2025-11-23T15:01:46.6411458Z ##[group]Disabling automatic garbage collection
+2025-11-23T15:01:46.6413303Z [command]/usr/bin/git config --local gc.auto 0
+2025-11-23T15:01:46.6441900Z ##[endgroup]
+2025-11-23T15:01:46.6443875Z ##[group]Setting up auth
+2025-11-23T15:01:46.6449879Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2025-11-23T15:01:46.6485690Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2025-11-23T15:01:46.6850276Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-11-23T15:01:46.6887767Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2025-11-23T15:01:46.7121475Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2025-11-23T15:01:46.7158649Z ##[endgroup]
+2025-11-23T15:01:46.7159911Z ##[group]Fetching the repository
+2025-11-23T15:01:46.7169458Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +24350082381ede4d85d9557d22f178749e777534:refs/remotes/pull/105/merge
+2025-11-23T15:02:03.7384231Z From https://github.com/grahame-student/gnu-tools-for-stm32
+2025-11-23T15:02:03.7385243Z  * [new ref]             24350082381ede4d85d9557d22f178749e777534 -> pull/105/merge
+2025-11-23T15:02:03.7415025Z ##[endgroup]
+2025-11-23T15:02:03.7415777Z ##[group]Determining the checkout info
+2025-11-23T15:02:03.7418654Z ##[endgroup]
+2025-11-23T15:02:03.7423790Z [command]/usr/bin/git sparse-checkout disable
+2025-11-23T15:02:03.7469057Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2025-11-23T15:02:03.7497262Z ##[group]Checking out the ref
+2025-11-23T15:02:03.7501380Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/105/merge
+2025-11-23T15:02:04.8960398Z Updating files:   6% (14274/209556)
+2025-11-23T15:02:05.1281300Z Updating files:   7% (14669/209556)
+2025-11-23T15:02:05.2639759Z Updating files:   8% (16765/209556)
+2025-11-23T15:02:05.3735983Z Updating files:   9% (18861/209556)
+2025-11-23T15:02:05.4925963Z Updating files:  10% (20956/209556)
+2025-11-23T15:02:05.6589698Z Updating files:  11% (23052/209556)
+2025-11-23T15:02:05.7631870Z Updating files:  12% (25147/209556)
+2025-11-23T15:02:05.8442331Z Updating files:  13% (27243/209556)
+2025-11-23T15:02:05.8796614Z Updating files:  14% (29338/209556)
+2025-11-23T15:02:05.9263598Z Updating files:  14% (30288/209556)
+2025-11-23T15:02:06.0044939Z Updating files:  15% (31434/209556)
+2025-11-23T15:02:06.1780736Z Updating files:  16% (33529/209556)
+2025-11-23T15:02:06.5936212Z Updating files:  17% (35625/209556)
+2025-11-23T15:02:06.8353577Z Updating files:  18% (37721/209556)
+2025-11-23T15:02:06.8795838Z Updating files:  19% (39816/209556)
+2025-11-23T15:02:07.1632434Z Updating files:  19% (40193/209556)
+2025-11-23T15:02:07.5613098Z Updating files:  20% (41912/209556)
+2025-11-23T15:02:07.7007110Z Updating files:  21% (44007/209556)
+2025-11-23T15:02:07.7924057Z Updating files:  22% (46103/209556)
+2025-11-23T15:02:07.8706706Z Updating files:  23% (48198/209556)
+2025-11-23T15:02:07.8794548Z Updating files:  24% (50294/209556)
+2025-11-23T15:02:07.9571838Z Updating files:  24% (50452/209556)
+2025-11-23T15:02:08.0544471Z Updating files:  25% (52389/209556)
+2025-11-23T15:02:08.1362190Z Updating files:  26% (54485/209556)
+2025-11-23T15:02:08.2374767Z Updating files:  27% (56581/209556)
+2025-11-23T15:02:08.3222717Z Updating files:  28% (58676/209556)
+2025-11-23T15:02:08.4111162Z Updating files:  29% (60772/209556)
+2025-11-23T15:02:08.4973184Z Updating files:  30% (62867/209556)
+2025-11-23T15:02:08.6099181Z Updating files:  31% (64963/209556)
+2025-11-23T15:02:08.6937194Z Updating files:  32% (67058/209556)
+2025-11-23T15:02:08.7911757Z Updating files:  33% (69154/209556)
+2025-11-23T15:02:08.8795267Z Updating files:  34% (71250/209556)
+2025-11-23T15:02:08.8812136Z Updating files:  34% (73302/209556)
+2025-11-23T15:02:08.9715119Z Updating files:  35% (73345/209556)
+2025-11-23T15:02:09.0635918Z Updating files:  36% (75441/209556)
+2025-11-23T15:02:09.1467695Z Updating files:  37% (77536/209556)
+2025-11-23T15:02:09.2397902Z Updating files:  38% (79632/209556)
+2025-11-23T15:02:09.3255638Z Updating files:  39% (81727/209556)
+2025-11-23T15:02:09.4140848Z Updating files:  40% (83823/209556)
+2025-11-23T15:02:09.5019542Z Updating files:  41% (85918/209556)
+2025-11-23T15:02:09.5910525Z Updating files:  42% (88014/209556)
+2025-11-23T15:02:09.6802637Z Updating files:  43% (90110/209556)
+2025-11-23T15:02:09.7836665Z Updating files:  44% (92205/209556)
+2025-11-23T15:02:09.8726393Z Updating files:  45% (94301/209556)
+2025-11-23T15:02:09.8793923Z Updating files:  46% (96396/209556)
+2025-11-23T15:02:09.9529579Z Updating files:  46% (96568/209556)
+2025-11-23T15:02:10.0361228Z Updating files:  47% (98492/209556)
+2025-11-23T15:02:10.1274508Z Updating files:  48% (100587/209556)
+2025-11-23T15:02:10.2092635Z Updating files:  49% (102683/209556)
+2025-11-23T15:02:10.2919164Z Updating files:  50% (104778/209556)
+2025-11-23T15:02:10.3875208Z Updating files:  51% (106874/209556)
+2025-11-23T15:02:10.4692217Z Updating files:  52% (108970/209556)
+2025-11-23T15:02:10.5544165Z Updating files:  53% (111065/209556)
+2025-11-23T15:02:10.6390040Z Updating files:  54% (113161/209556)
+2025-11-23T15:02:10.7229048Z Updating files:  55% (115256/209556)
+2025-11-23T15:02:10.8152687Z Updating files:  56% (117352/209556)
+2025-11-23T15:02:10.8794971Z Updating files:  57% (119447/209556)
+2025-11-23T15:02:10.9104629Z Updating files:  57% (120790/209556)
+2025-11-23T15:02:10.9965318Z Updating files:  58% (121543/209556)
+2025-11-23T15:02:11.0838306Z Updating files:  59% (123639/209556)
+2025-11-23T15:02:11.1693183Z Updating files:  60% (125734/209556)
+2025-11-23T15:02:11.2553179Z Updating files:  61% (127830/209556)
+2025-11-23T15:02:11.3377677Z Updating files:  62% (129925/209556)
+2025-11-23T15:02:11.4542560Z Updating files:  63% (132021/209556)
+2025-11-23T15:02:11.5470228Z Updating files:  64% (134116/209556)
+2025-11-23T15:02:11.7273099Z Updating files:  65% (136212/209556)
+2025-11-23T15:02:11.8543638Z Updating files:  66% (138307/209556)
+2025-11-23T15:02:11.8795061Z Updating files:  67% (140403/209556)
+2025-11-23T15:02:11.9780655Z Updating files:  67% (141091/209556)
+2025-11-23T15:02:12.1224846Z Updating files:  68% (142499/209556)
+2025-11-23T15:02:12.2286781Z Updating files:  69% (144594/209556)
+2025-11-23T15:02:12.3885589Z Updating files:  70% (146690/209556)
+2025-11-23T15:02:12.6097842Z Updating files:  71% (148785/209556)
+2025-11-23T15:02:12.7366913Z Updating files:  72% (150881/209556)
+2025-11-23T15:02:12.8217588Z Updating files:  73% (152976/209556)
+2025-11-23T15:02:12.8795298Z Updating files:  74% (155072/209556)
+2025-11-23T15:02:12.9186190Z Updating files:  74% (156332/209556)
+2025-11-23T15:02:13.0344403Z Updating files:  75% (157167/209556)
+2025-11-23T15:02:13.2534198Z Updating files:  76% (159263/209556)
+2025-11-23T15:02:13.5321704Z Updating files:  77% (161359/209556)
+2025-11-23T15:02:13.6268971Z Updating files:  78% (163454/209556)
+2025-11-23T15:02:13.7476870Z Updating files:  79% (165550/209556)
+2025-11-23T15:02:13.8797699Z Updating files:  80% (167645/209556)
+2025-11-23T15:02:13.9254012Z Updating files:  80% (169253/209556)
+2025-11-23T15:02:14.0348257Z Updating files:  81% (169741/209556)
+2025-11-23T15:02:14.1243790Z Updating files:  82% (171836/209556)
+2025-11-23T15:02:14.3277053Z Updating files:  83% (173932/209556)
+2025-11-23T15:02:14.5502269Z Updating files:  84% (176028/209556)
+2025-11-23T15:02:14.8292792Z Updating files:  85% (178123/209556)
+2025-11-23T15:02:14.8794719Z Updating files:  86% (180219/209556)
+2025-11-23T15:02:14.9360242Z Updating files:  86% (181151/209556)
+2025-11-23T15:02:15.0960655Z Updating files:  87% (182314/209556)
+2025-11-23T15:02:15.2586517Z Updating files:  88% (184410/209556)
+2025-11-23T15:02:15.3399302Z Updating files:  89% (186505/209556)
+2025-11-23T15:02:15.4246754Z Updating files:  90% (188601/209556)
+2025-11-23T15:02:15.5207611Z Updating files:  91% (190696/209556)
+2025-11-23T15:02:15.6228196Z Updating files:  92% (192792/209556)
+2025-11-23T15:02:15.8582932Z Updating files:  93% (194888/209556)
+2025-11-23T15:02:15.8794470Z Updating files:  94% (196983/209556)
+2025-11-23T15:02:15.9988700Z Updating files:  94% (197357/209556)
+2025-11-23T15:02:16.1750306Z Updating files:  95% (199079/209556)
+2025-11-23T15:02:16.3169016Z Updating files:  96% (201174/209556)
+2025-11-23T15:02:16.4784438Z Updating files:  97% (203270/209556)
+2025-11-23T15:02:16.6185096Z Updating files:  98% (205365/209556)
+2025-11-23T15:02:16.8109168Z Updating files:  99% (207461/209556)
+2025-11-23T15:02:16.8111414Z Updating files: 100% (209556/209556)
+2025-11-23T15:02:16.8111917Z Updating files: 100% (209556/209556), done.
+2025-11-23T15:02:17.0585015Z Note: switching to 'refs/remotes/pull/105/merge'.
+2025-11-23T15:02:17.0585706Z 
+2025-11-23T15:02:17.0586333Z You are in 'detached HEAD' state. You can look around, make experimental
+2025-11-23T15:02:17.0587302Z changes and commit them, and you can discard any commits you make in this
+2025-11-23T15:02:17.0588158Z state without impacting any branches by switching back to a branch.
+2025-11-23T15:02:17.0588652Z 
+2025-11-23T15:02:17.0588960Z If you want to create a new branch to retain commits you create, you may
+2025-11-23T15:02:17.0589690Z do so (now or later) by using -c with the switch command. Example:
+2025-11-23T15:02:17.0590107Z 
+2025-11-23T15:02:17.0590279Z   git switch -c <new-branch-name>
+2025-11-23T15:02:17.0590570Z 
+2025-11-23T15:02:17.0590729Z Or undo this operation with:
+2025-11-23T15:02:17.0591233Z 
+2025-11-23T15:02:17.0591376Z   git switch -
+2025-11-23T15:02:17.0591580Z 
+2025-11-23T15:02:17.0591944Z Turn off this advice by setting config variable advice.detachedHead to false
+2025-11-23T15:02:17.0592493Z 
+2025-11-23T15:02:17.0593118Z HEAD is now at 243500823 Merge 1c71fa19310dc715cd1844a9ad15f5140b7c650b into dc86a24976426184a5d7d1f4c70cde608990b427
+2025-11-23T15:02:17.0767750Z ##[endgroup]
+2025-11-23T15:02:17.0811256Z [command]/usr/bin/git log -1 --format=%H
+2025-11-23T15:02:17.0837343Z 24350082381ede4d85d9557d22f178749e777534
+2025-11-23T15:02:17.1063538Z ##[group]Run actions/download-artifact@v6.0.0
+2025-11-23T15:02:17.1064147Z with:
+2025-11-23T15:02:17.1064360Z   name: toolchain-container-pr-105
+2025-11-23T15:02:17.1064608Z   path: /tmp
+2025-11-23T15:02:17.1065203Z   merge-multiple: false
+2025-11-23T15:02:17.1065735Z   repository: grahame-student/gnu-tools-for-stm32
+2025-11-23T15:02:17.1066142Z   run-id: 19612945695
+2025-11-23T15:02:17.1066336Z ##[endgroup]
+2025-11-23T15:02:17.3383060Z Downloading single artifact
+2025-11-23T15:02:17.4963145Z Preparing to download the following artifacts:
+2025-11-23T15:02:17.4964364Z - toolchain-container-pr-105 (ID: 4653497784, Size: 1924743698, Expected Digest: sha256:dd9324d138e19c264ba7b26240a0a30bbd8b7edb59c4e12463e0b2a8c14ab081)
+2025-11-23T15:02:17.5578618Z Redirecting to blob download url: https://productionresultssa1.blob.core.windows.net/actions-results/e7e566dd-4f3d-456d-bbae-dc41cebd6371/workflow-job-run-c41d8c30-07b3-5392-82dd-92a9c46e27da/artifacts/e71ae785a36c66567d0ae216a1842069c5a0c3c10d0dcbe153d420599635a557.zip
+2025-11-23T15:02:17.5580684Z Starting download of artifact to: /tmp
+2025-11-23T15:02:17.6277015Z (node:2076) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+2025-11-23T15:02:17.6278170Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2025-11-23T15:02:33.0678786Z SHA256 digest of downloaded artifact is dd9324d138e19c264ba7b26240a0a30bbd8b7edb59c4e12463e0b2a8c14ab081
+2025-11-23T15:02:33.0679812Z Artifact download completed successfully.
+2025-11-23T15:02:33.0680346Z Total of 1 artifact(s) downloaded
+2025-11-23T15:02:33.0686604Z Download artifact has finished successfully
+2025-11-23T15:02:33.0875300Z ##[group]Run echo "=== Loading Docker image from artifact ==="
+2025-11-23T15:02:33.0875799Z [36;1mecho "=== Loading Docker image from artifact ==="[0m
+2025-11-23T15:02:33.0876135Z [36;1mgunzip /tmp/toolchain-image.tar.gz[0m
+2025-11-23T15:02:33.0876471Z [36;1mdocker load --input /tmp/toolchain-image.tar[0m
+2025-11-23T15:02:33.0876798Z [36;1mrm /tmp/toolchain-image.tar[0m
+2025-11-23T15:02:33.0877046Z [36;1m[0m
+2025-11-23T15:02:33.0877231Z [36;1mecho "=== Loaded images ==="[0m
+2025-11-23T15:02:33.0877481Z [36;1mdocker images[0m
+2025-11-23T15:02:33.0920144Z shell: /usr/bin/bash -e {0}
+2025-11-23T15:02:33.0920532Z ##[endgroup]
+2025-11-23T15:02:33.0996692Z === Loading Docker image from artifact ===
+2025-11-23T15:04:39.3501580Z Loaded image: gnu-tools-for-stm32:pr-105
+2025-11-23T15:04:39.7925246Z === Loaded images ===
+2025-11-23T15:04:39.8046683Z REPOSITORY            TAG       IMAGE ID       CREATED         SIZE
+2025-11-23T15:04:39.8047488Z gnu-tools-for-stm32   pr-105    f486769fd320   4 minutes ago   6.05GB
+2025-11-23T15:04:39.8135932Z ##[group]Run mkdir -p /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/build-output
+2025-11-23T15:04:39.8136658Z [36;1mmkdir -p /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/build-output[0m
+2025-11-23T15:04:39.8137235Z [36;1mchmod 777 /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/build-output[0m
+2025-11-23T15:04:39.8216361Z shell: /usr/bin/bash -e {0}
+2025-11-23T15:04:39.8216613Z ##[endgroup]
+2025-11-23T15:04:39.8315098Z ##[group]Run echo "Building test project..."
+2025-11-23T15:04:39.8315506Z [36;1mecho "Building test project..."[0m
+2025-11-23T15:04:39.8315778Z [36;1mdocker run --rm \[0m
+2025-11-23T15:04:39.8316198Z [36;1m  -v /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/test_project:/project:ro \[0m
+2025-11-23T15:04:39.8316798Z [36;1m  -v /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/build-output:/output \[0m
+2025-11-23T15:04:39.8317228Z [36;1m  gnu-tools-for-stm32:pr-105 \[0m
+2025-11-23T15:04:39.8317488Z [36;1m  /project /output[0m
+2025-11-23T15:04:39.8347121Z shell: /usr/bin/bash -e {0}
+2025-11-23T15:04:39.8347355Z ##[endgroup]
+2025-11-23T15:04:39.8393932Z Building test project...
+2025-11-23T15:04:40.0381565Z === Building CMake Project ===
+2025-11-23T15:04:40.0382650Z Project path: /project
+2025-11-23T15:04:40.0385913Z Output path: /output
+2025-11-23T15:04:40.0386175Z 
+2025-11-23T15:04:40.0478549Z Using build directory: /tmp/tmp.qGliBnaFfl
+2025-11-23T15:04:40.0479664Z 
+2025-11-23T15:04:40.0479967Z === Configuring CMake ===
+2025-11-23T15:04:40.1413787Z -- The C compiler identification is GNU 13.3.1
+2025-11-23T15:04:40.1955801Z -- The CXX compiler identification is GNU 13.3.1
+2025-11-23T15:04:40.2080825Z -- Detecting C compiler ABI info
+2025-11-23T15:04:40.2859293Z -- Detecting C compiler ABI info - done
+2025-11-23T15:04:40.2918382Z -- Check for working C compiler: /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc - skipped
+2025-11-23T15:04:40.2921886Z -- Detecting C compile features
+2025-11-23T15:04:40.2926808Z -- Detecting C compile features - done
+2025-11-23T15:04:40.3007381Z -- Detecting CXX compiler ABI info
+2025-11-23T15:04:40.3779651Z -- Detecting CXX compiler ABI info - done
+2025-11-23T15:04:40.3842654Z -- Check for working CXX compiler: /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-g++ - skipped
+2025-11-23T15:04:40.3845858Z -- Detecting CXX compile features
+2025-11-23T15:04:40.3851619Z -- Detecting CXX compile features - done
+2025-11-23T15:04:40.3922733Z -- The ASM compiler identification is GNU
+2025-11-23T15:04:40.3939119Z -- Found assembler: /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc
+2025-11-23T15:04:40.3999148Z -- Configuring done (0.3s)
+2025-11-23T15:04:40.4062298Z -- Generating done (0.0s)
+2025-11-23T15:04:40.4071857Z -- Build files have been written to: /tmp/tmp.qGliBnaFfl
+2025-11-23T15:04:40.4111681Z 
+2025-11-23T15:04:40.4111885Z === Building Project ===
+2025-11-23T15:04:40.4200636Z Change Dir: '/tmp/tmp.qGliBnaFfl'
+2025-11-23T15:04:40.4200956Z 
+2025-11-23T15:04:40.4201516Z Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile -j 4
+2025-11-23T15:04:40.4285757Z /usr/bin/cmake -S/project -B/tmp/tmp.qGliBnaFfl --check-build-system CMakeFiles/Makefile.cmake 0
+2025-11-23T15:04:40.4366955Z /usr/bin/cmake -E cmake_progress_start /tmp/tmp.qGliBnaFfl/CMakeFiles /tmp/tmp.qGliBnaFfl//CMakeFiles/progress.marks
+2025-11-23T15:04:40.4436030Z /usr/bin/gmake  -f CMakeFiles/Makefile2 all
+2025-11-23T15:04:40.4443918Z gmake[1]: Entering directory '/tmp/tmp.qGliBnaFfl'
+2025-11-23T15:04:40.4444769Z /usr/bin/gmake  -f CMakeFiles/nucleo-u083rc.elf.dir/build.make CMakeFiles/nucleo-u083rc.elf.dir/depend
+2025-11-23T15:04:40.4457584Z gmake[2]: Entering directory '/tmp/tmp.qGliBnaFfl'
+2025-11-23T15:04:40.4458639Z cd /tmp/tmp.qGliBnaFfl && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /project /project /tmp/tmp.qGliBnaFfl /tmp/tmp.qGliBnaFfl /tmp/tmp.qGliBnaFfl/CMakeFiles/nucleo-u083rc.elf.dir/DependInfo.cmake "--color="
+2025-11-23T15:04:40.4527881Z Dependee "/tmp/tmp.qGliBnaFfl/CMakeFiles/nucleo-u083rc.elf.dir/DependInfo.cmake" is newer than depender "/tmp/tmp.qGliBnaFfl/CMakeFiles/nucleo-u083rc.elf.dir/depend.internal".
+2025-11-23T15:04:40.4529548Z Dependee "/tmp/tmp.qGliBnaFfl/CMakeFiles/CMakeDirectoryInformation.cmake" is newer than depender "/tmp/tmp.qGliBnaFfl/CMakeFiles/nucleo-u083rc.elf.dir/depend.internal".
+2025-11-23T15:04:40.4536390Z Scanning dependencies of target nucleo-u083rc.elf
+2025-11-23T15:04:40.4545446Z gmake[2]: Leaving directory '/tmp/tmp.qGliBnaFfl'
+2025-11-23T15:04:40.4547002Z /usr/bin/gmake  -f CMakeFiles/nucleo-u083rc.elf.dir/build.make CMakeFiles/nucleo-u083rc.elf.dir/build
+2025-11-23T15:04:40.4560650Z gmake[2]: Entering directory '/tmp/tmp.qGliBnaFfl'
+2025-11-23T15:04:40.4664526Z [  8%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal.c.obj
+2025-11-23T15:04:40.4666434Z [  8%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/BSP/STM32U0xx_Nucleo/stm32u0xx_nucleo.c.obj
+2025-11-23T15:04:40.4667923Z [ 12%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_cortex.c.obj
+2025-11-23T15:04:40.4669375Z [ 16%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_dma.c.obj
+2025-11-23T15:04:40.4676288Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/BSP/STM32U0xx_Nucleo/stm32u0xx_nucleo.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/BSP/STM32U0xx_Nucleo/stm32u0xx_nucleo.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/BSP/STM32U0xx_Nucleo/stm32u0xx_nucleo.c.obj -c /project/BSP/Drivers/BSP/STM32U0xx_Nucleo/stm32u0xx_nucleo.c
+2025-11-23T15:04:40.4690638Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal.c.obj -c /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal.c
+2025-11-23T15:04:40.4705275Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_cortex.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_cortex.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_cortex.c.obj -c /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_cortex.c
+2025-11-23T15:04:40.4726355Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_dma.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_dma.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_dma.c.obj -c /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_dma.c
+2025-11-23T15:04:40.5552597Z [ 20%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_dma_ex.c.obj
+2025-11-23T15:04:40.5563589Z [ 24%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_exti.c.obj
+2025-11-23T15:04:40.5570026Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_dma_ex.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_dma_ex.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_dma_ex.c.obj -c /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_dma_ex.c
+2025-11-23T15:04:40.5601530Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_exti.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_exti.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_exti.c.obj -c /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_exti.c
+2025-11-23T15:04:40.5819380Z [ 28%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_flash.c.obj
+2025-11-23T15:04:40.5886138Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_flash.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_flash.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_flash.c.obj -c /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_flash.c
+2025-11-23T15:04:40.6123138Z [ 32%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_flash_ex.c.obj
+2025-11-23T15:04:40.6134714Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_flash_ex.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_flash_ex.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_flash_ex.c.obj -c /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_flash_ex.c
+2025-11-23T15:04:40.6615199Z /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_flash_ex.c: In function 'HAL_FLASHEx_EnableHDPProtection':
+2025-11-23T15:04:40.6618921Z /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_flash_ex.c:772:47: warning: unused parameter 'Banks' [-Wunused-parameter]
+2025-11-23T15:04:40.6623685Z   772 | void HAL_FLASHEx_EnableHDPProtection(uint32_t Banks)
+2025-11-23T15:04:40.6624269Z       |                                      ~~~~~~~~~^~~~~
+2025-11-23T15:04:40.6742871Z [ 36%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_gpio.c.obj
+2025-11-23T15:04:40.6758066Z [ 40%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_pwr.c.obj
+2025-11-23T15:04:40.6777329Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_pwr.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_pwr.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_pwr.c.obj -c /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_pwr.c
+2025-11-23T15:04:40.6806819Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_gpio.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_gpio.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_gpio.c.obj -c /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_gpio.c
+2025-11-23T15:04:40.7063033Z [ 44%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_pwr_ex.c.obj
+2025-11-23T15:04:40.7071578Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_pwr_ex.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_pwr_ex.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_pwr_ex.c.obj -c /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_pwr_ex.c
+2025-11-23T15:04:40.7135771Z [ 48%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_rcc.c.obj
+2025-11-23T15:04:40.7157994Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_rcc.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_rcc.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_rcc.c.obj -c /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_rcc.c
+2025-11-23T15:04:40.7712343Z [ 52%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_rcc_ex.c.obj
+2025-11-23T15:04:40.7740168Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_rcc_ex.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_rcc_ex.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_rcc_ex.c.obj -c /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_rcc_ex.c
+2025-11-23T15:04:40.7755373Z [ 56%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_uart.c.obj
+2025-11-23T15:04:40.7772790Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_uart.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_uart.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_uart.c.obj -c /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_uart.c
+2025-11-23T15:04:40.8165157Z [ 60%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_uart_ex.c.obj
+2025-11-23T15:04:40.8184976Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_uart_ex.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_uart_ex.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_uart_ex.c.obj -c /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_uart_ex.c
+2025-11-23T15:04:40.8327781Z [ 64%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_usart.c.obj
+2025-11-23T15:04:40.8344998Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_usart.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_usart.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_usart.c.obj -c /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_usart.c
+2025-11-23T15:04:40.9007668Z [ 68%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_usart_ex.c.obj
+2025-11-23T15:04:40.9025638Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_usart_ex.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_usart_ex.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_usart_ex.c.obj -c /project/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_usart_ex.c
+2025-11-23T15:04:40.9161481Z [ 72%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/main.c.obj
+2025-11-23T15:04:40.9180245Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/main.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/main.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/main.c.obj -c /project/BSP/Src/main.c
+2025-11-23T15:04:40.9225525Z [ 76%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/stm32u0xx_hal_msp.c.obj
+2025-11-23T15:04:40.9247423Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/stm32u0xx_hal_msp.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/stm32u0xx_hal_msp.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/stm32u0xx_hal_msp.c.obj -c /project/BSP/Src/stm32u0xx_hal_msp.c
+2025-11-23T15:04:40.9664309Z [ 80%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/stm32u0xx_it.c.obj
+2025-11-23T15:04:40.9682937Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/stm32u0xx_it.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/stm32u0xx_it.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/stm32u0xx_it.c.obj -c /project/BSP/Src/stm32u0xx_it.c
+2025-11-23T15:04:41.0057546Z [ 88%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/syscalls.c.obj
+2025-11-23T15:04:41.0060698Z [ 88%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/sysmem.c.obj
+2025-11-23T15:04:41.0070218Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/syscalls.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/syscalls.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/syscalls.c.obj -c /project/BSP/Src/syscalls.c
+2025-11-23T15:04:41.0086913Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/sysmem.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/sysmem.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/sysmem.c.obj -c /project/BSP/Src/sysmem.c
+2025-11-23T15:04:41.0243579Z [ 92%] Building C object CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/system_stm32u0xx.c.obj
+2025-11-23T15:04:41.0264937Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -std=c11 -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -MD -MT CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/system_stm32u0xx.c.obj -MF CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/system_stm32u0xx.c.obj.d -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/system_stm32u0xx.c.obj -c /project/BSP/Src/system_stm32u0xx.c
+2025-11-23T15:04:41.0439651Z [ 96%] Building ASM object CMakeFiles/nucleo-u083rc.elf.dir/BSP/startup_stm32u083xx.s.obj
+2025-11-23T15:04:41.0454851Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -DSTM32U083xx -DUSE_HAL_DRIVER -DUSE_NUCLEO_64 -I/project/BSP/Drivers/BSP/STM32U0xx_Nucleo -I/project/BSP/Drivers/CMSIS/Device/ST/STM32U0xx/Include -I/project/BSP/Drivers/CMSIS/Include -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc -I/project/BSP/Drivers/STM32U0xx_HAL_Driver/Inc/Legacy -I/project/BSP/Inc -O3 -DNDEBUG -mcpu=cortex-m0plus -c -O0 -ffunction-sections -fdata-sections -Wall -Wextra -fstack-usage -MMD -MP --specs=nano.specs -mfloat-abi=soft -mthumb -o CMakeFiles/nucleo-u083rc.elf.dir/BSP/startup_stm32u083xx.s.obj -c /project/BSP/startup_stm32u083xx.s
+2025-11-23T15:04:41.0814861Z [100%] Linking C executable nucleo-u083rc.elf
+2025-11-23T15:04:41.0824295Z /usr/bin/cmake -E cmake_link_script CMakeFiles/nucleo-u083rc.elf.dir/link.txt --verbose=1
+2025-11-23T15:04:41.0898248Z /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc -O3 -DNDEBUG "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/BSP/STM32U0xx_Nucleo/stm32u0xx_nucleo.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_cortex.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_dma.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_dma_ex.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_exti.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_flash.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_flash_ex.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_gpio.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_pwr.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_pwr_ex.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_rcc.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_rcc_ex.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_uart.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_uart_ex.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_usart.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Drivers/STM32U0xx_HAL_Driver/Src/stm32u0xx_hal_usart_ex.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/main.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/stm32u0xx_hal_msp.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/stm32u0xx_it.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/syscalls.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/sysmem.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/Src/system_stm32u0xx.c.obj" "CMakeFiles/nucleo-u083rc.elf.dir/BSP/startup_stm32u083xx.s.obj" -o nucleo-u083rc.elf  -mcpu=cortex-m0plus -T/project/BSP/gcc_13_STM32U083RCTX_FLASH.ld --specs=nosys.specs -Wl,-Map=nucleo-u083rc.map -Wl,--cref -Wl,--gc-sections -static -specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group 
+2025-11-23T15:04:41.0940174Z /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld: cannot find crti.o: No such file or directory
+2025-11-23T15:04:41.0941830Z /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld: cannot find crtbegin.o: No such file or directory
+2025-11-23T15:04:41.0943104Z /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld: cannot find crt0.o: No such file or directory
+2025-11-23T15:04:41.0968045Z /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld: cannot find -lc_nano: No such file or directory
+2025-11-23T15:04:41.0974383Z collect2: error: ld returned 1 exit status
+2025-11-23T15:04:41.0991457Z gmake[2]: *** [CMakeFiles/nucleo-u083rc.elf.dir/build.make:464: nucleo-u083rc.elf] Error 1
+2025-11-23T15:04:41.0992168Z gmake[2]: Leaving directory '/tmp/tmp.qGliBnaFfl'
+2025-11-23T15:04:41.0995504Z gmake[1]: *** [CMakeFiles/Makefile2:83: CMakeFiles/nucleo-u083rc.elf.dir/all] Error 2
+2025-11-23T15:04:41.0996267Z gmake[1]: Leaving directory '/tmp/tmp.qGliBnaFfl'
+2025-11-23T15:04:41.0997346Z gmake: *** [Makefile:91: all] Error 2
+2025-11-23T15:04:41.1012481Z 
+2025-11-23T15:04:41.1829936Z ##[error]Process completed with exit code 2.
+2025-11-23T15:04:41.1931461Z ##[group]Run actions/upload-artifact@v5.0.0
+2025-11-23T15:04:41.1931767Z with:
+2025-11-23T15:04:41.1931961Z   name: build-artifacts-pr-105
+2025-11-23T15:04:41.1932346Z   path: /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/build-output/
+2025-11-23T15:04:41.1932728Z   retention-days: 7
+2025-11-23T15:04:41.1932932Z   if-no-files-found: warn
+2025-11-23T15:04:41.1933142Z   compression-level: 6
+2025-11-23T15:04:41.1933343Z   overwrite: false
+2025-11-23T15:04:41.1933536Z   include-hidden-files: false
+2025-11-23T15:04:41.1933754Z ##[endgroup]
+2025-11-23T15:04:41.4162058Z ##[warning]No files were found with the provided path: /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32/build-output/. No artifacts will be uploaded.
+2025-11-23T15:04:41.4265762Z Post job cleanup.
+2025-11-23T15:04:41.5377488Z [command]/usr/bin/git version
+2025-11-23T15:04:41.5417008Z git version 2.51.2
+2025-11-23T15:04:41.5454731Z Temporarily overriding HOME='/home/runner/work/_temp/2788680d-45d6-4340-9f0e-907e2fd0dbf0' before making global git config changes
+2025-11-23T15:04:41.5456022Z Adding repository directory to the temporary git global config as a safe directory
+2025-11-23T15:04:41.5460603Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/gnu-tools-for-stm32/gnu-tools-for-stm32
+2025-11-23T15:04:41.5497696Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2025-11-23T15:04:41.5530059Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2025-11-23T15:04:41.5981853Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-11-23T15:04:41.6007847Z http.https://github.com/.extraheader
+2025-11-23T15:04:41.6017874Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2025-11-23T15:04:41.6053048Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2025-11-23T15:04:41.6538840Z Cleaning up orphan processes
