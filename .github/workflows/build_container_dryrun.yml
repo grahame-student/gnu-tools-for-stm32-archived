@@ -130,17 +130,41 @@ jobs:
         # Continue even if this step fails to preserve any successfully built layers
         continue-on-error: true
 
-      # TODO: Future optimization - add full build
-      # - name: Build Full Toolchain
+      # Build and cache the runtime-libs stage explicitly
+      # This ensures the runtime-libs layer is cached even if later stages fail
+      - name: Build and Cache Runtime-Libs Stage
+        id: runtime-libs
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          target: runtime-libs
+          tags: |
+            ghcr.io/${{ github.repository }}:runtime-libs-${{ github.sha }}
+            ghcr.io/${{ github.repository }}:runtime-libs-latest
+          cache-from: |
+            type=gha,scope=bootstrap
+            type=gha,scope=binutils-gcc-first
+            type=gha,scope=newlib
+            type=gha,scope=gcc-final-gdb
+            type=gha,scope=runtime-libs
+          cache-to: type=gha,mode=max,scope=runtime-libs
+          push: false
+        # Continue even if this step fails to preserve any successfully built layers
+        continue-on-error: true
+
+      # TODO: Future optimization - add main (final) stage if needed
+      # - name: Build Main Stage
       #   id: docker_build
       #   uses: docker/build-push-action@v6.18.0
       #   with:
       #     context: .
+      #     target: main
       #     cache-from: |
       #       type=gha,scope=bootstrap
       #       type=gha,scope=binutils-gcc-first
       #       type=gha,scope=newlib
       #       type=gha,scope=gcc-final-gdb
+      #       type=gha,scope=runtime-libs
       #       type=gha,scope=build
       #     cache-to: type=gha,mode=max,scope=build
       #     push: false
@@ -154,6 +178,7 @@ jobs:
           echo "Binutils-GCC-First stage: ${{ steps.binutils-gcc-first.outcome }}"
           echo "Newlib stage: ${{ steps.newlib.outcome }}"
           echo "GCC-Final-GDB stage: ${{ steps.gcc-final-gdb.outcome }}"
+          echo "Runtime-Libs stage: ${{ steps.runtime-libs.outcome }}"
           
           if [ "${{ steps.bootstrap.outcome }}" = "success" ]; then
             echo "✓ Bootstrap stage completed successfully"
@@ -187,6 +212,14 @@ jobs:
             echo "✗ GCC-Final-GDB stage failed (earlier stage caches preserved)"
           fi
           
+          if [ "${{ steps.runtime-libs.outcome }}" = "success" ]; then
+            echo "✓ Runtime-Libs stage cached successfully"
+            echo "  - Future builds will reuse runtime-libs cache"
+            echo "  - Cache scope: runtime-libs"
+          else
+            echo "✗ Runtime-Libs stage failed (earlier stage caches preserved)"
+          fi
+          
           # Fail the job if bootstrap failed (critical)
           if [ "${{ steps.bootstrap.outcome }}" != "success" ]; then
             echo "ERROR: Bootstrap stage is critical and must succeed"
@@ -202,6 +235,18 @@ jobs:
           # Fail the job if newlib failed (critical)
           if [ "${{ steps.newlib.outcome }}" != "success" ]; then
             echo "ERROR: Newlib stage is critical and must succeed"
+            exit 1
+          fi
+          
+          # Fail the job if gcc-final-gdb failed (critical)
+          if [ "${{ steps.gcc-final-gdb.outcome }}" != "success" ]; then
+            echo "ERROR: GCC-Final-GDB stage is critical and must succeed"
+            exit 1
+          fi
+          
+          # Fail the job if runtime-libs failed (critical)
+          if [ "${{ steps.runtime-libs.outcome }}" != "success" ]; then
+            echo "ERROR: Runtime-Libs stage is critical and must succeed"
             exit 1
           fi
           
