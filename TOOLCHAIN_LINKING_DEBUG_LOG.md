@@ -161,17 +161,33 @@ The diagnostics revealed that runtime libraries (crti.o, crt0.o, libc_nano.a, et
 2. ✅ Confirmed runtime libraries were missing from install directory
 3. ✅ Compared build-gcc-final-gdb.sh with build-toolchain.sh (monolithic script)
 4. ✅ Found missing `copy_multi_libs` step and nano header copy step
+5. ✅ Discovered missing **newlib-nano** build step (Task [III-3])
 
-### The Problem
+### The Complete Picture
+The original monolithic build script has these steps:
+- **Task [III-2]**: Build newlib (standard) → installs to `$INSTALLDIR_NATIVE/arm-none-eabi/lib/`
+- **Task [III-3]**: Build newlib-nano → installs to `$BUILDDIR_NATIVE/target-libs/arm-none-eabi/lib/`
+- **Task [III-4]**: Build GCC final
+  - Rebuilds C++ runtime libraries (libstdc++, libsupc++) using nano newlib headers
+  - `make install` installs GCC compiler and C++ libraries
+  - `copy_multi_libs` copies nano newlib libraries and creates _nano variants
+  - Copies nano newlib.h header to expected location
+
+### The Problems in Split Scripts
 In `build-gcc-final-gdb.sh`:
-- GCC final pass builds runtime libraries (including nano variants) into temporary sysroot: `$BUILDDIR_NATIVE/target-libs/arm-none-eabi/`
-- `make install` installs GCC compiler to `$INSTALLDIR_NATIVE/`
-- **MISSING**: The nano variant libraries were NOT being copied from temp sysroot to install directory
-- **MISSING**: The nano newlib.h header was NOT being copied to expected location
-- Script then **deleted** the temp sysroot, losing all the nano variant libraries!
+1. **MISSING**: Separate newlib-nano build step (entire Task [III-3] was missing!)
+2. **MISSING**: The nano variant libraries were NOT being copied from temp sysroot to install directory
+3. **MISSING**: The nano newlib.h header was NOT being copied to expected location
+4. **BUG**: Script was deleting the temp sysroot before copying nano libraries!
 
-### The Solution
-Added the missing steps to `build-gcc-final-gdb.sh` after `make install`:
+### The Solutions
+**Added `build-newlib-nano.sh`** - New build script for Task [III-3]:
+- Builds newlib with nano-specific flags (-Os, -DPREFER_SIZE_OVER_SPEED, etc.)
+- Enables nano malloc, nano formatted I/O, lite-exit, etc.
+- Installs to temporary sysroot: `$BUILDDIR_NATIVE/target-libs/arm-none-eabi/`
+- Creates libc.a, libm.a, libg.a, etc. (standard names, but nano-configured)
+
+**Updated `build-gcc-final-gdb.sh`** - Added missing steps after `make install`:
 ```bash
 # Copy nano variant libraries from build sysroot to install directory
 copy_multi_libs src_prefix="$BUILDDIR_NATIVE/target-libs/arm-none-eabi/lib" \
@@ -184,12 +200,32 @@ cp -f "$BUILDDIR_NATIVE/target-libs/arm-none-eabi/include/newlib.h" \
       "$INSTALLDIR_NATIVE/arm-none-eabi/include/newlib-nano/newlib.h"
 ```
 
-This ensures:
-1. Standard libraries (libc.a, libg.a, etc.) are installed via `make install`
-2. Nano variants (libc_nano.a, libg_nano.a, etc.) are copied to install directory
-3. Spec files (nano.specs, nosys.specs, rdimon.specs) are copied for all multilib variants
-4. Startup files (crt0.o, etc.) are copied to install directory
-5. The nano newlib.h header is available at the location nano.specs expects
+**Updated `Dockerfile`** - Added newlib-nano build stage between newlib and gcc-final-gdb
+
+### What Gets Fixed
+After newlib-nano build, the temp sysroot contains (for each multilib variant):
+- libc.a, libm.a, libg.a (nano-configured standard libraries)
+- librdimon.a, librdimon-v2m.a (nano semihosting libraries)
+- nano.specs, nosys.specs, rdimon.specs (linker spec files)
+- crt0.o and other startup files
+- newlib.h (nano-configured header)
+
+The `copy_multi_libs` function then:
+- Copies libc.a → libc_nano.a (renames to _nano variant)
+- Copies libm.a → libm_nano.a
+- Copies libg.a → libg_nano.a
+- Copies librdimon.a → librdimon_nano.a
+- Copies librdimon-v2m.a → librdimon-v2m_nano.a
+- Copies spec files (nano.specs, nosys.specs, rdimon.specs)
+- Copies startup files (crt0.o, etc.)
+
+When GCC final builds C++ libraries, it uses the nano newlib from the temp sysroot to create:
+- libstdc++.a (which gets copied to libstdc++_nano.a)
+- libsupc++.a (which gets copied to libsupc++_nano.a)
 
 ### Status
 ✅ **FIXED** - Runtime libraries will now be properly installed during toolchain build
+- ✅ Added build-newlib-nano.sh script
+- ✅ Updated build-gcc-final-gdb.sh with copy steps
+- ✅ Updated Dockerfile with newlib-nano stage
+- ✅ All scripts pass shellcheck linting
