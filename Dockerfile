@@ -421,9 +421,12 @@ RUN apt-get update && \
 # Add toolchain binaries to PATH
 ENV PATH="/root/build/gnu-tools-for-stm32/install-native/bin:${PATH}"
 
-# Copy the generic build script
+# Copy the diagnostic and build scripts
+# These are copied last to avoid invalidating expensive build cache layers
+# when scripts are updated during development
+COPY diagnose-toolchain.sh /usr/local/bin/diagnose-toolchain.sh
 COPY build-cmake-project.sh /usr/local/bin/build-cmake-project.sh
-RUN chmod +x /usr/local/bin/build-cmake-project.sh
+RUN chmod +x /usr/local/bin/diagnose-toolchain.sh /usr/local/bin/build-cmake-project.sh
 
 # Set the entrypoint to the generic build script
 ENTRYPOINT ["/usr/local/bin/build-cmake-project.sh"]
