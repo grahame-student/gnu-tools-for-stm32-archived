@@ -1,0 +1,123 @@
+# test_project Build Failure - Comprehensive Debug Log
+
+## Problem Summary
+The test_project fails to link when building with the custom-built toolchain. The linker cannot find runtime libraries (crti.o, crtbegin.o, crt0.o, libc_nano, etc.).
+
+## Error Message
+```
+/root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc --sysroot=/root/build/gnu-tools-for-stm32/install-native/arm-none-eabi
+...
+cannot find crti.o: No such file or directory
+cannot find -lc_nano
+```
+
+## Root Cause Analysis
+The GCC compiler was built with `--with-sysroot` pointing to the **build directory**:
+- Build-time sysroot: `/root/build/gnu-tools-for-stm32/build-native/target-libs/arm-none-eabi`
+- Installed location: `/root/build/gnu-tools-for-stm32/install-native/arm-none-eabi`
+
+When `arm-none-eabi-gcc -print-sysroot` is called, it returns the build-time path which no longer exists.
+
+## Fix Attempt History
+
+### Attempt 1 (Commit 698116a77 - Original)
+**What:** Used `arm-none-eabi-gcc -print-sysroot` to get sysroot
+```cmake
+execute_process(COMMAND ${CMAKE_C_COMPILER} -print-sysroot 
+    OUTPUT_VARIABLE ARM_GCC_SYSROOT OUTPUT_STRIP_TRAILING_WHITESPACE)
+set(CMAKE_SYSROOT ${ARM_GCC_SYSROOT})
+```
+**Result:** ❌ FAILED - Returns build directory path `/root/build/.../build-native/target-libs/arm-none-eabi`
+
+### Attempt 2 (Commit 3faf791c3)
+**What:** Removed CMAKE_SYSROOT entirely, let compiler use defaults
+```cmake
+# Don't set CMAKE_SYSROOT - let the compiler use its default sysroot
+# The toolchain has libraries installed relative to its bin directory
+```
+**Result:** ❌ FAILED - Compiler still uses baked-in build-time sysroot
+
+### Attempt 3 (Commit c206a29b1 - CURRENT)
+**What:** Manually set CMAKE_SYSROOT to installed location
+```cmake
+get_filename_component(TOOLCHAIN_ROOT "${ARM_TOOLCHAIN_DIR}/.." ABSOLUTE)
+set(CMAKE_SYSROOT "${TOOLCHAIN_ROOT}/arm-none-eabi")
+```
+**Result:** ❌ FAILED - Same error, sysroot path is `/root/build/.../install-native/arm-none-eabi`
+
+## Actual Problem
+The issue is **NOT** just about CMAKE_SYSROOT. Even when we set the correct sysroot, the linker still cannot find the libraries.
+
+Looking at the error:
+```
+--sysroot=/root/build/gnu-tools-for-stm32/install-native/arm-none-eabi
+cannot find crti.o: No such file or directory
+```
+
+The linker is looking for `crti.o` at:
+`/root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/crti.o`
+
+We need to verify:
+1. Does this file actually exist at that location?
+2. Are the libraries in a different subdirectory (e.g., `lib/thumb/v6-m/nofp/`)?
+3. Do we need to add additional library search paths via linker flags?
+
+## Investigation Needed
+
+### 1. Verify Library Installation
+Check if libraries actually exist in the installed toolchain:
+```bash
+find /root/build/gnu-tools-for-stm32/install-native -name "crti.o"
+find /root/build/gnu-tools-for-stm32/install-native -name "libc_nano.a"
+ls -la /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/
+```
+
+### 2. Check Compiler Search Paths
+See where the compiler is actually looking:
+```bash
+arm-none-eabi-gcc -print-search-dirs
+arm-none-eabi-gcc -print-multi-lib
+arm-none-eabi-gcc -mcpu=cortex-m0plus -mthumb --print-multi-directory
+```
+
+### 3. Verify Sysroot Configuration
+Check how the compiler was configured:
+```bash
+arm-none-eabi-gcc -v
+arm-none-eabi-gcc -print-sysroot
+```
+
+### 4. Compare with Reference Toolchain
+If STM32CubeIDE toolchain works, compare:
+- Library directory structure
+- Compiler search paths
+- Sysroot configuration
+
+## Alternative Solutions to Try
+
+### Option A: Override Sysroot with --sysroot Flag
+Instead of CMAKE_SYSROOT, pass it via compiler/linker flags:
+```cmake
+set(CMAKE_C_FLAGS_INIT "--sysroot=${CORRECT_SYSROOT}")
+set(CMAKE_CXX_FLAGS_INIT "--sysroot=${CORRECT_SYSROOT}")
+```
+
+### Option B: Add Explicit Library Search Paths
+Add library paths explicitly if multilib is involved:
+```cmake
+link_directories("${ARM_TOOLCHAIN_DIR}/../arm-none-eabi/lib")
+link_directories("${ARM_TOOLCHAIN_DIR}/../arm-none-eabi/lib/thumb/v6-m/nofp")
+```
+
+### Option C: Fix Sysroot at Build Time
+Rebuild the toolchain with correct --with-sysroot pointing to final install location.
+This is the proper fix but requires rebuilding everything.
+
+### Option D: Use Specs File
+Create a custom specs file that overrides library paths without rebuilding toolchain.
+
+## Decision Log
+- **DO NOT** keep trying CMAKE_SYSROOT variations without first verifying libraries exist
+- **DO** investigate actual library locations before attempting more fixes
+- **DO** document what each investigation reveals
+- **AVOID** reverting between attempts without understanding why each failed
