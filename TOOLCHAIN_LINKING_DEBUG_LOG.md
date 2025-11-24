@@ -121,3 +121,32 @@ Create a custom specs file that overrides library paths without rebuilding toolc
 - **DO** investigate actual library locations before attempting more fixes
 - **DO** document what each investigation reveals
 - **AVOID** reverting between attempts without understanding why each failed
+
+## Current Diagnostic Approach (Commit: PENDING)
+
+### What We're Doing
+Created `diagnose-toolchain.sh` script that runs automatically before each build attempt.
+All diagnostic output is prefixed with `TOOLCHAIN_DIAG:` for easy filtering.
+
+### How to Extract Diagnostics from Logs
+```bash
+# From GitHub Actions logs or local log file:
+grep 'TOOLCHAIN_DIAG' workflow-log.txt > diagnostics.txt
+```
+
+### What the Diagnostics Show
+1. Compiler version and configure-time options (shows --with-sysroot)
+2. Current sysroot path from -print-sysroot
+3. All search directories the compiler uses
+4. Multilib configuration (shows all build variants)
+5. Cortex-M0+ specific multilib directory
+6. Actual locations of crti.o, crt0.o, libc_nano.a, etc.
+7. Directory structure under arm-none-eabi/lib
+8. Contents of the sysroot directory
+
+### Next Steps Based on Diagnostics
+After running diagnostics in the workflow, we can determine:
+- **If libraries don't exist**: Build process didn't install runtime libraries properly
+- **If libraries are in multilib subdirs**: Need to add those paths to CMAKE_FIND_ROOT_PATH
+- **If sysroot is wrong**: Compiler configured incorrectly, may need rebuild or specs file
+- **If everything looks right**: Issue is with how CMake passes linker flags
