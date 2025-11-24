@@ -51,6 +51,13 @@ echo "Project path: $PROJECT_PATH"
 echo "Output path: $OUTPUT_DIR"
 echo ""
 
+# Run toolchain diagnostics if available
+if [ -x /usr/local/bin/diagnose-toolchain.sh ]; then
+    echo "=== Running Toolchain Diagnostics ==="
+    /usr/local/bin/diagnose-toolchain.sh || true  # Don't fail build if diagnostics fail
+    echo ""
+fi
+
 # Create output directory if it doesn't exist
 mkdir -p "$OUTPUT_DIR"
 
