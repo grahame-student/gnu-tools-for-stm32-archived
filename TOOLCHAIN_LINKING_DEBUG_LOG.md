@@ -150,3 +150,46 @@ After running diagnostics in the workflow, we can determine:
 - **If libraries are in multilib subdirs**: Need to add those paths to CMAKE_FIND_ROOT_PATH
 - **If sysroot is wrong**: Compiler configured incorrectly, may need rebuild or specs file
 - **If everything looks right**: Issue is with how CMake passes linker flags
+
+## Resolution (2025-11-24)
+
+### Root Cause Identified
+The diagnostics revealed that runtime libraries (crti.o, crt0.o, libc_nano.a, etc.) were **NOT installed** in the toolchain's install directory (`install-native/arm-none-eabi/lib/`). Only libgcc.a was found in multilib subdirectories.
+
+### Investigation Steps
+1. ✅ Analyzed diagnostics.txt output from the workflow
+2. ✅ Confirmed runtime libraries were missing from install directory
+3. ✅ Compared build-gcc-final-gdb.sh with build-toolchain.sh (monolithic script)
+4. ✅ Found missing `copy_multi_libs` step and nano header copy step
+
+### The Problem
+In `build-gcc-final-gdb.sh`:
+- GCC final pass builds runtime libraries (including nano variants) into temporary sysroot: `$BUILDDIR_NATIVE/target-libs/arm-none-eabi/`
+- `make install` installs GCC compiler to `$INSTALLDIR_NATIVE/`
+- **MISSING**: The nano variant libraries were NOT being copied from temp sysroot to install directory
+- **MISSING**: The nano newlib.h header was NOT being copied to expected location
+- Script then **deleted** the temp sysroot, losing all the nano variant libraries!
+
+### The Solution
+Added the missing steps to `build-gcc-final-gdb.sh` after `make install`:
+```bash
+# Copy nano variant libraries from build sysroot to install directory
+copy_multi_libs src_prefix="$BUILDDIR_NATIVE/target-libs/arm-none-eabi/lib" \
+                dst_prefix="$INSTALLDIR_NATIVE/arm-none-eabi/lib" \
+                target_gcc="$BUILDDIR_NATIVE/target-libs/bin/arm-none-eabi-gcc"
+
+# Copy the nano configured newlib.h file
+mkdir -p "$INSTALLDIR_NATIVE/arm-none-eabi/include/newlib-nano"
+cp -f "$BUILDDIR_NATIVE/target-libs/arm-none-eabi/include/newlib.h" \
+      "$INSTALLDIR_NATIVE/arm-none-eabi/include/newlib-nano/newlib.h"
+```
+
+This ensures:
+1. Standard libraries (libc.a, libg.a, etc.) are installed via `make install`
+2. Nano variants (libc_nano.a, libg_nano.a, etc.) are copied to install directory
+3. Spec files (nano.specs, nosys.specs, rdimon.specs) are copied for all multilib variants
+4. Startup files (crt0.o, etc.) are copied to install directory
+5. The nano newlib.h header is available at the location nano.specs expects
+
+### Status
+✅ **FIXED** - Runtime libraries will now be properly installed during toolchain build
