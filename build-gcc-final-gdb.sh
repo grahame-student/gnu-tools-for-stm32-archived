@@ -77,8 +77,9 @@ fi
 # transactional memory related code in crtbegin.o.
 # This is a workaround. Better approach is to have a t-* to set this flag via
 # CRTSTUFF_T_CFLAGS
-make -j"$JOBS" CXXFLAGS="$BUILD_OPTIONS" \
+make -j"$JOBS" CCXXFLAGS="$BUILD_OPTIONS" \
         LDFLAGS_FOR_TARGET="--specs=nosys.specs" \
+        CXXFLAGS_FOR_TARGET="-g -Os -ffunction-sections -fdata-sections -fno-exceptions" \
         INHIBIT_LIBC_CFLAGS="-DUSE_TM_CLONE_REGISTRY=0"
 make install
 

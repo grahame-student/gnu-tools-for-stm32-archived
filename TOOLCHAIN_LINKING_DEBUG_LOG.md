@@ -509,3 +509,48 @@ With the correct `CXXFLAGS` variable:
 - Removed CXXFLAGS_FOR_TARGET
 - Now matches monolithic script exactly
 - Next: CI build to verify startup files are installed
+
+## Issue #6 CORRECTION: CCXXFLAGS Is Valid (2025-11-25)
+
+### User Feedback
+@grahame-student correctly pointed out that the monolithic script DOES use `CCXXFLAGS` at line 514.
+
+### My Mistake
+I incorrectly claimed CCXXFLAGS doesn't exist. The truth:
+- **Task [III-4]** (line 457): Uses `CXXFLAGS` with `INHIBIT_LIBC_CFLAGS`
+- **Task [III-5]** (line 514): Uses `CCXXFLAGS` with `CXXFLAGS_FOR_TARGET`
+
+I was comparing split script with Task [III-4], but split script is a HYBRID:
+- Uses Task [III-5]'s make variables (`CCXXFLAGS`)
+- But installs to final location like Task [III-4] (prefix=$INSTALLDIR_NATIVE)
+- Original sysroot pointed to temp dir (problematic - gets deleted!)
+
+### The Real Problem
+The split script's hybrid approach causes issues:
+1. Sysroot in temp dir gets baked into GCC, but dir is deleted after build
+2. Using CCXXFLAGS from Task [III-5] but prefix from Task [III-4]
+3. This confused configuration prevents startup files from being installed
+
+### Options
+**Option A**: Match Task [III-4] exactly
+- Sysroot: `$INSTALLDIR_NATIVE/arm-none-eabi` (standard newlib)
+- Make: `CXXFLAGS` + `INHIBIT_LIBC_CFLAGS`
+- Result: Standard C++ libs + startup files installed
+
+**Option B**: Fix hybrid approach
+- Sysroot: `$INSTALLDIR_NATIVE/arm-none-eabi` (fixed to not use temp dir)
+- Make: Keep `CCXXFLAGS` + `CXXFLAGS_FOR_TARGET` + add `INHIBIT_LIBC_CFLAGS`
+- Result: May work, but untested combination
+
+### Decision
+Reverting CCXXFLAGS → CXXFLAGS change. Will try Option B:
+- Keep sysroot fix (install dir, not temp dir)
+- Keep INHIBIT_LIBC_CFLAGS
+- Restore CCXXFLAGS and CXXFLAGS_FOR_TARGET
+- Test if this combination produces startup files
+
+### Status
+🔄 **REVERTED** - Restoring CCXXFLAGS
+- User feedback incorporated
+- Investigating alternative approach
+- Next: Test if CCXXFLAGS + sysroot fix + INHIBIT_LIBC_CFLAGS works
