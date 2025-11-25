@@ -414,3 +414,43 @@ Startup file issue is SEPARATE from newlib-nano problem:
 2. Check if GCC build installs crti.o, crtn.o  
 3. These should come from earlier build stages (newlib, gcc-final)
 4. May need separate investigation/fix for startup files
+
+## Issue #5: Startup Files Not Installed by GCC (2025-11-25)
+
+### Problem
+Startup files (crti.o, crtn.o, crtbegin.o, crtend.o) are not being installed by GCC build.
+- crt0.o should come from newlib (installed in newlib stage)
+- crti.o, crtn.o, crtbegin.o, crtend.o should come from GCC libgcc (installed in gcc-final stage)
+
+### Root Cause Analysis
+Compared build-gcc-final-gdb.sh with build-toolchain.sh (monolithic script) and found TWO critical differences:
+
+1. **Wrong sysroot configuration** (line 68):
+   - Split script: `--with-sysroot="$BUILDDIR_NATIVE/target-libs/arm-none-eabi"`
+   - Monolithic: `--with-sysroot=$INSTALLDIR_NATIVE/arm-none-eabi`
+   - Impact: GCC configured to use build-time temp directory instead of install directory
+
+2. **Missing INHIBIT_LIBC_CFLAGS** (line 76-78):
+   - Split script: Missing this flag
+   - Monolithic: `INHIBIT_LIBC_CFLAGS="-DUSE_TM_CLONE_REGISTRY=0"`
+   - Impact: Needed to properly build crtbegin.o (disables transactional memory code)
+
+### The Fix
+Updated build-gcc-final-gdb.sh:
+1. Changed sysroot to `$INSTALLDIR_NATIVE/arm-none-eabi` (matches monolithic script Task [III-4])
+2. Added `INHIBIT_LIBC_CFLAGS="-DUSE_TM_CLONE_REGISTRY=0"` to make command (matches monolithic script)
+
+### Expected Outcome
+With these changes:
+- GCC libgcc will build crti.o, crtn.o, crtbegin.o, crtend.o for each multilib variant
+- `make install` will install them to `$INSTALLDIR_NATIVE/lib/gcc/arm-none-eabi/13.3.1/<multilib>/`
+- Linker will find these files when building test_project
+- C++ libraries will be linked against standard newlib (not nano)
+  - This matches Task [III-4] behavior in monolithic script
+  - Nano C++ libraries would require separate Task [III-5] build (future work)
+
+### Status
+🔧 **FIX APPLIED** - Awaiting build validation
+- Modified build-gcc-final-gdb.sh with correct sysroot and INHIBIT_LIBC_CFLAGS
+- Next: Test build to verify startup files are installed
+- Next: Verify test_project builds successfully

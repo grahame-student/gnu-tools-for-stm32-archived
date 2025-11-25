@@ -65,7 +65,7 @@ fi
     --with-newlib \
     --with-headers=yes \
     --with-python-dir=share/gcc-arm-none-eabi \
-    --with-sysroot="$BUILDDIR_NATIVE/target-libs/arm-none-eabi" \
+    --with-sysroot="$INSTALLDIR_NATIVE/arm-none-eabi" \
     --build="$BUILD" \
     --host="$HOST_NATIVE" \
     $GCC_CONFIG_OPTS \
@@ -73,9 +73,14 @@ fi
     "--with-pkgversion=$PKGVERSION" \
     "${multilib_opts[@]+"${multilib_opts[@]}"}"
 
+# Passing USE_TM_CLONE_REGISTRY=0 via INHIBIT_LIBC_CFLAGS to disable
+# transactional memory related code in crtbegin.o.
+# This is a workaround. Better approach is have a t-* to set this flag via
+# CRTSTUFF_T_CFLAGS
 make -j"$JOBS" CCXXFLAGS="$BUILD_OPTIONS" \
         LDFLAGS_FOR_TARGET="--specs=nosys.specs" \
-        CXXFLAGS_FOR_TARGET="-g -Os -ffunction-sections -fdata-sections -fno-exceptions"
+        CXXFLAGS_FOR_TARGET="-g -Os -ffunction-sections -fdata-sections -fno-exceptions" \
+        INHIBIT_LIBC_CFLAGS="-DUSE_TM_CLONE_REGISTRY=0"
 make install
 
 # Copy nano variant libraries from build sysroot to install directory
