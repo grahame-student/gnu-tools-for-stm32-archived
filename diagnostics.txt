@@ -1,172 +1,182 @@
-2025-11-25T12:44:52.5152983Z TOOLCHAIN_DIAG: ==========================================
-2025-11-25T12:44:52.5153733Z TOOLCHAIN_DIAG: Toolchain Diagnostic Report
-2025-11-25T12:44:52.5154319Z TOOLCHAIN_DIAG: ==========================================
-2025-11-25T12:44:52.5442433Z TOOLCHAIN_DIAG: Compiler: /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc
-2025-11-25T12:44:52.5443513Z TOOLCHAIN_DIAG: --- Compiler Version and Config ---
-2025-11-25T12:44:52.5459407Z TOOLCHAIN_DIAG: Using built-in specs.
-2025-11-25T12:44:52.5469103Z TOOLCHAIN_DIAG: COLLECT_GCC=/root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc
-2025-11-25T12:44:52.5470540Z TOOLCHAIN_DIAG: COLLECT_LTO_WRAPPER=/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/lto-wrapper
-2025-11-25T12:44:52.5475145Z TOOLCHAIN_DIAG: Target: arm-none-eabi
-2025-11-25T12:44:52.5490271Z TOOLCHAIN_DIAG: Configured with: /root/build/gnu-tools-for-stm32/src/gcc/configure --target=arm-none-eabi --prefix=/root/build/gnu-tools-for-stm32/install-native --libexecdir=/root/build/gnu-tools-for-stm32/install-native/lib --infodir=/root/build/gnu-tools-for-stm32/install-native/share/doc/gcc-arm-none-eabi/info --mandir=/root/build/gnu-tools-for-stm32/install-native/share/doc/gcc-arm-none-eabi/man --htmldir=/root/build/gnu-tools-for-stm32/install-native/share/doc/gcc-arm-none-eabi/html --pdfdir=/root/build/gnu-tools-for-stm32/install-native/share/doc/gcc-arm-none-eabi/pdf --enable-checking=release --enable-languages=c,c++ --enable-plugins --disable-decimal-float --disable-libffi --disable-libgomp --disable-libmudflap --disable-libquadmath --disable-libssp --disable-libstdcxx-pch --disable-nls --disable-shared --disable-threads --disable-tls --with-gnu-as --with-gnu-ld --with-newlib --with-headers=yes --with-python-dir=share/gcc-arm-none-eabi --with-sysroot=/root/build/gnu-tools-for-stm32/build-native/target-libs/arm-none-eabi --build=x86_64-linux-gnu --host=x86_64-linux-gnu --build=x86_64-linux-gnu --host=x86_64-linux-gnu --with-gmp=/root/build/gnu-tools-for-stm32/build-native/host-libs/usr --with-mpfr=/root/build/gnu-tools-for-stm32/build-native/host-libs/usr --with-mpc=/root/build/gnu-tools-for-stm32/build-native/host-libs/usr --with-isl=/root/build/gnu-tools-for-stm32/build-native/host-libs/usr --with-host-libstdcxx='-static-libgcc -Wl,-Bstatic,-lstdc++,-Bdynamic -lm' --with-pkgversion='GNU Tools for STM32 13.3-Rel1~' --with-multilib-list=rmprofile,aprofile
-2025-11-25T12:44:52.5499806Z TOOLCHAIN_DIAG: Thread model: single
-2025-11-25T12:44:52.5500151Z TOOLCHAIN_DIAG: Supported LTO compression algorithms: zlib
-2025-11-25T12:44:52.5500553Z TOOLCHAIN_DIAG: gcc version 13.3.1 20240614 (GNU Tools for STM32 13.3-Rel1~) 
-2025-11-25T12:44:52.5500929Z TOOLCHAIN_DIAG: --- Sysroot Configuration ---
-2025-11-25T12:44:52.5511531Z TOOLCHAIN_DIAG: Sysroot: /root/build/gnu-tools-for-stm32/build-native/target-libs/arm-none-eabi
-2025-11-25T12:44:52.5513110Z TOOLCHAIN_DIAG: --- Compiler Search Directories ---
-2025-11-25T12:44:52.5524111Z TOOLCHAIN_DIAG: install: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/
-2025-11-25T12:44:52.5539072Z TOOLCHAIN_DIAG: programs: =/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/:/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/:/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/:/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/:/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/:/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/arm-none-eabi/13.3.1/:/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/
-2025-11-25T12:44:52.5548168Z TOOLCHAIN_DIAG: libraries: =/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/:/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/lib/arm-none-eabi/13.3.1/:/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/lib/:/root/build/gnu-tools-for-stm32/build-native/target-libs/arm-none-eabi/lib/arm-none-eabi/13.3.1/:/root/build/gnu-tools-for-stm32/build-native/target-libs/arm-none-eabi/lib/:/root/build/gnu-tools-for-stm32/build-native/target-libs/arm-none-eabi/usr/lib/arm-none-eabi/13.3.1/:/root/build/gnu-tools-for-stm32/build-native/target-libs/arm-none-eabi/usr/lib/
-2025-11-25T12:44:52.5553500Z TOOLCHAIN_DIAG: --- Multilib Configuration ---
-2025-11-25T12:44:52.5554173Z TOOLCHAIN_DIAG: .;
-2025-11-25T12:44:52.5554715Z TOOLCHAIN_DIAG: arm/v5te/softfp;@marm@march=armv5te+fp@mfloat-abi=softfp
-2025-11-25T12:44:52.5557006Z TOOLCHAIN_DIAG: arm/v5te/hard;@marm@march=armv5te+fp@mfloat-abi=hard
-2025-11-25T12:44:52.5557868Z TOOLCHAIN_DIAG: thumb/nofp;@mthumb@mfloat-abi=soft
-2025-11-25T12:44:52.5558737Z TOOLCHAIN_DIAG: thumb/v7/nofp;@mthumb@march=armv7@mfloat-abi=soft
-2025-11-25T12:44:52.5563649Z TOOLCHAIN_DIAG: thumb/v7+fp/softfp;@mthumb@march=armv7+fp@mfloat-abi=softfp
-2025-11-25T12:44:52.5564553Z TOOLCHAIN_DIAG: thumb/v7+fp/hard;@mthumb@march=armv7+fp@mfloat-abi=hard
-2025-11-25T12:44:52.5565738Z TOOLCHAIN_DIAG: thumb/v7-r+fp.sp/softfp;@mthumb@march=armv7-r+fp.sp@mfloat-abi=softfp
-2025-11-25T12:44:52.5566705Z TOOLCHAIN_DIAG: thumb/v7-r+fp.sp/hard;@mthumb@march=armv7-r+fp.sp@mfloat-abi=hard
-2025-11-25T12:44:52.5567574Z TOOLCHAIN_DIAG: thumb/v7-a/nofp;@mthumb@march=armv7-a@mfloat-abi=soft
-2025-11-25T12:44:52.5569751Z TOOLCHAIN_DIAG: thumb/v7-a+fp/softfp;@mthumb@march=armv7-a+fp@mfloat-abi=softfp
-2025-11-25T12:44:52.5590969Z TOOLCHAIN_DIAG: thumb/v7-a+fp/hard;@mthumb@march=armv7-a+fp@mfloat-abi=hard
-2025-11-25T12:44:52.5593105Z TOOLCHAIN_DIAG: thumb/v7-a+simd/softfp;@mthumb@march=armv7-a+simd@mfloat-abi=softfp
-2025-11-25T12:44:52.5594196Z TOOLCHAIN_DIAG: thumb/v7-a+simd/hard;@mthumb@march=armv7-a+simd@mfloat-abi=hard
-2025-11-25T12:44:52.5595125Z TOOLCHAIN_DIAG: thumb/v7ve+simd/softfp;@mthumb@march=armv7ve+simd@mfloat-abi=softfp
-2025-11-25T12:44:52.5596222Z TOOLCHAIN_DIAG: thumb/v7ve+simd/hard;@mthumb@march=armv7ve+simd@mfloat-abi=hard
-2025-11-25T12:44:52.5597062Z TOOLCHAIN_DIAG: thumb/v8-a/nofp;@mthumb@march=armv8-a@mfloat-abi=soft
-2025-11-25T12:44:52.5597888Z TOOLCHAIN_DIAG: thumb/v8-a+simd/softfp;@mthumb@march=armv8-a+simd@mfloat-abi=softfp
-2025-11-25T12:44:52.5598724Z TOOLCHAIN_DIAG: thumb/v8-a+simd/hard;@mthumb@march=armv8-a+simd@mfloat-abi=hard
-2025-11-25T12:44:52.5599576Z TOOLCHAIN_DIAG: thumb/v6-m/nofp;@mthumb@march=armv6s-m@mfloat-abi=soft
-2025-11-25T12:44:52.5600326Z TOOLCHAIN_DIAG: thumb/v7-m/nofp;@mthumb@march=armv7-m@mfloat-abi=soft
-2025-11-25T12:44:52.5601223Z TOOLCHAIN_DIAG: thumb/v7e-m/nofp;@mthumb@march=armv7e-m@mfloat-abi=soft
-2025-11-25T12:44:52.5602042Z TOOLCHAIN_DIAG: thumb/v7e-m+fp/softfp;@mthumb@march=armv7e-m+fp@mfloat-abi=softfp
-2025-11-25T12:44:52.5602913Z TOOLCHAIN_DIAG: thumb/v7e-m+fp/hard;@mthumb@march=armv7e-m+fp@mfloat-abi=hard
-2025-11-25T12:44:52.5604193Z TOOLCHAIN_DIAG: thumb/v7e-m+dp/softfp;@mthumb@march=armv7e-m+fp.dp@mfloat-abi=softfp
-2025-11-25T12:44:52.5616119Z TOOLCHAIN_DIAG: thumb/v7e-m+dp/hard;@mthumb@march=armv7e-m+fp.dp@mfloat-abi=hard
-2025-11-25T12:44:52.5617007Z TOOLCHAIN_DIAG: thumb/v8-m.base/nofp;@mthumb@march=armv8-m.base@mfloat-abi=soft
-2025-11-25T12:44:52.5617871Z TOOLCHAIN_DIAG: thumb/v8-m.main/nofp;@mthumb@march=armv8-m.main@mfloat-abi=soft
-2025-11-25T12:44:52.5618899Z TOOLCHAIN_DIAG: thumb/v8-m.main+fp/softfp;@mthumb@march=armv8-m.main+fp@mfloat-abi=softfp
-2025-11-25T12:44:52.5620233Z TOOLCHAIN_DIAG: thumb/v8-m.main+fp/hard;@mthumb@march=armv8-m.main+fp@mfloat-abi=hard
-2025-11-25T12:44:52.5621251Z TOOLCHAIN_DIAG: thumb/v8-m.main+dp/softfp;@mthumb@march=armv8-m.main+fp.dp@mfloat-abi=softfp
-2025-11-25T12:44:52.5622233Z TOOLCHAIN_DIAG: thumb/v8-m.main+dp/hard;@mthumb@march=armv8-m.main+fp.dp@mfloat-abi=hard
-2025-11-25T12:44:52.5623174Z TOOLCHAIN_DIAG: thumb/v8.1-m.main+mve/hard;@mthumb@march=armv8.1-m.main+mve@mfloat-abi=hard
-2025-11-25T12:44:52.5624324Z TOOLCHAIN_DIAG: thumb/v8.1-m.main+pacbti/bp/nofp;@mthumb@march=armv8.1-m.main+pacbti@mbranch-protection=standard@mfloat-abi=soft
-2025-11-25T12:44:52.5626065Z TOOLCHAIN_DIAG: thumb/v8.1-m.main+pacbti+fp/bp/softfp;@mthumb@march=armv8.1-m.main+pacbti+fp@mbranch-protection=standard@mfloat-abi=softfp
-2025-11-25T12:44:52.5627575Z TOOLCHAIN_DIAG: thumb/v8.1-m.main+pacbti+fp/bp/hard;@mthumb@march=armv8.1-m.main+pacbti+fp@mbranch-protection=standard@mfloat-abi=hard
-2025-11-25T12:44:52.5629115Z TOOLCHAIN_DIAG: thumb/v8.1-m.main+pacbti+dp/bp/softfp;@mthumb@march=armv8.1-m.main+pacbti+fp.dp@mbranch-protection=standard@mfloat-abi=softfp
-2025-11-25T12:44:52.5630625Z TOOLCHAIN_DIAG: thumb/v8.1-m.main+pacbti+dp/bp/hard;@mthumb@march=armv8.1-m.main+pacbti+fp.dp@mbranch-protection=standard@mfloat-abi=hard
-2025-11-25T12:44:52.5632137Z TOOLCHAIN_DIAG: thumb/v8.1-m.main+pacbti+mve/bp/hard;@mthumb@march=armv8.1-m.main+pacbti+mve@mbranch-protection=standard@mfloat-abi=hard
-2025-11-25T12:44:52.5633204Z TOOLCHAIN_DIAG: --- Cortex-M0+ Multilib Directory ---
-2025-11-25T12:44:52.5633754Z TOOLCHAIN_DIAG: Multi-dir: thumb/v6-m/nofp
-2025-11-25T12:44:52.5634277Z TOOLCHAIN_DIAG: --- Locating Runtime Libraries ---
-2025-11-25T12:44:52.5634759Z TOOLCHAIN_DIAG: Searching for: crti.o
-2025-11-25T12:44:52.5774881Z TOOLCHAIN_DIAG: Searching for: crtbegin.o
-2025-11-25T12:44:52.5950368Z TOOLCHAIN_DIAG: Searching for: crt0.o
-2025-11-25T12:44:52.6148809Z TOOLCHAIN_DIAG: Searching for: libc_nano.a
-2025-11-25T12:44:52.6302956Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/arm/v5te/hard/libc_nano.a
-2025-11-25T12:44:52.6304405Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/arm/v5te/softfp/libc_nano.a
-2025-11-25T12:44:52.6306167Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/nofp/libc_nano.a
-2025-11-25T12:44:52.6307688Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti/bp/nofp/libc_nano.a
-2025-11-25T12:44:52.6309236Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v6-m/nofp/libc_nano.a
-2025-11-25T12:44:52.6310754Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.main+dp/hard/libc_nano.a
-2025-11-25T12:44:52.6312340Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.main+dp/softfp/libc_nano.a
-2025-11-25T12:44:52.6313935Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a+simd/hard/libc_nano.a
-2025-11-25T12:44:52.6315901Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a+simd/softfp/libc_nano.a
-2025-11-25T12:44:52.6317524Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a/nofp/libc_nano.a
-2025-11-25T12:44:52.6319476Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.main+fp/hard/libc_nano.a
-2025-11-25T12:44:52.6321641Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.main+fp/softfp/libc_nano.a
-2025-11-25T12:44:52.6323043Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-a+simd/hard/libc_nano.a
-2025-11-25T12:44:52.6328623Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-a+simd/softfp/libc_nano.a
-2025-11-25T12:44:52.6330524Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7+fp/hard/libc_nano.a
-2025-11-25T12:44:52.6336841Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7+fp/softfp/libc_nano.a
-2025-11-25T12:44:52.6341446Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-a/nofp/libc_nano.a
-2025-11-25T12:44:52.6344764Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7ve+simd/hard/libc_nano.a
-2025-11-25T12:44:52.6346342Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7ve+simd/softfp/libc_nano.a
-2025-11-25T12:44:52.6347705Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-m/nofp/libc_nano.a
-2025-11-25T12:44:52.6349171Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.base/nofp/libc_nano.a
-2025-11-25T12:44:52.6350507Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7e-m/nofp/libc_nano.a
-2025-11-25T12:44:52.6351846Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.main/nofp/libc_nano.a
-2025-11-25T12:44:52.6353317Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti+mve/bp/hard/libc_nano.a
-2025-11-25T12:44:52.6354797Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a
-2025-11-25T12:44:52.6356360Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7e-m+fp/softfp/libc_nano.a
-2025-11-25T12:44:52.6357832Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti+fp/bp/hard/libc_nano.a
-2025-11-25T12:44:52.6359432Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti+fp/bp/softfp/libc_nano.a
-2025-11-25T12:44:52.6360936Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+mve/hard/libc_nano.a
-2025-11-25T12:44:52.6362305Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7e-m+dp/hard/libc_nano.a
-2025-11-25T12:44:52.6363669Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7e-m+dp/softfp/libc_nano.a
-2025-11-25T12:44:52.6365007Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a+fp/hard/libc_nano.a
-2025-11-25T12:44:52.6366522Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a+fp/softfp/libc_nano.a
-2025-11-25T12:44:52.6367881Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-r+fp.sp/hard/libc_nano.a
-2025-11-25T12:44:52.6369463Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-r+fp.sp/softfp/libc_nano.a
-2025-11-25T12:44:52.6370867Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7/nofp/libc_nano.a
-2025-11-25T12:44:52.6372331Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti+dp/bp/hard/libc_nano.a
-2025-11-25T12:44:52.6374149Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti+dp/bp/softfp/libc_nano.a
-2025-11-25T12:44:52.6375636Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/libc_nano.a
-2025-11-25T12:44:52.6376434Z TOOLCHAIN_DIAG: Searching for: libgcc.a
-2025-11-25T12:44:52.6519917Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/arm/v5te/hard/libgcc.a
-2025-11-25T12:44:52.6521761Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/arm/v5te/softfp/libgcc.a
-2025-11-25T12:44:52.6523654Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/nofp/libgcc.a
-2025-11-25T12:44:52.6527315Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8.1-m.main+pacbti/bp/nofp/libgcc.a
-2025-11-25T12:44:52.6531080Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v6-m/nofp/libgcc.a
-2025-11-25T12:44:52.6533544Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-m.main+dp/hard/libgcc.a
-2025-11-25T12:44:52.6535064Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-m.main+dp/softfp/libgcc.a
-2025-11-25T12:44:52.6536755Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7-a+simd/hard/libgcc.a
-2025-11-25T12:44:52.6538277Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7-a+simd/softfp/libgcc.a
-2025-11-25T12:44:52.6539750Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7-a/nofp/libgcc.a
-2025-11-25T12:44:52.6541177Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-m.main+fp/hard/libgcc.a
-2025-11-25T12:44:52.6542719Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-m.main+fp/softfp/libgcc.a
-2025-11-25T12:44:52.6544220Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-a+simd/hard/libgcc.a
-2025-11-25T12:44:52.6545847Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-a+simd/softfp/libgcc.a
-2025-11-25T12:44:52.6547285Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7+fp/hard/libgcc.a
-2025-11-25T12:44:52.6548718Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7+fp/softfp/libgcc.a
-2025-11-25T12:44:52.6550150Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-a/nofp/libgcc.a
-2025-11-25T12:44:52.6551574Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7ve+simd/hard/libgcc.a
-2025-11-25T12:44:52.6553756Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7ve+simd/softfp/libgcc.a
-2025-11-25T12:44:52.6555168Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7-m/nofp/libgcc.a
-2025-11-25T12:44:52.6556959Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-m.base/nofp/libgcc.a
-2025-11-25T12:44:52.6558357Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m/nofp/libgcc.a
-2025-11-25T12:44:52.6559733Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-m.main/nofp/libgcc.a
-2025-11-25T12:44:52.6563894Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8.1-m.main+pacbti+mve/bp/hard/libgcc.a
-2025-11-25T12:44:52.6569309Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/libgcc.a
-2025-11-25T12:44:52.6574269Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/softfp/libgcc.a
-2025-11-25T12:44:52.6576185Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8.1-m.main+pacbti+fp/bp/hard/libgcc.a
-2025-11-25T12:44:52.6577822Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8.1-m.main+pacbti+fp/bp/softfp/libgcc.a
-2025-11-25T12:44:52.6579425Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8.1-m.main+mve/hard/libgcc.a
-2025-11-25T12:44:52.6580935Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+dp/hard/libgcc.a
-2025-11-25T12:44:52.6582327Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+dp/softfp/libgcc.a
-2025-11-25T12:44:52.6583743Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7-a+fp/hard/libgcc.a
-2025-11-25T12:44:52.6585225Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7-a+fp/softfp/libgcc.a
-2025-11-25T12:44:52.6586911Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7-r+fp.sp/hard/libgcc.a
-2025-11-25T12:44:52.6588356Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7-r+fp.sp/softfp/libgcc.a
-2025-11-25T12:44:52.6589329Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7/nofp/libgcc.a
-2025-11-25T12:44:52.6590230Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8.1-m.main+pacbti+dp/bp/hard/libgcc.a
-2025-11-25T12:44:52.6591155Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8.1-m.main+pacbti+dp/bp/softfp/libgcc.a
-2025-11-25T12:44:52.6591944Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/libgcc.a
-2025-11-25T12:44:52.6592490Z TOOLCHAIN_DIAG: --- arm-none-eabi Directory Structure ---
-2025-11-25T12:44:52.6634195Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib
-2025-11-25T12:44:52.6635558Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/ldscripts
-2025-11-25T12:44:52.6645182Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/arm
-2025-11-25T12:44:52.6649020Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/arm/v5te
-2025-11-25T12:44:52.6651174Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/arm/v5te/hard
-2025-11-25T12:44:52.6652524Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/arm/v5te/softfp
-2025-11-25T12:44:52.6653611Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb
-2025-11-25T12:44:52.6654638Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/nofp
-2025-11-25T12:44:52.6655917Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti
-2025-11-25T12:44:52.6657123Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti/bp
-2025-11-25T12:44:52.6658346Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti/bp/nofp
-2025-11-25T12:44:52.6659720Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v6-m
-2025-11-25T12:44:52.6660769Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v6-m/nofp
-2025-11-25T12:44:52.6661904Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.main+dp
-2025-11-25T12:44:52.6663560Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.main+dp/hard
-2025-11-25T12:44:52.6664906Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.main+dp/softfp
-2025-11-25T12:44:52.6665879Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a+simd
-2025-11-25T12:44:52.6666663Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a+simd/hard
-2025-11-25T12:44:52.6667349Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a+simd/softfp
-2025-11-25T12:44:52.6667940Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a
-2025-11-25T12:44:52.6668381Z TOOLCHAIN_DIAG: --- Sysroot Directory Contents ---
-2025-11-25T12:44:52.6668896Z TOOLCHAIN_DIAG: WARNING: Sysroot does not exist: /root/build/gnu-tools-for-stm32/build-native/target-libs/arm-none-eabi
-2025-11-25T12:44:52.6669424Z TOOLCHAIN_DIAG: ==========================================
-2025-11-25T12:44:52.6669716Z TOOLCHAIN_DIAG: End of Diagnostic Report
-2025-11-25T12:44:52.6670041Z TOOLCHAIN_DIAG: To extract: grep 'TOOLCHAIN_DIAG' logfile.txt
-2025-11-25T12:44:52.6670386Z TOOLCHAIN_DIAG: ==========================================
+2025-11-25T16:10:16.8580681Z TOOLCHAIN_DIAG: ==========================================
+2025-11-25T16:10:16.8581812Z TOOLCHAIN_DIAG: Toolchain Diagnostic Report
+2025-11-25T16:10:16.8582403Z TOOLCHAIN_DIAG: ==========================================
+2025-11-25T16:10:16.8835098Z TOOLCHAIN_DIAG: Compiler: /root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc
+2025-11-25T16:10:16.8838615Z TOOLCHAIN_DIAG: --- Compiler Version and Config ---
+2025-11-25T16:10:16.8845109Z TOOLCHAIN_DIAG: Using built-in specs.
+2025-11-25T16:10:16.8848228Z TOOLCHAIN_DIAG: COLLECT_GCC=/root/build/gnu-tools-for-stm32/install-native/bin/arm-none-eabi-gcc
+2025-11-25T16:10:16.8850659Z TOOLCHAIN_DIAG: COLLECT_LTO_WRAPPER=/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/lto-wrapper
+2025-11-25T16:10:16.8851974Z TOOLCHAIN_DIAG: Target: arm-none-eabi
+2025-11-25T16:10:16.8872347Z TOOLCHAIN_DIAG: Configured with: /root/build/gnu-tools-for-stm32/src/gcc/configure --target=arm-none-eabi --prefix=/root/build/gnu-tools-for-stm32/install-native --libexecdir=/root/build/gnu-tools-for-stm32/install-native/lib --infodir=/root/build/gnu-tools-for-stm32/install-native/share/doc/gcc-arm-none-eabi/info --mandir=/root/build/gnu-tools-for-stm32/install-native/share/doc/gcc-arm-none-eabi/man --htmldir=/root/build/gnu-tools-for-stm32/install-native/share/doc/gcc-arm-none-eabi/html --pdfdir=/root/build/gnu-tools-for-stm32/install-native/share/doc/gcc-arm-none-eabi/pdf --enable-checking=release --enable-languages=c,c++ --enable-plugins --disable-decimal-float --disable-libffi --disable-libgomp --disable-libmudflap --disable-libquadmath --disable-libssp --disable-libstdcxx-pch --disable-nls --disable-shared --disable-threads --disable-tls --with-gnu-as --with-gnu-ld --with-newlib --with-headers=yes --with-python-dir=share/gcc-arm-none-eabi --with-sysroot=/root/build/gnu-tools-for-stm32/install-native/arm-none-eabi --build=x86_64-linux-gnu --host=x86_64-linux-gnu --build=x86_64-linux-gnu --host=x86_64-linux-gnu --with-gmp=/root/build/gnu-tools-for-stm32/build-native/host-libs/usr --with-mpfr=/root/build/gnu-tools-for-stm32/build-native/host-libs/usr --with-mpc=/root/build/gnu-tools-for-stm32/build-native/host-libs/usr --with-isl=/root/build/gnu-tools-for-stm32/build-native/host-libs/usr --with-host-libstdcxx='-static-libgcc -Wl,-Bstatic,-lstdc++,-Bdynamic -lm' --with-pkgversion='GNU Tools for STM32 13.3-Rel1~' --with-multilib-list=rmprofile,aprofile
+2025-11-25T16:10:16.8882611Z TOOLCHAIN_DIAG: Thread model: single
+2025-11-25T16:10:16.8883158Z TOOLCHAIN_DIAG: Supported LTO compression algorithms: zlib
+2025-11-25T16:10:16.8883843Z TOOLCHAIN_DIAG: gcc version 13.3.1 20240614 (GNU Tools for STM32 13.3-Rel1~) 
+2025-11-25T16:10:16.8884491Z TOOLCHAIN_DIAG: --- Sysroot Configuration ---
+2025-11-25T16:10:16.8912420Z TOOLCHAIN_DIAG: Sysroot: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi
+2025-11-25T16:10:16.8913742Z TOOLCHAIN_DIAG: --- Compiler Search Directories ---
+2025-11-25T16:10:16.8935471Z TOOLCHAIN_DIAG: install: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/
+2025-11-25T16:10:16.8946490Z TOOLCHAIN_DIAG: programs: =/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/:/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/:/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/:/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/:/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/:/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/arm-none-eabi/13.3.1/:/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/
+2025-11-25T16:10:16.8955435Z TOOLCHAIN_DIAG: libraries: =/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/:/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/lib/arm-none-eabi/13.3.1/:/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/lib/:/root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/arm-none-eabi/13.3.1/:/root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/:/root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/usr/lib/arm-none-eabi/13.3.1/:/root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/usr/lib/
+2025-11-25T16:10:16.8957659Z TOOLCHAIN_DIAG: --- Multilib Configuration ---
+2025-11-25T16:10:16.8967102Z TOOLCHAIN_DIAG: .;
+2025-11-25T16:10:16.8967673Z TOOLCHAIN_DIAG: arm/v5te/softfp;@marm@march=armv5te+fp@mfloat-abi=softfp
+2025-11-25T16:10:16.8968427Z TOOLCHAIN_DIAG: arm/v5te/hard;@marm@march=armv5te+fp@mfloat-abi=hard
+2025-11-25T16:10:16.8969044Z TOOLCHAIN_DIAG: thumb/nofp;@mthumb@mfloat-abi=soft
+2025-11-25T16:10:16.8969654Z TOOLCHAIN_DIAG: thumb/v7/nofp;@mthumb@march=armv7@mfloat-abi=soft
+2025-11-25T16:10:16.8973942Z TOOLCHAIN_DIAG: thumb/v7+fp/softfp;@mthumb@march=armv7+fp@mfloat-abi=softfp
+2025-11-25T16:10:16.8974832Z TOOLCHAIN_DIAG: thumb/v7+fp/hard;@mthumb@march=armv7+fp@mfloat-abi=hard
+2025-11-25T16:10:16.8975901Z TOOLCHAIN_DIAG: thumb/v7-r+fp.sp/softfp;@mthumb@march=armv7-r+fp.sp@mfloat-abi=softfp
+2025-11-25T16:10:16.8976845Z TOOLCHAIN_DIAG: thumb/v7-r+fp.sp/hard;@mthumb@march=armv7-r+fp.sp@mfloat-abi=hard
+2025-11-25T16:10:16.8977730Z TOOLCHAIN_DIAG: thumb/v7-a/nofp;@mthumb@march=armv7-a@mfloat-abi=soft
+2025-11-25T16:10:16.8979401Z TOOLCHAIN_DIAG: thumb/v7-a+fp/softfp;@mthumb@march=armv7-a+fp@mfloat-abi=softfp
+2025-11-25T16:10:16.8980287Z TOOLCHAIN_DIAG: thumb/v7-a+fp/hard;@mthumb@march=armv7-a+fp@mfloat-abi=hard
+2025-11-25T16:10:16.8981157Z TOOLCHAIN_DIAG: thumb/v7-a+simd/softfp;@mthumb@march=armv7-a+simd@mfloat-abi=softfp
+2025-11-25T16:10:16.8982225Z TOOLCHAIN_DIAG: thumb/v7-a+simd/hard;@mthumb@march=armv7-a+simd@mfloat-abi=hard
+2025-11-25T16:10:16.8983142Z TOOLCHAIN_DIAG: thumb/v7ve+simd/softfp;@mthumb@march=armv7ve+simd@mfloat-abi=softfp
+2025-11-25T16:10:16.8984038Z TOOLCHAIN_DIAG: thumb/v7ve+simd/hard;@mthumb@march=armv7ve+simd@mfloat-abi=hard
+2025-11-25T16:10:16.8984817Z TOOLCHAIN_DIAG: thumb/v8-a/nofp;@mthumb@march=armv8-a@mfloat-abi=soft
+2025-11-25T16:10:16.8985701Z TOOLCHAIN_DIAG: thumb/v8-a+simd/softfp;@mthumb@march=armv8-a+simd@mfloat-abi=softfp
+2025-11-25T16:10:16.8986520Z TOOLCHAIN_DIAG: thumb/v8-a+simd/hard;@mthumb@march=armv8-a+simd@mfloat-abi=hard
+2025-11-25T16:10:16.8987280Z TOOLCHAIN_DIAG: thumb/v6-m/nofp;@mthumb@march=armv6s-m@mfloat-abi=soft
+2025-11-25T16:10:16.8987983Z TOOLCHAIN_DIAG: thumb/v7-m/nofp;@mthumb@march=armv7-m@mfloat-abi=soft
+2025-11-25T16:10:16.8988689Z TOOLCHAIN_DIAG: thumb/v7e-m/nofp;@mthumb@march=armv7e-m@mfloat-abi=soft
+2025-11-25T16:10:16.8989406Z TOOLCHAIN_DIAG: thumb/v7e-m+fp/softfp;@mthumb@march=armv7e-m+fp@mfloat-abi=softfp
+2025-11-25T16:10:16.8990022Z TOOLCHAIN_DIAG: thumb/v7e-m+fp/hard;@mthumb@march=armv7e-m+fp@mfloat-abi=hard
+2025-11-25T16:10:16.8990505Z TOOLCHAIN_DIAG: thumb/v7e-m+dp/softfp;@mthumb@march=armv7e-m+fp.dp@mfloat-abi=softfp
+2025-11-25T16:10:16.8991212Z TOOLCHAIN_DIAG: thumb/v7e-m+dp/hard;@mthumb@march=armv7e-m+fp.dp@mfloat-abi=hard
+2025-11-25T16:10:16.8991681Z TOOLCHAIN_DIAG: thumb/v8-m.base/nofp;@mthumb@march=armv8-m.base@mfloat-abi=soft
+2025-11-25T16:10:16.8992123Z TOOLCHAIN_DIAG: thumb/v8-m.main/nofp;@mthumb@march=armv8-m.main@mfloat-abi=soft
+2025-11-25T16:10:16.8992696Z TOOLCHAIN_DIAG: thumb/v8-m.main+fp/softfp;@mthumb@march=armv8-m.main+fp@mfloat-abi=softfp
+2025-11-25T16:10:16.8993321Z TOOLCHAIN_DIAG: thumb/v8-m.main+fp/hard;@mthumb@march=armv8-m.main+fp@mfloat-abi=hard
+2025-11-25T16:10:16.9012530Z TOOLCHAIN_DIAG: thumb/v8-m.main+dp/softfp;@mthumb@march=armv8-m.main+fp.dp@mfloat-abi=softfp
+2025-11-25T16:10:16.9013480Z TOOLCHAIN_DIAG: thumb/v8-m.main+dp/hard;@mthumb@march=armv8-m.main+fp.dp@mfloat-abi=hard
+2025-11-25T16:10:16.9014375Z TOOLCHAIN_DIAG: thumb/v8.1-m.main+mve/hard;@mthumb@march=armv8.1-m.main+mve@mfloat-abi=hard
+2025-11-25T16:10:16.9015679Z TOOLCHAIN_DIAG: thumb/v8.1-m.main+pacbti/bp/nofp;@mthumb@march=armv8.1-m.main+pacbti@mbranch-protection=standard@mfloat-abi=soft
+2025-11-25T16:10:16.9017124Z TOOLCHAIN_DIAG: thumb/v8.1-m.main+pacbti+fp/bp/softfp;@mthumb@march=armv8.1-m.main+pacbti+fp@mbranch-protection=standard@mfloat-abi=softfp
+2025-11-25T16:10:16.9018621Z TOOLCHAIN_DIAG: thumb/v8.1-m.main+pacbti+fp/bp/hard;@mthumb@march=armv8.1-m.main+pacbti+fp@mbranch-protection=standard@mfloat-abi=hard
+2025-11-25T16:10:16.9020133Z TOOLCHAIN_DIAG: thumb/v8.1-m.main+pacbti+dp/bp/softfp;@mthumb@march=armv8.1-m.main+pacbti+fp.dp@mbranch-protection=standard@mfloat-abi=softfp
+2025-11-25T16:10:16.9021649Z TOOLCHAIN_DIAG: thumb/v8.1-m.main+pacbti+dp/bp/hard;@mthumb@march=armv8.1-m.main+pacbti+fp.dp@mbranch-protection=standard@mfloat-abi=hard
+2025-11-25T16:10:16.9023113Z TOOLCHAIN_DIAG: thumb/v8.1-m.main+pacbti+mve/bp/hard;@mthumb@march=armv8.1-m.main+pacbti+mve@mbranch-protection=standard@mfloat-abi=hard
+2025-11-25T16:10:16.9024192Z TOOLCHAIN_DIAG: --- Cortex-M0+ Multilib Directory ---
+2025-11-25T16:10:16.9024759Z TOOLCHAIN_DIAG: Multi-dir: thumb/v6-m/nofp
+2025-11-25T16:10:16.9025662Z TOOLCHAIN_DIAG: --- Locating Runtime Libraries ---
+2025-11-25T16:10:16.9026194Z TOOLCHAIN_DIAG: Searching for: crti.o
+2025-11-25T16:10:16.9176310Z TOOLCHAIN_DIAG: Searching for: crtn.o
+2025-11-25T16:10:16.9326697Z TOOLCHAIN_DIAG: Searching for: crtbegin.o
+2025-11-25T16:10:16.9474805Z TOOLCHAIN_DIAG: Searching for: crtend.o
+2025-11-25T16:10:16.9625384Z TOOLCHAIN_DIAG: Searching for: crt0.o
+2025-11-25T16:10:16.9776264Z TOOLCHAIN_DIAG: Searching for: libc_nano.a
+2025-11-25T16:10:16.9941616Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/arm/v5te/hard/libc_nano.a
+2025-11-25T16:10:16.9943521Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/arm/v5te/softfp/libc_nano.a
+2025-11-25T16:10:16.9945424Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/nofp/libc_nano.a
+2025-11-25T16:10:16.9947326Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti/bp/nofp/libc_nano.a
+2025-11-25T16:10:16.9949290Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v6-m/nofp/libc_nano.a
+2025-11-25T16:10:16.9950874Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.main+dp/hard/libc_nano.a
+2025-11-25T16:10:16.9952053Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.main+dp/softfp/libc_nano.a
+2025-11-25T16:10:16.9953167Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a+simd/hard/libc_nano.a
+2025-11-25T16:10:16.9954279Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a+simd/softfp/libc_nano.a
+2025-11-25T16:10:16.9955572Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a/nofp/libc_nano.a
+2025-11-25T16:10:16.9957436Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.main+fp/hard/libc_nano.a
+2025-11-25T16:10:16.9958831Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.main+fp/softfp/libc_nano.a
+2025-11-25T16:10:16.9960124Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-a+simd/hard/libc_nano.a
+2025-11-25T16:10:16.9961748Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-a+simd/softfp/libc_nano.a
+2025-11-25T16:10:16.9963105Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7+fp/hard/libc_nano.a
+2025-11-25T16:10:16.9964409Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7+fp/softfp/libc_nano.a
+2025-11-25T16:10:16.9965862Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-a/nofp/libc_nano.a
+2025-11-25T16:10:16.9967187Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7ve+simd/hard/libc_nano.a
+2025-11-25T16:10:16.9968547Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7ve+simd/softfp/libc_nano.a
+2025-11-25T16:10:16.9969879Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-m/nofp/libc_nano.a
+2025-11-25T16:10:16.9971140Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.base/nofp/libc_nano.a
+2025-11-25T16:10:16.9972372Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7e-m/nofp/libc_nano.a
+2025-11-25T16:10:16.9973682Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.main/nofp/libc_nano.a
+2025-11-25T16:10:16.9974837Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti+mve/bp/hard/libc_nano.a
+2025-11-25T16:10:16.9976289Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a
+2025-11-25T16:10:16.9977632Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7e-m+fp/softfp/libc_nano.a
+2025-11-25T16:10:16.9979034Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti+fp/bp/hard/libc_nano.a
+2025-11-25T16:10:16.9979984Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti+fp/bp/softfp/libc_nano.a
+2025-11-25T16:10:16.9980784Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+mve/hard/libc_nano.a
+2025-11-25T16:10:16.9981525Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7e-m+dp/hard/libc_nano.a
+2025-11-25T16:10:16.9982251Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7e-m+dp/softfp/libc_nano.a
+2025-11-25T16:10:16.9982962Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a+fp/hard/libc_nano.a
+2025-11-25T16:10:16.9983675Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a+fp/softfp/libc_nano.a
+2025-11-25T16:10:16.9984418Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-r+fp.sp/hard/libc_nano.a
+2025-11-25T16:10:16.9985450Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-r+fp.sp/softfp/libc_nano.a
+2025-11-25T16:10:16.9986215Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7/nofp/libc_nano.a
+2025-11-25T16:10:16.9987226Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti+dp/bp/hard/libc_nano.a
+2025-11-25T16:10:16.9988070Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti+dp/bp/softfp/libc_nano.a
+2025-11-25T16:10:16.9988779Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/libc_nano.a
+2025-11-25T16:10:16.9989344Z TOOLCHAIN_DIAG: Searching for: libgcc.a
+2025-11-25T16:10:17.0123355Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/arm/v5te/hard/libgcc.a
+2025-11-25T16:10:17.0126007Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/arm/v5te/softfp/libgcc.a
+2025-11-25T16:10:17.0128504Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/nofp/libgcc.a
+2025-11-25T16:10:17.0129995Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8.1-m.main+pacbti/bp/nofp/libgcc.a
+2025-11-25T16:10:17.0131534Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v6-m/nofp/libgcc.a
+2025-11-25T16:10:17.0137708Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-m.main+dp/hard/libgcc.a
+2025-11-25T16:10:17.0139224Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-m.main+dp/softfp/libgcc.a
+2025-11-25T16:10:17.0140676Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7-a+simd/hard/libgcc.a
+2025-11-25T16:10:17.0142068Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7-a+simd/softfp/libgcc.a
+2025-11-25T16:10:17.0143432Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7-a/nofp/libgcc.a
+2025-11-25T16:10:17.0144806Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-m.main+fp/hard/libgcc.a
+2025-11-25T16:10:17.0146436Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-m.main+fp/softfp/libgcc.a
+2025-11-25T16:10:17.0147858Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-a+simd/hard/libgcc.a
+2025-11-25T16:10:17.0149296Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-a+simd/softfp/libgcc.a
+2025-11-25T16:10:17.0150674Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7+fp/hard/libgcc.a
+2025-11-25T16:10:17.0152040Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7+fp/softfp/libgcc.a
+2025-11-25T16:10:17.0153394Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-a/nofp/libgcc.a
+2025-11-25T16:10:17.0154745Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7ve+simd/hard/libgcc.a
+2025-11-25T16:10:17.0156297Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7ve+simd/softfp/libgcc.a
+2025-11-25T16:10:17.0157687Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7-m/nofp/libgcc.a
+2025-11-25T16:10:17.0159046Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-m.base/nofp/libgcc.a
+2025-11-25T16:10:17.0160395Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m/nofp/libgcc.a
+2025-11-25T16:10:17.0161738Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8-m.main/nofp/libgcc.a
+2025-11-25T16:10:17.0163267Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8.1-m.main+pacbti+mve/bp/hard/libgcc.a
+2025-11-25T16:10:17.0164658Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/hard/libgcc.a
+2025-11-25T16:10:17.0166418Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+fp/softfp/libgcc.a
+2025-11-25T16:10:17.0167922Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8.1-m.main+pacbti+fp/bp/hard/libgcc.a
+2025-11-25T16:10:17.0169598Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8.1-m.main+pacbti+fp/bp/softfp/libgcc.a
+2025-11-25T16:10:17.0171143Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8.1-m.main+mve/hard/libgcc.a
+2025-11-25T16:10:17.0172561Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+dp/hard/libgcc.a
+2025-11-25T16:10:17.0173930Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7e-m+dp/softfp/libgcc.a
+2025-11-25T16:10:17.0175473Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7-a+fp/hard/libgcc.a
+2025-11-25T16:10:17.0176869Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7-a+fp/softfp/libgcc.a
+2025-11-25T16:10:17.0178240Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7-r+fp.sp/hard/libgcc.a
+2025-11-25T16:10:17.0179619Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7-r+fp.sp/softfp/libgcc.a
+2025-11-25T16:10:17.0180986Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v7/nofp/libgcc.a
+2025-11-25T16:10:17.0182396Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8.1-m.main+pacbti+dp/bp/hard/libgcc.a
+2025-11-25T16:10:17.0183938Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v8.1-m.main+pacbti+dp/bp/softfp/libgcc.a
+2025-11-25T16:10:17.0185435Z TOOLCHAIN_DIAG:   Found: /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/libgcc.a
+2025-11-25T16:10:17.0186325Z TOOLCHAIN_DIAG: --- arm-none-eabi Directory Structure ---
+2025-11-25T16:10:17.0208490Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib
+2025-11-25T16:10:17.0209493Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/ldscripts
+2025-11-25T16:10:17.0210449Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/arm
+2025-11-25T16:10:17.0211383Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/arm/v5te
+2025-11-25T16:10:17.0220423Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/arm/v5te/hard
+2025-11-25T16:10:17.0221561Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/arm/v5te/softfp
+2025-11-25T16:10:17.0222558Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb
+2025-11-25T16:10:17.0223483Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/nofp
+2025-11-25T16:10:17.0224441Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti
+2025-11-25T16:10:17.0225790Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti/bp
+2025-11-25T16:10:17.0226852Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8.1-m.main+pacbti/bp/nofp
+2025-11-25T16:10:17.0227485Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v6-m
+2025-11-25T16:10:17.0228205Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v6-m/nofp
+2025-11-25T16:10:17.0228936Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.main+dp
+2025-11-25T16:10:17.0229692Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.main+dp/hard
+2025-11-25T16:10:17.0230327Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v8-m.main+dp/softfp
+2025-11-25T16:10:17.0230998Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a+simd
+2025-11-25T16:10:17.0232064Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a+simd/hard
+2025-11-25T16:10:17.0233180Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a+simd/softfp
+2025-11-25T16:10:17.0233799Z TOOLCHAIN_DIAG:   /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v7-a
+2025-11-25T16:10:17.0234267Z TOOLCHAIN_DIAG: --- Sysroot Directory Contents ---
+2025-11-25T16:10:17.0234716Z TOOLCHAIN_DIAG: Sysroot exists: /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi
+2025-11-25T16:10:17.0248806Z TOOLCHAIN_DIAG:   total 36
+2025-11-25T16:10:17.0249292Z TOOLCHAIN_DIAG:   drwxr-xr-x 1 root root 4096 Nov 25 15:58 .
+2025-11-25T16:10:17.0251508Z TOOLCHAIN_DIAG:   drwxr-xr-x 1 root root 4096 Nov 25 15:52 ..
+2025-11-25T16:10:17.0252410Z TOOLCHAIN_DIAG:   drwxr-xr-x 2 root root 4096 Nov 25 14:09 bin
+2025-11-25T16:10:17.0253217Z TOOLCHAIN_DIAG:   drwxr-xr-x 1 root root 4096 Nov 25 15:58 include
+2025-11-25T16:10:17.0254072Z TOOLCHAIN_DIAG:   drwxr-xr-x 1 root root 4096 Nov 25 15:58 lib
+2025-11-25T16:10:17.0254910Z TOOLCHAIN_DIAG:   drwxr-xr-x 3 root root 4096 Nov 25 15:58 share
+2025-11-25T16:10:17.0255679Z TOOLCHAIN_DIAG:   lrwxrwxrwx 1 root root    1 Nov 25 14:54 usr -> .
+2025-11-25T16:10:17.0256285Z TOOLCHAIN_DIAG: ==========================================
+2025-11-25T16:10:17.0256788Z TOOLCHAIN_DIAG: End of Diagnostic Report
+2025-11-25T16:10:17.0257318Z TOOLCHAIN_DIAG: To extract: grep 'TOOLCHAIN_DIAG' logfile.txt
+2025-11-25T16:10:17.0257778Z TOOLCHAIN_DIAG: ==========================================
