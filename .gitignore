@@ -7,6 +7,11 @@ install-mingw/
 # Package directory
 pkg/
 
+# Debug output files from extract-debug-output.sh
+startup_debug.txt
+toolchain_diag.txt
+all_debug.txt
+
 # Autotools cache directories (generated during autoreconf/autoconf runs)
 **/autom4te.cache/
 

@@ -648,6 +648,30 @@ grep -E "STARTUP_DEBUG:|TOOLCHAIN_DIAG:" build.log > all_debug.txt
 
 ---
 
+## QUICK REFERENCE
+
+### Extract Debug Output
+```bash
+./extract-debug-output.sh build.log
+```
+See **DEBUG_EXTRACTION.md** for complete guide.
+
+### Current Status
+- ✅ Sysroot fixed: Points to install directory (stable)
+- ✅ INHIBIT_LIBC_CFLAGS added: Enables crtbegin.o generation
+- ❌ Startup files still missing: Awaiting debug log analysis
+
+### Hypothesis Priority
+1. **H1**: GCC not building extra_parts (check build dir)
+2. **H2**: GCC building but not installing (check install dir)
+3. **H3**: newlib not installing crt0.o (check newlib output)
+4. **H4**: Cleanup deleting files (check before/after cleanup)
+
+### Next Action
+Run CI build → Extract debug output → Analyze → Apply targeted fix
+
+---
+
 ## CURRENT INVESTIGATION STATUS (2025-11-25)
 
 > **See DEBUG_EXTRACTION.md for complete guide on extracting debug output**
