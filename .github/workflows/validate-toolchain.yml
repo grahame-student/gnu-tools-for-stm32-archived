@@ -1,0 +1,27 @@
+---
+name: Validate Toolchain
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Build Toolchain Container"]
+    types:
+      - completed
+    branches:
+      - 13.3.rel1
+
+permissions: {}
+
+jobs:
+  validate:
+    name: Run Validation
+    # Only run if the container build succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    uses: ./.github/workflows/validate-toolchain-reusable.yml
+    permissions:
+      contents: read
+      packages: read
+    with:
+      container-image: ghcr.io/${{ github.repository_owner }}/gnu-tools-for-stm32:latest
+      artifact-name-suffix: ''
+    secrets: inherit

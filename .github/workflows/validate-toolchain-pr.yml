@@ -1,0 +1,91 @@
+---
+name: Validate Toolchain on PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ github.sha }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  build-container:
+    name: Build Container for PR
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    outputs:
+      image-digest: ${{ steps.docker_build.outputs.digest }}
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v5.0.0
+
+      - name: Free up disk space
+        run: |
+          echo "=== Disk space before cleanup ==="
+          df -h
+
+          # Remove unnecessary software to free up space
+          # GitHub Actions runners have ~14GB free space, and building the toolchain can exhaust it
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+          echo "=== Disk space after cleanup ==="
+          df -h
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.11.1
+
+      - name: Build Docker container
+        id: docker_build
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          tags: gnu-tools-for-stm32:pr-${{ github.event.pull_request.number }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # Export to Docker format for saving as artifact
+          outputs: type=docker,dest=/tmp/toolchain-image.tar
+
+      - name: Compress Docker image
+        run: |
+          echo "=== Compressing Docker image ==="
+          gzip /tmp/toolchain-image.tar
+          ls -lh /tmp/toolchain-image.tar.gz
+          echo "Image size: $(du -h /tmp/toolchain-image.tar.gz | cut -f1)"
+
+      - name: Upload Docker image as artifact
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: toolchain-container-pr-${{ github.event.pull_request.number }}
+          path: /tmp/toolchain-image.tar.gz
+          retention-days: 1
+          compression-level: 0  # Already compressed with gzip
+
+      - name: Check disk space after build
+        run: |
+          echo "=== Disk space after build ==="
+          df -h
+
+  validate:
+    name: Run Validation
+    needs: build-container
+    uses: ./.github/workflows/validate-toolchain-reusable.yml
+    permissions:
+      contents: read
+      packages: read
+    with:
+      container-image: gnu-tools-for-stm32:pr-${{ github.event.pull_request.number }}
+      artifact-name-suffix: -pr-${{ github.event.pull_request.number }}
+      load-from-artifact: true
+      artifact-name: toolchain-container-pr-${{ github.event.pull_request.number }}

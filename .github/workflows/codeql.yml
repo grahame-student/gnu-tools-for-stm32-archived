@@ -6,14 +6,14 @@ on:
     branches:
       - '13.3.rel1'  # Run on pushes to the default branch
   pull_request:
-    # Run on pull requests to any branch
+    types: [opened, synchronize, reopened]
   schedule:
     # Run at 00:00 UTC every Sunday
     - cron: '0 0 * * 0'
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ github.sha }}
   cancel-in-progress: true
 
 permissions: {}

@@ -1,0 +1,178 @@
+---
+# Reusable workflow for validating toolchain by building test project
+# and comparing artifacts with reference files
+name: Validate Toolchain Build
+
+on:
+  workflow_call:
+    inputs:
+      container-image:
+        description: 'Docker container image to use for building'
+        required: true
+        type: string
+      artifact-name-suffix:
+        description: 'Suffix to append to artifact name'
+        required: false
+        type: string
+        default: ''
+      load-from-artifact:
+        description: 'Whether to load container from artifact instead of pulling from registry'
+        required: false
+        type: boolean
+        default: false
+      artifact-name:
+        description: 'Name of the artifact containing the container image (required if load-from-artifact is true)'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  validate:
+    name: Validate Toolchain
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v5.0.0
+
+      - name: Free up disk space
+        run: |
+          echo "=== Disk space before cleanup ==="
+          df -h
+
+          # Remove unnecessary software to free up space
+          # This is especially important when loading large Docker images from artifacts
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+          echo "=== Disk space after cleanup ==="
+          df -h
+
+      - name: Download container artifact
+        if: inputs.load-from-artifact
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: /tmp
+
+      - name: Load container from artifact
+        if: inputs.load-from-artifact
+        run: |
+          echo "=== Disk space before loading image ==="
+          df -h
+
+          echo "=== Loading Docker image from artifact ==="
+          gunzip /tmp/toolchain-image.tar.gz
+          docker load --input /tmp/toolchain-image.tar
+          rm /tmp/toolchain-image.tar
+
+          echo "=== Loaded images ==="
+          docker images
+
+          echo "=== Disk space after loading image ==="
+          df -h
+
+      - name: Login to GitHub Container Registry
+        # Only login if pulling from GHCR (not loading from artifact)
+        if: ${{ !inputs.load-from-artifact && startsWith(inputs.container-image, 'ghcr.io/') }}
+        uses: docker/login-action@v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull container image
+        if: ${{ !inputs.load-from-artifact }}
+        run: |
+          echo "Pulling container image: ${{ inputs.container-image }}"
+          docker pull ${{ inputs.container-image }}
+
+      - name: Create output directory
+        run: |
+          mkdir -p ${{ github.workspace }}/build-output
+          chmod 777 ${{ github.workspace }}/build-output
+
+      - name: Build test project in container
+        run: |
+          echo "Building test project..."
+          docker run --rm \
+            -v ${{ github.workspace }}/test_project:/project:ro \
+            -v ${{ github.workspace }}/build-output:/output \
+            ${{ inputs.container-image }} \
+            /project /output
+
+      - name: List build artifacts
+        run: |
+          echo "=== Build Artifacts ==="
+          ls -lh ${{ github.workspace }}/build-output/
+
+      - name: Compare artifacts with reference files
+        run: |
+          echo "=== Comparing Build Artifacts with Reference Files ==="
+
+          # Define artifacts to compare
+          ARTIFACTS=("nucleo-u083rc.elf" "nucleo-u083rc.map" "nucleo-u083rc.hex" "nucleo-u083rc.bin")
+
+          DIFFERENCES_FOUND=0
+
+          for artifact in "${ARTIFACTS[@]}"; do
+            echo ""
+            echo "Comparing $artifact..."
+
+            if [ ! -f "${{ github.workspace }}/build-output/$artifact" ]; then
+              echo "ERROR: Build artifact not found: $artifact"
+              DIFFERENCES_FOUND=1
+              continue
+            fi
+
+            if [ ! -f "${{ github.workspace }}/test_project/reference/$artifact" ]; then
+              echo "WARNING: Reference file not found: $artifact"
+              echo "This may be expected for a new artifact type"
+              continue
+            fi
+
+            # Compare files byte-by-byte
+            if cmp -s "${{ github.workspace }}/build-output/$artifact" \
+                     "${{ github.workspace }}/test_project/reference/$artifact"; then
+              echo "✓ $artifact matches reference"
+            else
+              echo "✗ $artifact differs from reference"
+              DIFFERENCES_FOUND=1
+
+              # Show file sizes for debugging
+              echo "  Build artifact size: $(stat -c%s ${{ github.workspace }}/build-output/$artifact) bytes"
+              echo "  Reference file size: $(stat -c%s ${{ github.workspace }}/test_project/reference/$artifact) bytes"
+
+              # For text files (map), show a diff sample
+              if [[ "$artifact" == *.map ]]; then
+                echo "  First 20 lines of diff:"
+                diff -u "${{ github.workspace }}/test_project/reference/$artifact" \
+                       "${{ github.workspace }}/build-output/$artifact" | head -20 || true
+              fi
+            fi
+          done
+
+          echo ""
+          if [ $DIFFERENCES_FOUND -eq 0 ]; then
+            echo "=== SUCCESS: All artifacts match reference files ==="
+            exit 0
+          else
+            echo "=== FAILURE: One or more artifacts differ from reference files ==="
+            exit 1
+          fi
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: build-artifacts${{ inputs.artifact-name-suffix }}
+          path: ${{ github.workspace }}/build-output/
+          retention-days: 7

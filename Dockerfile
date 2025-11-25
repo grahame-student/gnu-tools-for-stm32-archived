@@ -251,6 +251,70 @@ RUN echo "=== Newlib Stage: Building newlib C standard library ===" && \
     echo "Installed libraries size:" && du -sh install-native/arm-none-eabi/lib 2>/dev/null || echo "Libraries not yet installed"
 
 ##########################################
+### Stage 2b: Newlib Nano             ###
+###                                    ###
+### Builds newlib with nano           ###
+### configuration - optimized for     ###
+### size with reduced features.       ###
+### Installed to temporary build      ###
+### sysroot for use by GCC final.     ###
+###                                    ###
+### Script: build-newlib-nano.sh      ###
+###                                    ###
+### Component built:                  ###
+### 1. Newlib Nano                    ###
+###    - Same source as regular       ###
+###      newlib (no autogen needed)   ###
+###    - Built with -Os optimization  ###
+###    - Nano malloc enabled          ###
+###    - Reduced I/O features         ###
+###    - Libraries: libc.a, libm.a,   ###
+###      libg.a (will be renamed to   ###
+###      _nano variants during copy)  ###
+##########################################
+FROM newlib AS newlib-nano
+
+# Copy only files needed for newlib-nano stage
+# build-common.sh, build-toolchain-config.sh, and src/newlib are already present
+# from the newlib stage, so we only need the newlib-nano build script
+
+# Copy build script required for newlib-nano
+COPY build-newlib-nano.sh /root/build/gnu-tools-for-stm32/
+
+# Build newlib-nano
+# Script: build-newlib-nano.sh
+#
+# Component built:
+# 1. Newlib Nano: C standard library optimized for size (uses autoconf 2.69)
+#                 Libraries: libc.a, libm.a, libg.a, crt0.o startup files
+#                 Built with -Os and nano-specific flags
+#                 Installed to temporary build sysroot (not final install location)
+#
+# The regenerate_autotools() function is not called for newlib-nano because it uses
+# the same source as regular newlib (autotools files were already regenerated in newlib stage).
+WORKDIR /root/build/gnu-tools-for-stm32
+RUN echo "=== Newlib-Nano Stage: Building size-optimized newlib ===" && \
+    echo "Layer size before build:" && du -sh /root/build/gnu-tools-for-stm32 && \
+    chmod +x build-newlib-nano.sh && \
+    ./build-newlib-nano.sh && \
+    echo "=== Housekeeping: Cleaning up build artifacts ===" && \
+    # Build artifacts already cleaned by build-newlib-nano.sh:
+    # - build-native/newlib-nano (removed after building)
+    # - *.o object files (removed via find)
+    # - *.la libtool files (removed via find)
+    # Clean up additional unnecessary files to reduce layer size:
+    # - Build logs and temporary files
+    rm -rf build-native/*.log build-native/*.txt 2>/dev/null || true && \
+    # - Remove any remaining .deps directories from build artifacts
+    find build-native -type d -name ".deps" -exec rm -rf {} + 2>/dev/null || true && \
+    # - Clean up any backup files that may have been created
+    find . -name "*~" -delete 2>/dev/null || true && \
+    find . -name "*.orig" -delete 2>/dev/null || true && \
+    find . -name "*.rej" -delete 2>/dev/null || true && \
+    echo "Layer size after build and cleanup:" && du -sh /root/build/gnu-tools-for-stm32 && \
+    echo "Nano libraries size:" && du -sh build-native/target-libs 2>/dev/null || echo "Target libs not found"
+
+##########################################
 ### Stage 3: GCC Final + GDB          ###
 ###                                    ###
 ### Builds GCC final pass with C++    ###
@@ -281,7 +345,7 @@ RUN echo "=== Newlib Stage: Building newlib C standard library ===" && \
 ###      gdb, opcodes, readline, sim) ###
 ###    - Debugger for ARM targets     ###
 ##########################################
-FROM newlib AS gcc-final-gdb
+FROM newlib-nano AS gcc-final-gdb
 
 # Copy only files needed for gcc-final-gdb stage
 # This improves Docker layer caching - changes to later-stage sources
@@ -406,8 +470,30 @@ RUN echo "=== Runtime-Libs Stage: Finalizing runtime libraries ===" && \
 ### previous stages. No additional    ###
 ### build operations or autotools     ###
 ### usage in this stage.              ###
+###                                    ###
+### Installs CMake for building       ###
+### CMake-based projects and sets up  ###
+### generic entrypoint script.        ###
 ##########################################
 FROM runtime-libs AS main
+
+# Install CMake for building CMake-based projects
+RUN apt-get update && \
+    apt-get install --yes --no-install-recommends cmake && \
+    rm -rf /var/lib/apt/lists/*
+
+# Add toolchain binaries to PATH
+ENV PATH="/root/build/gnu-tools-for-stm32/install-native/bin:${PATH}"
+
+# Copy the diagnostic and build scripts
+# These are copied last to avoid invalidating expensive build cache layers
+# when scripts are updated during development
+COPY diagnose-toolchain.sh /usr/local/bin/diagnose-toolchain.sh
+COPY build-cmake-project.sh /usr/local/bin/build-cmake-project.sh
+RUN chmod +x /usr/local/bin/diagnose-toolchain.sh /usr/local/bin/build-cmake-project.sh
+
+# Set the entrypoint to the generic build script
+ENTRYPOINT ["/usr/local/bin/build-cmake-project.sh"]
 
 # Final stage - toolchain is ready for use with runtime libraries
 WORKDIR /root/build/gnu-tools-for-stm32

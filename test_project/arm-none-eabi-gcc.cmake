@@ -2,35 +2,55 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR ARM)
 
 set(TOOLCHAIN_PREFIX arm-none-eabi-)
-find_program(BINUTILS_PATH ${TOOLCHAIN_PREFIX}gcc HINTS "C:/ST/STM32CubeIDE_1.19.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin" NO_CACHE)
+
+# Determine executable suffix based on platform
+if(WIN32)
+    set(EXECUTABLE_SUFFIX ".exe")
+else()
+    set(EXECUTABLE_SUFFIX "")
+endif()
+
+# Search for toolchain in common locations
+# Docker/Linux: /root/build/gnu-tools-for-stm32/install-native/bin
+# Windows: STM32CubeIDE installation path
+find_program(BINUTILS_PATH ${TOOLCHAIN_PREFIX}gcc 
+    HINTS 
+        "/root/build/gnu-tools-for-stm32/install-native/bin"
+        "C:/ST/STM32CubeIDE_1.19.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin"
+    NO_CACHE)
 
 if (NOT BINUTILS_PATH)
     message(FATAL_ERROR "ARM GCC toolchain not found")
 endif ()
 
+# Extract the directory containing the toolchain binaries
+# BINUTILS_PATH is the full path to arm-none-eabi-gcc (e.g., /path/to/bin/arm-none-eabi-gcc)
+# ARM_TOOLCHAIN_DIR will be the directory (e.g., /path/to/bin)
 get_filename_component(ARM_TOOLCHAIN_DIR ${BINUTILS_PATH} DIRECTORY)
 # Without that flag CMake is not able to pass test compilation check
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
-#if (${CMAKE_VERSION} VERSION_EQUAL "3.6.0" OR ${CMAKE_VERSION} VERSION_GREATER "3.6")
-#    set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
-#else ()
-#    set(CMAKE_EXE_LINKER_FLAGS_INIT "--specs=nosys.specs")
-#endif ()
-
-execute_process(COMMAND ${CMAKE_C_COMPILER} -print-sysroot
-    OUTPUT_VARIABLE ARM_GCC_SYSROOT OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-set(CMAKE_C_COMPILER ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}gcc.exe)
+set(CMAKE_C_COMPILER ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}gcc${EXECUTABLE_SUFFIX})
 set(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER})
-set(CMAKE_CXX_COMPILER ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}g++.exe)
-set(CMAKE_AR ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}gcc-ar)
-set(CMAKE_RANLIB ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}gcc-ranlib)
+set(CMAKE_CXX_COMPILER ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}g++${EXECUTABLE_SUFFIX})
 
-set(CMAKE_OBJCOPY ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}objcopy CACHE INTERNAL "objcopy tool")
-set(CMAKE_SIZE_UTIL ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}size CACHE INTERNAL "size tool")
+# Verify compiler exists
+if(NOT EXISTS ${CMAKE_C_COMPILER})
+    message(FATAL_ERROR "C compiler not found at: ${CMAKE_C_COMPILER}")
+endif()
 
-set(CMAKE_SYSROOT ${ARM_GCC_SYSROOT})
+set(CMAKE_AR ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}gcc-ar${EXECUTABLE_SUFFIX})
+set(CMAKE_RANLIB ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}gcc-ranlib${EXECUTABLE_SUFFIX})
+
+set(CMAKE_OBJCOPY ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}objcopy${EXECUTABLE_SUFFIX} CACHE INTERNAL "objcopy tool")
+set(CMAKE_SIZE_UTIL ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}size${EXECUTABLE_SUFFIX} CACHE INTERNAL "size tool")
+
+# The compiler was configured at build time with --with-sysroot pointing to the
+# build directory, but the toolchain is now installed in a different location.
+# We need to tell the linker where to find the runtime libraries.
+get_filename_component(TOOLCHAIN_ROOT "${ARM_TOOLCHAIN_DIR}/.." ABSOLUTE)
+set(CMAKE_SYSROOT "${TOOLCHAIN_ROOT}/arm-none-eabi")
+
 set(CMAKE_FIND_ROOT_PATH ${BINUTILS_PATH})
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
