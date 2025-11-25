@@ -355,36 +355,62 @@ To fully match the original build process, need to add Task [III-5]:
 - Should allow C-only projects to build
 - C++ support still missing
 
-## Issue #4: No Files Actually Copied (2025-11-25)
+## Issue #4: Partial Success - libc_nano.a Installed, Startup Files Missing (2025-11-25)
 
 ### Problem
-User reports diagnostic output shows NO files found in container:
+Initial diagnostic output (before fix) showed NO files found:
 ```
-Searching for: crti.o
-Searching for: crtbegin.o
-Searching for: crt0.o
+Searching for: crti.o     [NOT FOUND]
+Searching for: crtbegin.o [NOT FOUND]
+Searching for: crt0.o      [NOT FOUND]
+Searching for: libc_nano.a [NOT FOUND]
+```
+
+### Investigation & Fix
+Added debug logging to copy_multi_libs which revealed:
+- newlib-nano successfully builds and installs libc.a, libg.a, libm.a to multilib subdirectories
+- copy_multi_libs successfully copies these and creates _nano variants
+- ✅ **libc_nano.a** is now found in all 39 multilib directories!
+- ❌ Startup files (crt0.o, crti.o, crtn.o) are NOT in newlib-nano directories
+- ❌ C++ libraries (libstdc++.a, libsupc++.a) are NOT in newlib-nano (expected - requires Task III-5)
+
+### Latest Diagnostic Results (After Fix)
+diagnostics.txt lines 67-105 show SUCCESS for libc_nano.a:
+```
 Searching for: libc_nano.a
+  Found: /root/build/.../arm-none-eabi/lib/arm/v5te/hard/libc_nano.a
+  Found: /root/build/.../arm-none-eabi/lib/arm/v5te/softfp/libc_nano.a
+  Found: /root/build/.../arm-none-eabi/lib/thumb/nofp/libc_nano.a
+  [... 36 more multilib directories ...]
+  Found: /root/build/.../arm-none-eabi/lib/libc_nano.a
 ```
-No "Found:" messages, meaning files weren't copied despite PR claims.
 
-### Root Cause Analysis
-copy_multi_libs has `|| true` on all cp commands, making ALL failures silent. If source files don't exist, nothing gets copied and there's no error or indication of failure.
+But startup files still not found:
+```
+Searching for: crti.o     [NOT FOUND]
+Searching for: crtbegin.o [NOT FOUND - from GCC]
+Searching for: crt0.o      [NOT FOUND - from newlib, not newlib-nano]
+```
 
-Possible explanations:
-1. newlib-nano didn't install files to expected location
-2. Files exist but in wrong multilib subdirectories
-3. Directory structure mismatch
-4. Files deleted before copy_multi_libs runs
+### Root Cause of Remaining Issue
+Startup files (crt0.o, crti.o, crtn.o) come from:
+- **crt0.o** - Built by standard newlib (not newlib-nano)
+- **crti.o, crtn.o** - Built by GCC during target library build
+- **crtbegin.o, crtend.o** - Built by GCC
 
-### Investigation Steps
-Added debug logging to copy_multi_libs to diagnose:
-- Print source and destination directories for each multilib
-- Print which files are missing
-- List actual contents of source directories
-- Will help identify where files actually are (if anywhere)
+These files should be in the install directory from earlier build stages, NOT from newlib-nano.
 
-### Status
-🔍 **INVESTIGATING** - Added debug output to copy_multi_libs
-- Next: Run build and examine debug logs
-- Determine where files actually get installed by newlib-nano
-- Fix directory paths or build process as needed
+### Status  
+🟢 **PARTIALLY RESOLVED** - C nano libraries successfully installed
+- ✅ libc_nano.a installed in all 39 multilib directories
+- ✅ libg_nano.a, libm_nano.a also installed
+- ✅ nano.specs, nosys.specs installed where available
+- ❌ Startup files (crt0.o, crti.o, crtn.o) - separate issue, likely from earlier build stages
+- ❌ C++ nano libraries - requires Task [III-5] (documented in Issue #3)
+
+### Next Steps
+Startup file issue is SEPARATE from newlib-nano problem:
+1. Check if standard newlib build installs crt0.o
+2. Check if GCC build installs crti.o, crtn.o  
+3. These should come from earlier build stages (newlib, gcc-final)
+4. May need separate investigation/fix for startup files
