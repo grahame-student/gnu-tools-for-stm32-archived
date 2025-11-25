@@ -744,3 +744,112 @@ Config: `--disable-newlib-supplied-syscalls` → MAY_SUPPLY_SYSCALLS=FALSE → c
 **ARM config.host**: Sets `extra_parts="crtbegin.o crtend.o crti.o crtn.o"`
 
 **Conclusion**: Build system SHOULD create and install startup files. Debug logs will reveal why it's not happening.
+
+---
+
+## Issue #7: Multilibs Not Being Built - ROOT CAUSE IDENTIFIED 🔍
+
+**Date**: 2025-11-25
+**Investigator**: @copilot
+
+### Problem Statement
+Startup files (crti.o, crtn.o, crtbegin.o, crtend.o) are missing from ALL 39 multilib variants, causing test_project build failures.
+
+### Discovery Process
+
+**From build logs (commit 6eecd390f)**:
+1. ✅ GCC configure creates Makefiles for ALL 39 multilib variants
+2. ❌ `make` only enters 2 directories:
+   - `/build-native/gcc-final/arm-none-eabi/libgcc` (root/default)
+   - `/build-native/gcc-final/arm-none-eabi/arm/v5te/softfp/libgcc`
+3. ❌ Remaining 37 multilibs never built
+4. ❌ NO startup files generated for ANY multilib
+5. ❌ NO libstdc++ multilibs built
+
+### Root Cause: MULTIDO=true
+
+**GCC multilib mechanism**: The root libgcc Makefile target `all-multi` invokes:
+```makefile
+@: $(MAKE) ; exec $(MULTIDO) $(FLAGS_TO_PASS) multi-do DO=all
+```
+
+**Expected**: `MULTIDO=$(MAKE)` → recursively builds all multilibs
+**Actual**: `MULTIDO=true` → `exec true ...` is a no-op, exits immediately
+
+**Why MULTIDO=true?** From `src/gcc/config-ml.in`:
+```bash
+if [ "${ml_toplevel_p}" = yes ]; then
+  ml_do='$(MAKE)'  # Correct - enables multilibs
+else
+  ml_do=true       # Wrong - disables multilibs
+fi
+sed -e "s:^MULTIDO.*=.*:MULTIDO = $ml_do:"
+```
+
+**Conditions for ml_toplevel_p=yes**:
+1. `enable_multilib=yes` (auto-added by libgcc/configure.ac)
+2. `with_multisubdir` is empty (✓ confirmed in logs: line 87474)
+3. `config-ml.in` exists at correct location (✓ exists at `src/gcc/config-ml.in`)
+
+**Hypothesis**: Despite correct conditions, ml_toplevel_p is NOT being set to yes, causing MULTIDO=true.
+
+### Evidence from Build Logs
+
+**Multilib configuration (lines 87470-87690)**:
+```
+Adding multilib support to Makefile in /root/.../src/gcc/libgcc
+multidirs=arm/v5te/softfp arm/v5te/hard thumb/nofp thumb/v7/nofp ... [ALL 38]
+with_multisubdir=
+Running configure in multilib subdirs ... [ALL 38 listed]
+```
+
+**Build execution (lines 89853-90062)**:
+```
+make[2]: Entering directory '.../gcc-final/arm-none-eabi/libgcc'
+make[3]: Entering directory '.../gcc-final/arm-none-eabi/libgcc'
+make[4]: Entering directory '.../gcc-final/arm-none-eabi/arm/v5te/softfp/libgcc'
+[END - no more multilib builds]
+```
+
+### Impact
+
+**Without multilib builds**:
+- Only 2 of 39 variants have libgcc.a (and even these lack startup files)
+- **ZERO** startup files (crt*.o) in ANY multilib directory
+- **ZERO** libstdc++.a in ANY multilib directory
+- test_project cannot link for thumb/v6-m/nofp (Cortex-M0+)
+
+### Solutions to Investigate
+
+**Option A**: Explicit --enable-multilib
+```bash
+"$SRCDIR/$GCC/configure" ... --enable-multilib ...
+```
+Even though auto-added, make it explicit to ensure it's present.
+
+**Option B**: Debug config-ml.in
+- Add debug output to capture ml_toplevel_p, enable_multilib values
+- Check why file test might fail despite file existing
+
+**Option C**: Different make target
+- Try `make all-multi` explicitly
+- Or build multilibs in separate stage
+
+**Option D**: Monolithic Script Comparison
+- Check if monolithic script uses different configure options
+- Verify no hidden flags preventing multilib
+
+### Status
+
+**Current**: Enhanced debug output added (commit 6eecd390f) to capture:
+- MULTIDO value from generated Makefile
+- ml_toplevel_p decision from config-ml.in
+- enable_multilib value
+
+**Next**: CI build will reveal exact failure point in config-ml.in logic.
+
+### References
+- libgcc/Makefile.in: `all-multi` target (lines ~1160)
+- src/gcc/config-ml.in: multilib support script
+- Build logs: lines 87470-87690 (configure), 89853-90062 (make)
+
