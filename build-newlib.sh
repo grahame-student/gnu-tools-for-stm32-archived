@@ -52,16 +52,16 @@ make -j"$JOBS"
 make install
 
 # DEBUG: Check if crt0.o was installed  
-echo "=== DEBUG: Checking for crt0.o after newlib install ==="
-echo "Searching for crt0.o and related files in install directory:"
-find "$INSTALLDIR_NATIVE/arm-none-eabi/lib" -name "*crt*.o" 2>/dev/null | head -20 || echo "No crt*.o files found"
-echo "Contents of root lib directory:"
+echo "STARTUP_DEBUG: === Newlib Installation Check ==="
+echo "STARTUP_DEBUG: Searching for *crt*.o files in install directory:"
+find "$INSTALLDIR_NATIVE/arm-none-eabi/lib" -name "*crt*.o" 2>/dev/null | sed 's/^/STARTUP_DEBUG:   /' || echo "STARTUP_DEBUG: No crt*.o files found"
+echo "STARTUP_DEBUG: Root lib directory .o files:"
 # shellcheck disable=SC2012
-ls -la "$INSTALLDIR_NATIVE/arm-none-eabi/lib/"*.o 2>/dev/null | head -10 || echo "No .o files in root lib"
-echo "Contents of thumb/v6-m/nofp multilib:"
+ls -1 "$INSTALLDIR_NATIVE/arm-none-eabi/lib/"*.o 2>/dev/null | sed 's/^/STARTUP_DEBUG:   /' || echo "STARTUP_DEBUG: No .o files in root lib"
+echo "STARTUP_DEBUG: Sample multilib (thumb/v6-m/nofp) .o files:"
 # shellcheck disable=SC2012
-ls -la "$INSTALLDIR_NATIVE/arm-none-eabi/lib/thumb/v6-m/nofp/"*.o 2>/dev/null | head -10 || echo "No .o files in thumb/v6-m/nofp"
-echo "=== END DEBUG ==="
+ls -1 "$INSTALLDIR_NATIVE/arm-none-eabi/lib/thumb/v6-m/nofp/"*.o 2>/dev/null | sed 's/^/STARTUP_DEBUG:   /' || echo "STARTUP_DEBUG: No .o files in thumb/v6-m/nofp"
+echo "STARTUP_DEBUG: ============================================"
 
 popd
 

@@ -557,23 +557,37 @@ Reverting CCXXFLAGS → CXXFLAGS change. Will try Option B:
 
 ## Methodical Investigation Approach (2025-11-25)
 
-### Enhanced Diagnostics
-Added debug output to capture state before cleanup:
+### Enhanced Debug Logging (Extractable)
 
-**build-newlib.sh** (after `make install`):
-- Lists all *crt*.o files in install directory
-- Shows contents of root lib directory
-- Shows contents of sample multilib directory (thumb/v6-m/nofp)
+All debug output uses consistent `STARTUP_DEBUG:` prefix for easy extraction:
 
-**build-gcc-final-gdb.sh** (after `make install`):
-- Searches for crt*.o in both install and build directories
-- Lists libgcc multilib directory contents before cleanup
-- Captures state immediately after make install, before rm -rf
+**Extract from build logs**:
+```bash
+# Get all startup file debug output
+grep "STARTUP_DEBUG:" build.log > startup_debug.txt
 
-**diagnose-toolchain.sh** (runs after full build):
-- Lists actual FILES in key directories, not just directory structure
-- Shows sample multilib (thumb/v6-m/nofp) contents
-- Shows both newlib (arm-none-eabi/lib/) and GCC (lib/gcc/) directories
+# Get newlib installation check only
+grep "STARTUP_DEBUG:" build.log | grep -A10 "Newlib Installation"
+
+# Get GCC installation check only  
+grep "STARTUP_DEBUG:" build.log | grep -A10 "GCC Final Installation"
+
+# Get final toolchain diagnostics
+grep "TOOLCHAIN_DIAG:" build.log > diagnostics.txt
+```
+
+**Debug sections in build scripts**:
+1. **build-newlib.sh**: After `make install`, before cleanup
+   - Lists all *crt*.o files found
+   - Shows sample multilib directory contents
+   
+2. **build-gcc-final-gdb.sh**: After `make install`, before cleanup
+   - Shows crt*.o in both build and install directories
+   - Lists libgcc multilib directory contents
+
+3. **diagnose-toolchain.sh**: After complete build
+   - Shows actual file listings in key directories
+   - Verifies final installation state
 
 ### Investigation Questions
 1. Are startup files being BUILT during make?
@@ -586,8 +600,111 @@ Added debug output to capture state before cleanup:
 - Analyze debug logs to determine WHERE the startup files are failing
 - Based on findings, apply targeted fix
 
+### Hypothesis Testing (Priority Order)
+
+**H1**: GCC not building extra_parts due to configuration
+- **Test**: Check build directory for crt*.o before cleanup
+- **Evidence needed**: STARTUP_DEBUG output from gcc-final stage
+
+**H2**: GCC building but not installing extra_parts  
+- **Test**: Files in build dir but not install dir
+- **Evidence needed**: Compare build vs install directory listings
+
+**H3**: newlib not installing crt0.o due to configure option
+- **Test**: Check MAY_SUPPLY_SYSCALLS setting
+- **Evidence needed**: STARTUP_DEBUG output from newlib stage
+
+**H4**: Files installed then accidentally deleted
+- **Test**: Check if cleanup scripts remove .o files
+- **Evidence needed**: Compare pre/post cleanup state
+
+### Code Analysis Findings
+
+**newlib** (should install crt0.o):
+- Makefile.inc line 2: `if !MAY_SUPPLY_SYSCALLS multilibtool_DATA += %D%/crt0.o`
+- Config: `--disable-newlib-supplied-syscalls` → Should install crt0.o ✓
+
+**GCC libgcc** (should install crti.o, crtn.o, crtbegin.o, crtend.o):
+- Makefile.in line 60: `EXTRA_PARTS = @extra_parts@`
+- Makefile.in line 1106: `all: $(extra-parts)` → Should build automatically ✓
+- Makefile.in line 78: `INSTALL_PARTS = $(EXTRA_PARTS)` → Should install ✓
+- config.host: `extra_parts="crtbegin.o crtend.o crti.o crtn.o"` ✓
+
+**Conclusion**: Build system is configured correctly. Debug output will show where process fails.
+
 ### Status
 🔍 **INVESTIGATION ENHANCED** - Added comprehensive debug logging
 - Debug output captures state before cleanups
 - Will reveal if files are built, installed, or deleted
 - Next: CI build and log analysis
+
+---
+
+## CURRENT INVESTIGATION STATUS (2025-11-25)
+
+### Applied Fixes
+1. ✅ Sysroot: `$BUILDDIR_NATIVE/target-libs/arm-none-eabi` → `$INSTALLDIR_NATIVE/arm-none-eabi`
+2. ✅ Added: `INHIBIT_LIBC_CFLAGS="-DUSE_TM_CLONE_REGISTRY=0"` to make command
+3. ✅ Kept: CCXXFLAGS and CXXFLAGS_FOR_TARGET (confirmed by user as correct)
+
+### Diagnostics Results (Latest)
+- ✅ Sysroot: Correctly configured to install directory
+- ✅ libc_nano.a: Found in all 39 multilib directories
+- ✅ libgcc.a: Found in all 39 multilib directories
+- ❌ **crt0.o**: NOT found (should come from newlib)
+- ❌ **crti.o, crtn.o**: NOT found (should come from GCC libgcc)
+- ❌ **crtbegin.o, crtend.o**: NOT found (should come from GCC libgcc)
+
+### Enhanced Debug Logging (Extractable)
+
+All debug output uses consistent markers for easy extraction:
+
+**From build-newlib.sh** - Search for: `=== DEBUG: Checking for crt0.o`
+```bash
+grep "=== DEBUG: Checking for crt0.o" -A20 build.log
+```
+
+**From build-gcc-final-gdb.sh** - Search for: `=== DEBUG: Checking for startup files`  
+```bash
+grep "=== DEBUG: Checking for startup files" -A20 build.log
+```
+
+**From diagnose-toolchain.sh** - Search for: `TOOLCHAIN_DIAG:`
+```bash
+grep "TOOLCHAIN_DIAG:" build.log > diagnostics.txt
+```
+
+### Next Investigation Steps
+
+**Priority 1**: Verify newlib crt0.o build/install
+- Check debug output from build-newlib.sh
+- Question: Does `make install` create crt0.o files?
+
+**Priority 2**: Verify GCC libgcc extra_parts build/install
+- Check debug output from build-gcc-final-gdb.sh  
+- Questions: Are crt*.o files in build directory? In install directory?
+
+**Priority 3**: Based on findings, apply targeted fix
+- If files in build dir but not installed → Fix make install
+- If files not in build dir → Fix make or configure
+- If files installed then deleted → Fix cleanup steps
+
+### Key Technical Insights
+
+**newlib Makefile.inc** (line 2):
+```makefile
+if !MAY_SUPPLY_SYSCALLS
+multilibtool_DATA += %D%/crt0.o
+endif
+```
+Config: `--disable-newlib-supplied-syscalls` → MAY_SUPPLY_SYSCALLS=FALSE → crt0.o should install
+
+**GCC libgcc Makefile.in**:
+- Line 60: `EXTRA_PARTS = @extra_parts@` (from configure/config.host)
+- Line 78: `INSTALL_PARTS = $(EXTRA_PARTS)` 
+- Line 1106: `all: $(extra-parts)` → builds startup files
+- install-leaf target: installs files in INSTALL_PARTS
+
+**ARM config.host**: Sets `extra_parts="crtbegin.o crtend.o crti.o crtn.o"`
+
+**Conclusion**: Build system SHOULD create and install startup files. Debug logs will reveal why it's not happening.

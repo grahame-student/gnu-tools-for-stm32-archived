@@ -84,15 +84,15 @@ make -j"$JOBS" CCXXFLAGS="$BUILD_OPTIONS" \
 make install
 
 # DEBUG: Check if startup files were installed before cleanup
-echo "=== DEBUG: Checking for startup files after make install ==="
-echo "Searching for crt*.o in install directory:"
-find "$INSTALLDIR_NATIVE" -name "crt*.o" 2>/dev/null | head -20 || echo "No crt*.o files found"
-echo "Searching for crt*.o in GCC build directory:"
-find "$BUILDDIR_NATIVE/gcc-final/arm-none-eabi" -name "crt*.o" 2>/dev/null | head -20 || echo "No crt*.o files found in build dir"
-echo "Sample libgcc multilib directory contents (thumb/v6-m/nofp):"
+echo "STARTUP_DEBUG: === GCC Final Installation Check ==="
+echo "STARTUP_DEBUG: Searching for crt*.o in install directory:"
+find "$INSTALLDIR_NATIVE" -name "crt*.o" 2>/dev/null | sed 's/^/STARTUP_DEBUG:   /' || echo "STARTUP_DEBUG: No crt*.o in install dir"
+echo "STARTUP_DEBUG: Searching for crt*.o in build directory:"
+find "$BUILDDIR_NATIVE/gcc-final/arm-none-eabi" -name "crt*.o" 2>/dev/null | sed 's/^/STARTUP_DEBUG:   /' || echo "STARTUP_DEBUG: No crt*.o in build dir"
+echo "STARTUP_DEBUG: Sample libgcc dir (thumb/v6-m/nofp/libgcc/) contents:"
 # shellcheck disable=SC2012
-ls -la "$BUILDDIR_NATIVE/gcc-final/arm-none-eabi/thumb/v6-m/nofp/libgcc/" 2>/dev/null | head -30 || echo "Directory not found"
-echo "=== END DEBUG ==="
+ls -1 "$BUILDDIR_NATIVE/gcc-final/arm-none-eabi/thumb/v6-m/nofp/libgcc/" 2>/dev/null | head -20 | sed 's/^/STARTUP_DEBUG:   /' || echo "STARTUP_DEBUG: Directory not found"
+echo "STARTUP_DEBUG: ============================================"
 
 # Copy nano variant libraries from build sysroot to install directory
 # The GCC final build creates nano variants (built with -Os for size optimization)
