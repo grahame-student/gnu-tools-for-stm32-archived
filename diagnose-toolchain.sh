@@ -57,7 +57,7 @@ echo ""
 
 # 6. Find critical runtime libraries
 echo "${DIAG_PREFIX} --- Locating Runtime Libraries ---"
-for lib in crti.o crtbegin.o crt0.o libc_nano.a libgcc.a; do
+for lib in crti.o crtn.o crtbegin.o crtend.o crt0.o libc_nano.a libgcc.a; do
     echo "${DIAG_PREFIX} Searching for: $lib"
     find /root/build/gnu-tools-for-stm32/install-native -name "$lib" 2>/dev/null | while IFS= read -r path; do
         echo "${DIAG_PREFIX}   Found: $path"
@@ -80,6 +80,7 @@ echo ""
 echo "${DIAG_PREFIX} --- Sysroot Directory Contents ---"
 if [ -d "$SYSROOT" ]; then
     echo "${DIAG_PREFIX} Sysroot exists: $SYSROOT"
+    # shellcheck disable=SC2012
     ls -la "$SYSROOT" 2>/dev/null | while IFS= read -r line; do
         echo "${DIAG_PREFIX}   $line"
     done

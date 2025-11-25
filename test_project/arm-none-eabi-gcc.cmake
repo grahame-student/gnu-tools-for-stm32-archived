@@ -46,8 +46,8 @@ set(CMAKE_OBJCOPY ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}objcopy${EXECUTABLE_SU
 set(CMAKE_SIZE_UTIL ${ARM_TOOLCHAIN_DIR}/${TOOLCHAIN_PREFIX}size${EXECUTABLE_SUFFIX} CACHE INTERNAL "size tool")
 
 # The compiler was configured at build time with --with-sysroot pointing to the
-# build directory, but the toolchain is now installed in a different location.
-# We need to tell the linker where to find the runtime libraries.
+# install directory. Set CMAKE_SYSROOT to match this configuration so CMake
+# knows where to find runtime libraries and headers.
 get_filename_component(TOOLCHAIN_ROOT "${ARM_TOOLCHAIN_DIR}/.." ABSOLUTE)
 set(CMAKE_SYSROOT "${TOOLCHAIN_ROOT}/arm-none-eabi")
 
