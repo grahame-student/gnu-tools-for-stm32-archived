@@ -454,3 +454,58 @@ With these changes:
 - Modified build-gcc-final-gdb.sh with correct sysroot and INHIBIT_LIBC_CFLAGS
 - Next: Test build to verify startup files are installed
 - Next: Verify test_project builds successfully
+
+## Issue #6: Startup Files Still Missing - Wrong Make Variable (2025-11-25)
+
+### Problem
+After applying Issue #5 fix (sysroot + INHIBIT_LIBC_CFLAGS), diagnostics from CI build show:
+- ✅ Sysroot correctly set to `/root/build/gnu-tools-for-stm32/install-native/arm-none-eabi`
+- ✅ INHIBIT_LIBC_CFLAGS correctly set to `-DUSE_TM_CLONE_REGISTRY=0` in libgcc.mvars
+- ✅ libc_nano.a found in all 39 multilib directories
+- ✅ libgcc.a found in all 39 multilib directories
+- ❌ crt*.o files STILL not found anywhere
+
+### Root Cause Analysis
+Compared make command in build-gcc-final-gdb.sh with build-toolchain.sh (monolithic):
+
+**Split script (INCORRECT)**:
+```bash
+make -j"$JOBS" CCXXFLAGS="$BUILD_OPTIONS" \
+        LDFLAGS_FOR_TARGET="--specs=nosys.specs" \
+        CXXFLAGS_FOR_TARGET="-g -Os ..." \
+        INHIBIT_LIBC_CFLAGS="-DUSE_TM_CLONE_REGISTRY=0"
+```
+
+**Monolithic script (CORRECT)**:
+```bash
+make -j$JOBS CXXFLAGS="$BUILD_OPTIONS" \
+        LDFLAGS_FOR_TARGET="--specs=nosys.specs" \
+        INHIBIT_LIBC_CFLAGS="-DUSE_TM_CLONE_REGISTRY=0"
+```
+
+**The Problem**: `CCXXFLAGS` is NOT a valid GCC Makefile variable!
+- Searched entire GCC source tree - no references to `CCXXFLAGS`
+- Only `CXXFLAGS` is recognized by GCC's Makefile system
+- Using wrong variable name means build options aren't being passed correctly
+- This likely prevents libgcc extra_parts (crt*.o) from being built properly
+
+### The Fix
+Changed build-gcc-final-gdb.sh line 80:
+- Changed `CCXXFLAGS="$BUILD_OPTIONS"` to `CXXFLAGS="$BUILD_OPTIONS"`
+- Removed `CXXFLAGS_FOR_TARGET` line (not used in monolithic script)
+- Now matches monolithic script Task [III-4] exactly
+
+### Expected Outcome
+With the correct `CXXFLAGS` variable:
+- GCC build will receive proper build options
+- libgcc extra_parts (crti.o, crtn.o, crtbegin.o, crtend.o) will be built
+- `make install` will install them to `$INSTALLDIR_NATIVE/lib/gcc/arm-none-eabi/13.3.1/<multilib>/`
+- Standard newlib crt0.o should also be available (from build-newlib.sh)
+- test_project should build successfully
+
+### Status
+🔧 **SECOND FIX APPLIED** - Corrected make variable name
+- Changed CCXXFLAGS → CXXFLAGS
+- Removed CXXFLAGS_FOR_TARGET
+- Now matches monolithic script exactly
+- Next: CI build to verify startup files are installed
