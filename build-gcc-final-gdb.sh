@@ -83,7 +83,7 @@ make install
 # in the temporary build sysroot. These need to be copied to the install location.
 copy_multi_libs src_prefix="$BUILDDIR_NATIVE/target-libs/arm-none-eabi/lib" \
                 dst_prefix="$INSTALLDIR_NATIVE/arm-none-eabi/lib" \
-                target_gcc="$BUILDDIR_NATIVE/target-libs/bin/arm-none-eabi-gcc"
+                target_gcc="$INSTALLDIR_NATIVE/bin/arm-none-eabi-gcc"
 
 # Copy the nano configured newlib.h file into the location that nano.specs expects it to be.
 mkdir -p "$INSTALLDIR_NATIVE/arm-none-eabi/include/newlib-nano"

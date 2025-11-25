@@ -229,3 +229,42 @@ When GCC final builds C++ libraries, it uses the nano newlib from the temp sysro
 - ✅ Updated build-gcc-final-gdb.sh with copy steps
 - ✅ Updated Dockerfile with newlib-nano stage
 - ✅ All scripts pass shellcheck linting
+
+## Issue #2: copy_multi_libs Not Running (2025-11-25)
+
+### Problem
+Test_project build still failing with same error: libraries not found. Diagnostics show no runtime libraries installed.
+
+### Root Cause
+The `copy_multi_libs` function call in `build-gcc-final-gdb.sh` was using:
+```bash
+target_gcc="$BUILDDIR_NATIVE/target-libs/bin/arm-none-eabi-gcc"
+```
+
+This GCC binary doesn't exist! The newlib-nano stage only builds newlib libraries, not GCC. In the original monolithic script, there's a **Task [III-5]** (gcc-size-libstdcxx) that builds GCC again with `--prefix=$BUILDDIR_NATIVE/target-libs`, which creates this GCC binary.
+
+Without this GCC binary, the `copy_multi_libs` function fails silently:
+- Line 281: `multilibs=( $("${target_gcc}" -print-multi-lib 2>/dev/null) )`
+- If the command fails, `multilibs` is empty
+- The copy loop doesn't run, no libraries get copied!
+
+### The Fix
+Changed `build-gcc-final-gdb.sh` line 86 to use the installed GCC:
+```bash
+target_gcc="$INSTALLDIR_NATIVE/bin/arm-none-eabi-gcc"
+```
+
+This GCC exists because it was just installed by `make install` on line 79. It knows the multilib structure (configured at build time), so it can provide the multilib list for copy_multi_libs.
+
+### Note on Library Configuration
+The original script has separate standard and nano library builds:
+- Task [III-4]: GCC final with standard newlib sysroot → standard C++ libraries
+- Task [III-5]: GCC rebuild with nano newlib sysroot → nano C++ libraries
+
+Current approach: GCC final uses nano newlib sysroot (line 68), so it creates nano-configured C++ libraries. These get installed with standard names (libstdc++.a), then copy_multi_libs creates _nano copies. This means standard libraries are actually nano-configured, which may differ from the original but should work for the test_project.
+
+### Status
+🔧 **FIX APPLIED** - Awaiting CI validation
+- Changed target_gcc path in copy_multi_libs call
+- Script passes shellcheck linting
+- Next: Test Docker build and validation
