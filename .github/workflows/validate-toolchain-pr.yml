@@ -30,13 +30,16 @@ jobs:
         run: |
           echo "=== Disk space before cleanup ==="
           df -h
-          
+
           # Remove unnecessary software to free up space
+          # GitHub Actions runners have ~14GB free space, and building the toolchain can exhaust it
           sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
           sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          
+
           echo "=== Disk space after cleanup ==="
           df -h
 

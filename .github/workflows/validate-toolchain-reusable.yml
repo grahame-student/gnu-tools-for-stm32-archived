@@ -39,6 +39,23 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v5.0.0
 
+      - name: Free up disk space
+        run: |
+          echo "=== Disk space before cleanup ==="
+          df -h
+
+          # Remove unnecessary software to free up space
+          # This is especially important when loading large Docker images from artifacts
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+          echo "=== Disk space after cleanup ==="
+          df -h
+
       - name: Download container artifact
         if: inputs.load-from-artifact
         uses: actions/download-artifact@v6.0.0
@@ -49,13 +66,19 @@ jobs:
       - name: Load container from artifact
         if: inputs.load-from-artifact
         run: |
+          echo "=== Disk space before loading image ==="
+          df -h
+
           echo "=== Loading Docker image from artifact ==="
           gunzip /tmp/toolchain-image.tar.gz
           docker load --input /tmp/toolchain-image.tar
           rm /tmp/toolchain-image.tar
-          
+
           echo "=== Loaded images ==="
           docker images
+
+          echo "=== Disk space after loading image ==="
+          df -h
 
       - name: Login to GitHub Container Registry
         # Only login if pulling from GHCR (not loading from artifact)
@@ -94,28 +117,28 @@ jobs:
       - name: Compare artifacts with reference files
         run: |
           echo "=== Comparing Build Artifacts with Reference Files ==="
-          
+
           # Define artifacts to compare
           ARTIFACTS=("nucleo-u083rc.elf" "nucleo-u083rc.map" "nucleo-u083rc.hex" "nucleo-u083rc.bin")
-          
+
           DIFFERENCES_FOUND=0
-          
+
           for artifact in "${ARTIFACTS[@]}"; do
             echo ""
             echo "Comparing $artifact..."
-            
+
             if [ ! -f "${{ github.workspace }}/build-output/$artifact" ]; then
               echo "ERROR: Build artifact not found: $artifact"
               DIFFERENCES_FOUND=1
               continue
             fi
-            
+
             if [ ! -f "${{ github.workspace }}/test_project/reference/$artifact" ]; then
               echo "WARNING: Reference file not found: $artifact"
               echo "This may be expected for a new artifact type"
               continue
             fi
-            
+
             # Compare files byte-by-byte
             if cmp -s "${{ github.workspace }}/build-output/$artifact" \
                      "${{ github.workspace }}/test_project/reference/$artifact"; then
@@ -123,11 +146,11 @@ jobs:
             else
               echo "✗ $artifact differs from reference"
               DIFFERENCES_FOUND=1
-              
+
               # Show file sizes for debugging
               echo "  Build artifact size: $(stat -c%s ${{ github.workspace }}/build-output/$artifact) bytes"
               echo "  Reference file size: $(stat -c%s ${{ github.workspace }}/test_project/reference/$artifact) bytes"
-              
+
               # For text files (map), show a diff sample
               if [[ "$artifact" == *.map ]]; then
                 echo "  First 20 lines of diff:"
@@ -136,7 +159,7 @@ jobs:
               fi
             fi
           done
-          
+
           echo ""
           if [ $DIFFERENCES_FOUND -eq 0 ]; then
             echo "=== SUCCESS: All artifacts match reference files ==="
