@@ -559,35 +559,43 @@ Reverting CCXXFLAGS → CXXFLAGS change. Will try Option B:
 
 ### Enhanced Debug Logging (Extractable)
 
-All debug output uses consistent `STARTUP_DEBUG:` prefix for easy extraction:
+All debug output uses consistent prefixes for easy extraction:
 
-**Extract from build logs**:
+**Simple one-command extraction**:
 ```bash
-# Get all startup file debug output
+# Use the provided extraction script
+./extract-debug-output.sh build.log
+
+# This creates:
+#   - startup_debug.txt    : Startup file installation tracking
+#   - toolchain_diag.txt   : Toolchain configuration and diagnostics
+#   - all_debug.txt        : Combined output from both
+```
+
+**Manual extraction** (if script not available):
+```bash
+# Get startup file debug output
 grep "STARTUP_DEBUG:" build.log > startup_debug.txt
 
-# Get newlib installation check only
-grep "STARTUP_DEBUG:" build.log | grep -A10 "Newlib Installation"
+# Get toolchain diagnostics
+grep "TOOLCHAIN_DIAG:" build.log > toolchain_diag.txt
 
-# Get GCC installation check only  
-grep "STARTUP_DEBUG:" build.log | grep -A10 "GCC Final Installation"
-
-# Get final toolchain diagnostics
-grep "TOOLCHAIN_DIAG:" build.log > diagnostics.txt
+# Get both combined
+grep -E "STARTUP_DEBUG:|TOOLCHAIN_DIAG:" build.log > all_debug.txt
 ```
 
 **Debug sections in build scripts**:
 1. **build-newlib.sh**: After `make install`, before cleanup
-   - Lists all *crt*.o files found
-   - Shows sample multilib directory contents
+   - Prefix: `STARTUP_DEBUG:`
+   - Shows: crt*.o files from newlib
    
 2. **build-gcc-final-gdb.sh**: After `make install`, before cleanup
-   - Shows crt*.o in both build and install directories
-   - Lists libgcc multilib directory contents
+   - Prefix: `STARTUP_DEBUG:`
+   - Shows: crt*.o in build and install directories
 
 3. **diagnose-toolchain.sh**: After complete build
-   - Shows actual file listings in key directories
-   - Verifies final installation state
+   - Prefix: `TOOLCHAIN_DIAG:`
+   - Shows: Final toolchain state and file listings
 
 ### Investigation Questions
 1. Are startup files being BUILT during make?
@@ -641,6 +649,10 @@ grep "TOOLCHAIN_DIAG:" build.log > diagnostics.txt
 ---
 
 ## CURRENT INVESTIGATION STATUS (2025-11-25)
+
+> **See DEBUG_EXTRACTION.md for complete guide on extracting debug output**
+> 
+> **Quick extraction**: `./extract-debug-output.sh build.log`
 
 ### Applied Fixes
 1. ✅ Sysroot: `$BUILDDIR_NATIVE/target-libs/arm-none-eabi` → `$INSTALLDIR_NATIVE/arm-none-eabi`
