@@ -268,3 +268,89 @@ Current approach: GCC final uses nano newlib sysroot (line 68), so it creates na
 - Changed target_gcc path in copy_multi_libs call
 - Script passes shellcheck linting
 - Next: Test Docker build and validation
+
+## Issue #3: copy_multi_libs Failing on C++ Libraries (2025-11-25)
+
+### Problem  
+Test_project build STILL failing. Latest logs show libraries still not found even after Issue #2 fix.
+
+### Investigation
+The `copy_multi_libs` function tries to copy files from `$BUILDDIR_NATIVE/target-libs/arm-none-eabi/lib/`:
+- Line 286: `cp -f "${src_dir}/libstdc++.a" "${dst_dir}/libstdc++_nano.a"`
+- Line 287: `cp -f "${src_dir}/libsupc++.a" "${dst_dir}/libsupc++_nano.a"`  
+- Plus newlib libraries (libc.a, libg.a, etc.)
+
+**Problem:** libstdc++.a and libsupc++.a are C++ libraries built by GCC, not by newlib!
+
+Current build flow:
+1. Newlib-nano builds newlib → installs to `$BUILDDIR_NATIVE/target-libs/`
+2. GCC final builds GCC + C++ libs → installs to `$INSTALLDIR_NATIVE/` (due to --prefix)
+3. copy_multi_libs tries to copy C++ libs from `$BUILDDIR_NATIVE/target-libs/` → **FAILS! Files don't exist there!**
+
+Since the script uses `set -e`, when the first `cp` command fails (trying to copy libstdc++.a), the entire script aborts. No libraries get copied at all!
+
+### Root Cause: Missing Task [III-5]
+The original monolithic script has **Task [III-5]: gcc-size-libstdcxx** which:
+1. Builds GCC AGAIN with `--prefix=$BUILDDIR_NATIVE/target-libs`
+2. Uses nano newlib sysroot: `--with-sysroot=$BUILDDIR_NATIVE/target-libs/arm-none-eabi`
+3. Builds C++ libraries (libstdc++, libsupc++) with nano configuration
+4. Installs them to `$BUILDDIR_NATIVE/target-libs/` (not install dir!)
+
+This creates nano-configured C++ libraries in the temp sysroot that copy_multi_libs can find and copy.
+
+We're missing this entire build step!
+
+### The Real Solution
+We need to add Task [III-5] - a second GCC build that:
+- Runs AFTER GCC final
+- Configures with `--prefix=$BUILDDIR_NATIVE/target-libs`
+- Uses nano newlib sysroot
+- Builds ONLY C++ libraries (not the full compiler)
+- Makes nano C++ libraries available for copy_multi_libs
+
+Without this, copy_multi_libs will always fail when trying to copy C++ libraries.
+
+### Status
+🔴 **BLOCKED** - Need to add Task [III-5] (gcc-size-libstdcxx) build step
+- Cannot proceed with current approach
+- Must add second GCC build to create nano C++ libraries in temp sysroot
+- Then copy_multi_libs will work correctly
+
+## Issue #3 Resolution: Temporary Workaround (2025-11-25)
+
+### Container Build Logs Analysis
+Examined container build logs - copy_multi_libs DID run but failed on first cp command:
+```
+cp: cannot stat '.../libstdc++.a': No such file or directory
+```
+
+Docker build continued despite error (build completed successfully). This suggests error wasn't fatal.
+
+### Workaround Applied
+Modified `copy_multi_libs` function in `build-common.sh` to tolerate missing files:
+- Added `|| true` to cp commands for optional files (C++ libs, semihosting, some specs)
+- Kept strict error checking for required files (libc.a, libg.a, nano.specs)
+
+This allows the function to:
+1. Copy C libraries from newlib-nano (libc.a → libc_nano.a, etc.)
+2. Skip C++ libraries that don't exist (will fail if test_project needs C++)
+3. Copy startup files and core spec files
+
+### Limitations
+- **No nano C++ libraries**: libstdc++_nano.a and libsupc++_nano.a won't be installed
+- **C++ projects will fail**: If test_project or any user code uses C++, linking will fail
+- **Incomplete solution**: This is a workaround, not the proper fix
+
+### Proper Fix (Future Work)
+To fully match the original build process, need to add Task [III-5]:
+- Create `build-gcc-size-libstdcxx.sh` script
+- Build GCC with `--prefix=$BUILDDIR_NATIVE/target-libs`  
+- Uses nano newlib sysroot
+- Creates nano C++ libraries in temp sysroot
+- Add as new Dockerfile stage after newlib-nano, before gcc-final-gdb
+
+### Status
+🟡 **WORKAROUND APPLIED** - Will copy C libraries but not C++
+- Modified copy_multi_libs to skip missing files
+- Should allow C-only projects to build
+- C++ support still missing
