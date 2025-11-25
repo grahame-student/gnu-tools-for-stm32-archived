@@ -77,6 +77,19 @@ make -j"$JOBS" CCXXFLAGS="$BUILD_OPTIONS" \
         LDFLAGS_FOR_TARGET="--specs=nosys.specs" \
         CXXFLAGS_FOR_TARGET="-g -Os -ffunction-sections -fdata-sections -fno-exceptions"
 make install
+
+# Copy nano variant libraries from build sysroot to install directory
+# The GCC final build creates nano variants (built with -Os for size optimization)
+# in the temporary build sysroot. These need to be copied to the install location.
+copy_multi_libs src_prefix="$BUILDDIR_NATIVE/target-libs/arm-none-eabi/lib" \
+                dst_prefix="$INSTALLDIR_NATIVE/arm-none-eabi/lib" \
+                target_gcc="$INSTALLDIR_NATIVE/bin/arm-none-eabi-gcc"
+
+# Copy the nano configured newlib.h file into the location that nano.specs expects it to be.
+mkdir -p "$INSTALLDIR_NATIVE/arm-none-eabi/include/newlib-nano"
+cp -f "$BUILDDIR_NATIVE/target-libs/arm-none-eabi/include/newlib.h" \
+      "$INSTALLDIR_NATIVE/arm-none-eabi/include/newlib-nano/newlib.h"
+
 restoreenv
 popd
 

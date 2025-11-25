@@ -150,3 +150,267 @@ After running diagnostics in the workflow, we can determine:
 - **If libraries are in multilib subdirs**: Need to add those paths to CMAKE_FIND_ROOT_PATH
 - **If sysroot is wrong**: Compiler configured incorrectly, may need rebuild or specs file
 - **If everything looks right**: Issue is with how CMake passes linker flags
+
+## Resolution (2025-11-24)
+
+### Root Cause Identified
+The diagnostics revealed that runtime libraries (crti.o, crt0.o, libc_nano.a, etc.) were **NOT installed** in the toolchain's install directory (`install-native/arm-none-eabi/lib/`). Only libgcc.a was found in multilib subdirectories.
+
+### Investigation Steps
+1. ✅ Analyzed diagnostics.txt output from the workflow
+2. ✅ Confirmed runtime libraries were missing from install directory
+3. ✅ Compared build-gcc-final-gdb.sh with build-toolchain.sh (monolithic script)
+4. ✅ Found missing `copy_multi_libs` step and nano header copy step
+5. ✅ Discovered missing **newlib-nano** build step (Task [III-3])
+
+### The Complete Picture
+The original monolithic build script has these steps:
+- **Task [III-2]**: Build newlib (standard) → installs to `$INSTALLDIR_NATIVE/arm-none-eabi/lib/`
+- **Task [III-3]**: Build newlib-nano → installs to `$BUILDDIR_NATIVE/target-libs/arm-none-eabi/lib/`
+- **Task [III-4]**: Build GCC final
+  - Rebuilds C++ runtime libraries (libstdc++, libsupc++) using nano newlib headers
+  - `make install` installs GCC compiler and C++ libraries
+  - `copy_multi_libs` copies nano newlib libraries and creates _nano variants
+  - Copies nano newlib.h header to expected location
+
+### The Problems in Split Scripts
+In `build-gcc-final-gdb.sh`:
+1. **MISSING**: Separate newlib-nano build step (entire Task [III-3] was missing!)
+2. **MISSING**: The nano variant libraries were NOT being copied from temp sysroot to install directory
+3. **MISSING**: The nano newlib.h header was NOT being copied to expected location
+4. **BUG**: Script was deleting the temp sysroot before copying nano libraries!
+
+### The Solutions
+**Added `build-newlib-nano.sh`** - New build script for Task [III-3]:
+- Builds newlib with nano-specific flags (-Os, -DPREFER_SIZE_OVER_SPEED, etc.)
+- Enables nano malloc, nano formatted I/O, lite-exit, etc.
+- Installs to temporary sysroot: `$BUILDDIR_NATIVE/target-libs/arm-none-eabi/`
+- Creates libc.a, libm.a, libg.a, etc. (standard names, but nano-configured)
+
+**Updated `build-gcc-final-gdb.sh`** - Added missing steps after `make install`:
+```bash
+# Copy nano variant libraries from build sysroot to install directory
+copy_multi_libs src_prefix="$BUILDDIR_NATIVE/target-libs/arm-none-eabi/lib" \
+                dst_prefix="$INSTALLDIR_NATIVE/arm-none-eabi/lib" \
+                target_gcc="$BUILDDIR_NATIVE/target-libs/bin/arm-none-eabi-gcc"
+
+# Copy the nano configured newlib.h file
+mkdir -p "$INSTALLDIR_NATIVE/arm-none-eabi/include/newlib-nano"
+cp -f "$BUILDDIR_NATIVE/target-libs/arm-none-eabi/include/newlib.h" \
+      "$INSTALLDIR_NATIVE/arm-none-eabi/include/newlib-nano/newlib.h"
+```
+
+**Updated `Dockerfile`** - Added newlib-nano build stage between newlib and gcc-final-gdb
+
+### What Gets Fixed
+After newlib-nano build, the temp sysroot contains (for each multilib variant):
+- libc.a, libm.a, libg.a (nano-configured standard libraries)
+- librdimon.a, librdimon-v2m.a (nano semihosting libraries)
+- nano.specs, nosys.specs, rdimon.specs (linker spec files)
+- crt0.o and other startup files
+- newlib.h (nano-configured header)
+
+The `copy_multi_libs` function then:
+- Copies libc.a → libc_nano.a (renames to _nano variant)
+- Copies libm.a → libm_nano.a
+- Copies libg.a → libg_nano.a
+- Copies librdimon.a → librdimon_nano.a
+- Copies librdimon-v2m.a → librdimon-v2m_nano.a
+- Copies spec files (nano.specs, nosys.specs, rdimon.specs)
+- Copies startup files (crt0.o, etc.)
+
+When GCC final builds C++ libraries, it uses the nano newlib from the temp sysroot to create:
+- libstdc++.a (which gets copied to libstdc++_nano.a)
+- libsupc++.a (which gets copied to libsupc++_nano.a)
+
+### Status
+✅ **FIXED** - Runtime libraries will now be properly installed during toolchain build
+- ✅ Added build-newlib-nano.sh script
+- ✅ Updated build-gcc-final-gdb.sh with copy steps
+- ✅ Updated Dockerfile with newlib-nano stage
+- ✅ All scripts pass shellcheck linting
+
+## Issue #2: copy_multi_libs Not Running (2025-11-25)
+
+### Problem
+Test_project build still failing with same error: libraries not found. Diagnostics show no runtime libraries installed.
+
+### Root Cause
+The `copy_multi_libs` function call in `build-gcc-final-gdb.sh` was using:
+```bash
+target_gcc="$BUILDDIR_NATIVE/target-libs/bin/arm-none-eabi-gcc"
+```
+
+This GCC binary doesn't exist! The newlib-nano stage only builds newlib libraries, not GCC. In the original monolithic script, there's a **Task [III-5]** (gcc-size-libstdcxx) that builds GCC again with `--prefix=$BUILDDIR_NATIVE/target-libs`, which creates this GCC binary.
+
+Without this GCC binary, the `copy_multi_libs` function fails silently:
+- Line 281: `multilibs=( $("${target_gcc}" -print-multi-lib 2>/dev/null) )`
+- If the command fails, `multilibs` is empty
+- The copy loop doesn't run, no libraries get copied!
+
+### The Fix
+Changed `build-gcc-final-gdb.sh` line 86 to use the installed GCC:
+```bash
+target_gcc="$INSTALLDIR_NATIVE/bin/arm-none-eabi-gcc"
+```
+
+This GCC exists because it was just installed by `make install` on line 79. It knows the multilib structure (configured at build time), so it can provide the multilib list for copy_multi_libs.
+
+### Note on Library Configuration
+The original script has separate standard and nano library builds:
+- Task [III-4]: GCC final with standard newlib sysroot → standard C++ libraries
+- Task [III-5]: GCC rebuild with nano newlib sysroot → nano C++ libraries
+
+Current approach: GCC final uses nano newlib sysroot (line 68), so it creates nano-configured C++ libraries. These get installed with standard names (libstdc++.a), then copy_multi_libs creates _nano copies. This means standard libraries are actually nano-configured, which may differ from the original but should work for the test_project.
+
+### Status
+🔧 **FIX APPLIED** - Awaiting CI validation
+- Changed target_gcc path in copy_multi_libs call
+- Script passes shellcheck linting
+- Next: Test Docker build and validation
+
+## Issue #3: copy_multi_libs Failing on C++ Libraries (2025-11-25)
+
+### Problem  
+Test_project build STILL failing. Latest logs show libraries still not found even after Issue #2 fix.
+
+### Investigation
+The `copy_multi_libs` function tries to copy files from `$BUILDDIR_NATIVE/target-libs/arm-none-eabi/lib/`:
+- Line 286: `cp -f "${src_dir}/libstdc++.a" "${dst_dir}/libstdc++_nano.a"`
+- Line 287: `cp -f "${src_dir}/libsupc++.a" "${dst_dir}/libsupc++_nano.a"`  
+- Plus newlib libraries (libc.a, libg.a, etc.)
+
+**Problem:** libstdc++.a and libsupc++.a are C++ libraries built by GCC, not by newlib!
+
+Current build flow:
+1. Newlib-nano builds newlib → installs to `$BUILDDIR_NATIVE/target-libs/`
+2. GCC final builds GCC + C++ libs → installs to `$INSTALLDIR_NATIVE/` (due to --prefix)
+3. copy_multi_libs tries to copy C++ libs from `$BUILDDIR_NATIVE/target-libs/` → **FAILS! Files don't exist there!**
+
+Since the script uses `set -e`, when the first `cp` command fails (trying to copy libstdc++.a), the entire script aborts. No libraries get copied at all!
+
+### Root Cause: Missing Task [III-5]
+The original monolithic script has **Task [III-5]: gcc-size-libstdcxx** which:
+1. Builds GCC AGAIN with `--prefix=$BUILDDIR_NATIVE/target-libs`
+2. Uses nano newlib sysroot: `--with-sysroot=$BUILDDIR_NATIVE/target-libs/arm-none-eabi`
+3. Builds C++ libraries (libstdc++, libsupc++) with nano configuration
+4. Installs them to `$BUILDDIR_NATIVE/target-libs/` (not install dir!)
+
+This creates nano-configured C++ libraries in the temp sysroot that copy_multi_libs can find and copy.
+
+We're missing this entire build step!
+
+### The Real Solution
+We need to add Task [III-5] - a second GCC build that:
+- Runs AFTER GCC final
+- Configures with `--prefix=$BUILDDIR_NATIVE/target-libs`
+- Uses nano newlib sysroot
+- Builds ONLY C++ libraries (not the full compiler)
+- Makes nano C++ libraries available for copy_multi_libs
+
+Without this, copy_multi_libs will always fail when trying to copy C++ libraries.
+
+### Status
+🔴 **BLOCKED** - Need to add Task [III-5] (gcc-size-libstdcxx) build step
+- Cannot proceed with current approach
+- Must add second GCC build to create nano C++ libraries in temp sysroot
+- Then copy_multi_libs will work correctly
+
+## Issue #3 Resolution: Temporary Workaround (2025-11-25)
+
+### Container Build Logs Analysis
+Examined container build logs - copy_multi_libs DID run but failed on first cp command:
+```
+cp: cannot stat '.../libstdc++.a': No such file or directory
+```
+
+Docker build continued despite error (build completed successfully). This suggests error wasn't fatal.
+
+### Workaround Applied
+Modified `copy_multi_libs` function in `build-common.sh` to tolerate missing files:
+- Added `|| true` to cp commands for optional files (C++ libs, semihosting, some specs)
+- Kept strict error checking for required files (libc.a, libg.a, nano.specs)
+
+This allows the function to:
+1. Copy C libraries from newlib-nano (libc.a → libc_nano.a, etc.)
+2. Skip C++ libraries that don't exist (will fail if test_project needs C++)
+3. Copy startup files and core spec files
+
+### Limitations
+- **No nano C++ libraries**: libstdc++_nano.a and libsupc++_nano.a won't be installed
+- **C++ projects will fail**: If test_project or any user code uses C++, linking will fail
+- **Incomplete solution**: This is a workaround, not the proper fix
+
+### Proper Fix (Future Work)
+To fully match the original build process, need to add Task [III-5]:
+- Create `build-gcc-size-libstdcxx.sh` script
+- Build GCC with `--prefix=$BUILDDIR_NATIVE/target-libs`  
+- Uses nano newlib sysroot
+- Creates nano C++ libraries in temp sysroot
+- Add as new Dockerfile stage after newlib-nano, before gcc-final-gdb
+
+### Status
+🟡 **WORKAROUND APPLIED** - Will copy C libraries but not C++
+- Modified copy_multi_libs to skip missing files
+- Should allow C-only projects to build
+- C++ support still missing
+
+## Issue #4: Partial Success - libc_nano.a Installed, Startup Files Missing (2025-11-25)
+
+### Problem
+Initial diagnostic output (before fix) showed NO files found:
+```
+Searching for: crti.o     [NOT FOUND]
+Searching for: crtbegin.o [NOT FOUND]
+Searching for: crt0.o      [NOT FOUND]
+Searching for: libc_nano.a [NOT FOUND]
+```
+
+### Investigation & Fix
+Added debug logging to copy_multi_libs which revealed:
+- newlib-nano successfully builds and installs libc.a, libg.a, libm.a to multilib subdirectories
+- copy_multi_libs successfully copies these and creates _nano variants
+- ✅ **libc_nano.a** is now found in all 39 multilib directories!
+- ❌ Startup files (crt0.o, crti.o, crtn.o) are NOT in newlib-nano directories
+- ❌ C++ libraries (libstdc++.a, libsupc++.a) are NOT in newlib-nano (expected - requires Task III-5)
+
+### Latest Diagnostic Results (After Fix)
+diagnostics.txt lines 67-105 show SUCCESS for libc_nano.a:
+```
+Searching for: libc_nano.a
+  Found: /root/build/.../arm-none-eabi/lib/arm/v5te/hard/libc_nano.a
+  Found: /root/build/.../arm-none-eabi/lib/arm/v5te/softfp/libc_nano.a
+  Found: /root/build/.../arm-none-eabi/lib/thumb/nofp/libc_nano.a
+  [... 36 more multilib directories ...]
+  Found: /root/build/.../arm-none-eabi/lib/libc_nano.a
+```
+
+But startup files still not found:
+```
+Searching for: crti.o     [NOT FOUND]
+Searching for: crtbegin.o [NOT FOUND - from GCC]
+Searching for: crt0.o      [NOT FOUND - from newlib, not newlib-nano]
+```
+
+### Root Cause of Remaining Issue
+Startup files (crt0.o, crti.o, crtn.o) come from:
+- **crt0.o** - Built by standard newlib (not newlib-nano)
+- **crti.o, crtn.o** - Built by GCC during target library build
+- **crtbegin.o, crtend.o** - Built by GCC
+
+These files should be in the install directory from earlier build stages, NOT from newlib-nano.
+
+### Status  
+🟢 **PARTIALLY RESOLVED** - C nano libraries successfully installed
+- ✅ libc_nano.a installed in all 39 multilib directories
+- ✅ libg_nano.a, libm_nano.a also installed
+- ✅ nano.specs, nosys.specs installed where available
+- ❌ Startup files (crt0.o, crti.o, crtn.o) - separate issue, likely from earlier build stages
+- ❌ C++ nano libraries - requires Task [III-5] (documented in Issue #3)
+
+### Next Steps
+Startup file issue is SEPARATE from newlib-nano problem:
+1. Check if standard newlib build installs crt0.o
+2. Check if GCC build installs crti.o, crtn.o  
+3. These should come from earlier build stages (newlib, gcc-final)
+4. May need separate investigation/fix for startup files
