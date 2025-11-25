@@ -8,10 +8,11 @@ Extract all diagnostic and debug output from a build log with one command:
 ./extract-debug-output.sh build.log
 ```
 
-This creates three files:
+This creates four files:
 - **startup_debug.txt** - Startup file installation tracking from build stages
+- **multilib_debug.txt** - Multilib configuration decisions from config-ml.in
 - **toolchain_diag.txt** - Toolchain configuration and final state verification
-- **all_debug.txt** - Combined output from both
+- **all_debug.txt** - Combined output from all sources
 
 ## Debug Output Prefixes
 
@@ -20,6 +21,7 @@ All debug output uses consistent, greppable prefixes:
 | Prefix | Source | Purpose |
 |--------|--------|---------|
 | `STARTUP_DEBUG:` | build-newlib.sh, build-gcc-final-gdb.sh | Tracks startup file installation at each build stage |
+| `MULTILIB_DEBUG:` | config-ml.in (instrumented) | Captures multilib configuration decisions (ml_toplevel_p, enable_multilib, MULTIDO) |
 | `TOOLCHAIN_DIAG:` | diagnose-toolchain.sh | Final toolchain configuration and file verification |
 
 ## Manual Extraction
@@ -30,14 +32,20 @@ If you need to extract specific sections manually:
 # Startup file debug only
 grep "STARTUP_DEBUG:" build.log > startup_debug.txt
 
+# Multilib configuration debug only
+grep "MULTILIB_DEBUG:" build.log > multilib_debug.txt
+
 # Toolchain diagnostics only
 grep "TOOLCHAIN_DIAG:" build.log > toolchain_diag.txt
 
-# Both combined
-grep -E "STARTUP_DEBUG:|TOOLCHAIN_DIAG:" build.log > all_debug.txt
+# All debug output combined
+grep -E "STARTUP_DEBUG:|MULTILIB_DEBUG:|TOOLCHAIN_DIAG:" build.log > all_debug.txt
 
 # Specific section (e.g., newlib check)
 grep "STARTUP_DEBUG:" build.log | grep -A10 "Newlib Installation"
+
+# Check multilib decisions
+grep "MULTILIB_DEBUG:" build.log | grep "ml_toplevel_p\|ml_do"
 ```
 
 ## What Each Debug Section Shows
@@ -48,10 +56,25 @@ grep "STARTUP_DEBUG:" build.log | grep -A10 "Newlib Installation"
 - **Answers**: Did newlib install crt0.o?
 
 ### STARTUP_DEBUG from build-gcc-final-gdb.sh
-- Files searched: `crt*.o` in both build and install directories
-- Build directory listing: Shows if files were created
-- Install directory listing: Shows if files were copied
-- **Answers**: Did GCC build and install crti.o, crtn.o, crtbegin.o, crtend.o?
+- Multilib directories created by configure
+- Multilib directories with libgcc.a (actually built)
+- MULTIDO value from generated Makefile
+- enable_multilib from config.status
+- crt*.o files in build and install directories
+- Sample multilib directory contents
+- **Answers**: 
+  - Did GCC build and install startup files?
+  - Why are only some multilibs being built?
+  - Is MULTIDO set correctly?
+
+### MULTILIB_DEBUG from config-ml.in
+- ml_toplevel_p value (yes/no)
+- enable_multilib setting
+- with_multisubdir value
+- srcdir and ml_realsrcdir values
+- Whether config-ml.in was found at expected location
+- Whether ml_do is set to '$(MAKE)' or 'true'
+- **Answers**: Why is MULTIDO being set to true instead of $(MAKE)?
 
 ### TOOLCHAIN_DIAG from diagnose-toolchain.sh
 - Compiler version and configuration

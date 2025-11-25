@@ -853,3 +853,40 @@ Even though auto-added, make it explicit to ensure it's present.
 - src/gcc/config-ml.in: multilib support script
 - Build logs: lines 87470-87690 (configure), 89853-90062 (make)
 
+
+### Enhanced Diagnostics Added (Commit TBD)
+
+To pinpoint the exact cause of MULTIDO=true, added comprehensive debug output:
+
+**config-ml.in instrumentation**:
+- Captures ml_toplevel_p value before decision
+- Shows enable_multilib, with_multisubdir, srcdir, ml_realsrcdir
+- Checks if config-ml.in file is found at expected location
+- Reports whether ml_do is set to '$(MAKE)' or 'true'
+- Output prefix: `MULTILIB_DEBUG:` (sent to stderr, captured in logs)
+
+**build-gcc-final-gdb.sh diagnostics**:
+1. Count of multilib directories created by configure
+2. Count of directories with libgcc.a (actually built)
+3. MULTIDO value from generated libgcc/Makefile
+4. enable_multilib from config.status
+5. Evidence of config-ml.in execution in config.log
+6. List of directories entered during make (from build artifacts)
+7. Startup file search in build and install directories
+8. Sample multilib directory contents
+
+**Extraction compatibility**:
+- All output uses MULTILIB_DEBUG: prefix for easy extraction
+- extract-debug-output.sh updated to capture multilib_debug.txt
+- .gitignore updated to exclude multilib_debug.txt
+- DEBUG_EXTRACTION.md updated with new output documentation
+
+**Purpose**: This comprehensive logging will reveal:
+- ✅ Exact value of ml_toplevel_p and why it's set that way
+- ✅ Whether enable_multilib is actually being passed
+- ✅ Whether config-ml.in can find itself in the parent directory
+- ✅ How many multilibs are configured vs actually built
+- ✅ Exact value of MULTIDO in the generated Makefile
+
+One CI run should provide all answers needed to apply the correct fix.
+

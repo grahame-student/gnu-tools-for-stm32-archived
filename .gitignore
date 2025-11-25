@@ -9,6 +9,7 @@ pkg/
 
 # Debug output files from extract-debug-output.sh
 startup_debug.txt
+multilib_debug.txt
 toolchain_diag.txt
 all_debug.txt
 
