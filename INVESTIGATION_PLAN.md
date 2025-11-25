@@ -99,6 +99,65 @@ ls -la *.o
 
 ### 2025-11-25 18:27 - Starting Structured Investigation
 
-**Action**: Creating methodical investigation plan
+**Action**: Created methodical investigation plan with hypothesis tree
 **Next**: Execute Step 1 - verify newlib crt0.o installation
+
+### 2025-11-25 18:30 - Enhanced Debug Logging Implemented
+
+**Actions taken**:
+1. Added debug output to build-newlib.sh (after make install)
+   - Searches for all *crt*.o files in install directory
+   - Lists root lib directory contents
+   - Lists sample multilib (thumb/v6-m/nofp) contents
+
+2. Added debug output to build-gcc-final-gdb.sh (after make install)
+   - Searches for crt*.o in install directory
+   - Searches for crt*.o in build directory (before cleanup)
+   - Lists sample libgcc multilib directory contents
+
+3. Enhanced diagnose-toolchain.sh
+   - Now shows actual FILE listings, not just directory structure
+   - Shows files in both newlib and GCC lib directories
+   - Provides concrete evidence of what's installed
+
+**What we'll learn from next CI build**:
+- ✅ Do startup files exist in newlib build artifacts?
+- ✅ Do startup files exist in GCC libgcc build artifacts?
+- ✅ Does make install copy them to the install directory?
+- ✅ If they exist, what are the exact paths?
+- ✅ If they don't exist, at what stage do they fail?
+
+**Next steps**:
+- Wait for CI build with enhanced debug logging
+- Extract debug sections from build log
+- Analyze findings and update hypothesis tree
+- Apply targeted fix based on evidence
+
+### Key Insights from Code Review
+
+**newlib crt0.o installation** (from Makefile.inc):
+- Line 2: `if !MAY_SUPPLY_SYSCALLS multilibtool_DATA += %D%/crt0.o`
+- Condition: Only installed if MAY_SUPPLY_SYSCALLS is FALSE
+- Our config: `--disable-newlib-supplied-syscalls` sets this to FALSE
+- Expected: crt0.o SHOULD be installed to each multilib directory
+
+**GCC libgcc startup files** (from Makefile.in):
+- Line 60: `EXTRA_PARTS = @extra_parts@` (set by configure from config.host)
+- Line 64: `extra-parts = libgcc-extra-parts` (make target)
+- Line 1106: `all: $(extra-parts)` (default target depends on it)
+- Line 78: `INSTALL_PARTS = $(EXTRA_PARTS)` (what gets installed)
+- Line 1196: install target calls install-leaf which installs INSTALL_PARTS
+- Expected: crti.o, crtn.o, crtbegin.o, crtend.o SHOULD be built and installed
+
+**config.host for ARM**:
+- Sets: `extra_parts="crtbegin.o crtend.o crti.o crtn.o"`
+- These should be configured into EXTRA_PARTS automatically
+
+### Current Hypothesis Priority
+
+**Most likely**: Configuration or make variables preventing build (Hypothesis #4, #5)
+**Less likely**: Files built but not installed (Hypothesis #2)
+**Least likely**: Files installed then deleted (Hypothesis #3)
+
+The debug logging will definitively answer these questions.
 
