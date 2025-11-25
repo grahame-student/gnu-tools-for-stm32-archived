@@ -283,18 +283,24 @@ copy_multi_libs() {
         multi_dir="${multilib%%;*}"
         src_dir="${src_prefix}/${multi_dir}"
         dst_dir="${dst_prefix}/${multi_dir}"
+        echo "DEBUG: Copying from ${src_dir} to ${dst_dir}"
+        echo "DEBUG: multilib=${multilib}, multi_dir=${multi_dir}"
         # Copy C++ libraries if they exist (they might not if gcc-size-libstdcxx wasn't built)
-        cp -f "${src_dir}/libstdc++.a" "${dst_dir}/libstdc++_nano.a" 2>/dev/null || true
-        cp -f "${src_dir}/libsupc++.a" "${dst_dir}/libsupc++_nano.a" 2>/dev/null || true
-        # Copy C libraries (these should always exist from newlib-nano)
-        cp -f "${src_dir}/libc.a" "${dst_dir}/libc_nano.a"
-        cp -f "${src_dir}/libg.a" "${dst_dir}/libg_nano.a"
-        cp -f "${src_dir}/librdimon.a" "${dst_dir}/librdimon_nano.a" 2>/dev/null || true
-        cp -f "${src_dir}/librdimon-v2m.a" "${dst_dir}/librdimon-v2m_nano.a" 2>/dev/null || true
-        cp -f "${src_dir}/nano.specs" "${dst_dir}/"
-        cp -f "${src_dir}/rdimon.specs" "${dst_dir}/" 2>/dev/null || true
-        cp -f "${src_dir}/nosys.specs" "${dst_dir}/" 2>/dev/null || true
-        cp -f "${src_dir}/"*crt0.o "${dst_dir}/" 2>/dev/null || true
+        cp -f "${src_dir}/libstdc++.a" "${dst_dir}/libstdc++_nano.a" 2>/dev/null || echo "DEBUG: libstdc++.a not found in ${src_dir}"
+        cp -f "${src_dir}/libsupc++.a" "${dst_dir}/libsupc++_nano.a" 2>/dev/null || echo "DEBUG: libsupc++.a not found in ${src_dir}"
+        # Copy C libraries (these should exist from newlib-nano, but use || true for safety)
+        cp -f "${src_dir}/libc.a" "${dst_dir}/libc_nano.a" 2>/dev/null || echo "DEBUG: libc.a not found in ${src_dir}"
+        cp -f "${src_dir}/libg.a" "${dst_dir}/libg_nano.a" 2>/dev/null || echo "DEBUG: libg.a not found in ${src_dir}"
+        cp -f "${src_dir}/libm.a" "${dst_dir}/libm_nano.a" 2>/dev/null || echo "DEBUG: libm.a not found in ${src_dir}"
+        cp -f "${src_dir}/librdimon.a" "${dst_dir}/librdimon_nano.a" 2>/dev/null || echo "DEBUG: librdimon.a not found in ${src_dir}"
+        cp -f "${src_dir}/librdimon-v2m.a" "${dst_dir}/librdimon-v2m_nano.a" 2>/dev/null || echo "DEBUG: librdimon-v2m.a not found in ${src_dir}"
+        cp -f "${src_dir}/nano.specs" "${dst_dir}/" 2>/dev/null || echo "DEBUG: nano.specs not found in ${src_dir}"
+        cp -f "${src_dir}/rdimon.specs" "${dst_dir}/" 2>/dev/null || echo "DEBUG: rdimon.specs not found in ${src_dir}"
+        cp -f "${src_dir}/nosys.specs" "${dst_dir}/" 2>/dev/null || echo "DEBUG: nosys.specs not found in ${src_dir}"
+        cp -f "${src_dir}/"*crt0.o "${dst_dir}/" 2>/dev/null || echo "DEBUG: *crt0.o not found in ${src_dir}"
+        # List what's actually in the source directory for debugging
+        echo "DEBUG: Contents of ${src_dir}:"
+        ls -la "${src_dir}/" 2>/dev/null || echo "DEBUG: Directory ${src_dir} does not exist!"
     done
 }
 

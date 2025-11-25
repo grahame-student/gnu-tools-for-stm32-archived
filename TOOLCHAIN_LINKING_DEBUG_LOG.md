@@ -354,3 +354,37 @@ To fully match the original build process, need to add Task [III-5]:
 - Modified copy_multi_libs to skip missing files
 - Should allow C-only projects to build
 - C++ support still missing
+
+## Issue #4: No Files Actually Copied (2025-11-25)
+
+### Problem
+User reports diagnostic output shows NO files found in container:
+```
+Searching for: crti.o
+Searching for: crtbegin.o
+Searching for: crt0.o
+Searching for: libc_nano.a
+```
+No "Found:" messages, meaning files weren't copied despite PR claims.
+
+### Root Cause Analysis
+copy_multi_libs has `|| true` on all cp commands, making ALL failures silent. If source files don't exist, nothing gets copied and there's no error or indication of failure.
+
+Possible explanations:
+1. newlib-nano didn't install files to expected location
+2. Files exist but in wrong multilib subdirectories
+3. Directory structure mismatch
+4. Files deleted before copy_multi_libs runs
+
+### Investigation Steps
+Added debug logging to copy_multi_libs to diagnose:
+- Print source and destination directories for each multilib
+- Print which files are missing
+- List actual contents of source directories
+- Will help identify where files actually are (if anywhere)
+
+### Status
+🔍 **INVESTIGATING** - Added debug output to copy_multi_libs
+- Next: Run build and examine debug logs
+- Determine where files actually get installed by newlib-nano
+- Fix directory paths or build process as needed
