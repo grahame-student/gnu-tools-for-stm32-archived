@@ -75,7 +75,7 @@ fi
 
 # Passing USE_TM_CLONE_REGISTRY=0 via INHIBIT_LIBC_CFLAGS to disable
 # transactional memory related code in crtbegin.o.
-# This is a workaround. Better approach is have a t-* to set this flag via
+# This is a workaround. Better approach is to have a t-* to set this flag via
 # CRTSTUFF_T_CFLAGS
 make -j"$JOBS" CCXXFLAGS="$BUILD_OPTIONS" \
         LDFLAGS_FOR_TARGET="--specs=nosys.specs" \
