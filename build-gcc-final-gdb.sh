@@ -83,6 +83,17 @@ make -j"$JOBS" CCXXFLAGS="$BUILD_OPTIONS" \
         INHIBIT_LIBC_CFLAGS="-DUSE_TM_CLONE_REGISTRY=0"
 make install
 
+# DEBUG: Check if startup files were installed before cleanup
+echo "=== DEBUG: Checking for startup files after make install ==="
+echo "Searching for crt*.o in install directory:"
+find "$INSTALLDIR_NATIVE" -name "crt*.o" 2>/dev/null | head -20 || echo "No crt*.o files found"
+echo "Searching for crt*.o in GCC build directory:"
+find "$BUILDDIR_NATIVE/gcc-final/arm-none-eabi" -name "crt*.o" 2>/dev/null | head -20 || echo "No crt*.o files found in build dir"
+echo "Sample libgcc multilib directory contents (thumb/v6-m/nofp):"
+# shellcheck disable=SC2012
+ls -la "$BUILDDIR_NATIVE/gcc-final/arm-none-eabi/thumb/v6-m/nofp/libgcc/" 2>/dev/null | head -30 || echo "Directory not found"
+echo "=== END DEBUG ==="
+
 # Copy nano variant libraries from build sysroot to install directory
 # The GCC final build creates nano variants (built with -Os for size optimization)
 # in the temporary build sysroot. These need to be copied to the install location.

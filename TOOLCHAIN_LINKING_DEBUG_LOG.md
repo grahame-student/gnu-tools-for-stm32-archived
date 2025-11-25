@@ -554,3 +554,40 @@ Reverting CCXXFLAGS → CXXFLAGS change. Will try Option B:
 - User feedback incorporated
 - Investigating alternative approach
 - Next: Test if CCXXFLAGS + sysroot fix + INHIBIT_LIBC_CFLAGS works
+
+## Methodical Investigation Approach (2025-11-25)
+
+### Enhanced Diagnostics
+Added debug output to capture state before cleanup:
+
+**build-newlib.sh** (after `make install`):
+- Lists all *crt*.o files in install directory
+- Shows contents of root lib directory
+- Shows contents of sample multilib directory (thumb/v6-m/nofp)
+
+**build-gcc-final-gdb.sh** (after `make install`):
+- Searches for crt*.o in both install and build directories
+- Lists libgcc multilib directory contents before cleanup
+- Captures state immediately after make install, before rm -rf
+
+**diagnose-toolchain.sh** (runs after full build):
+- Lists actual FILES in key directories, not just directory structure
+- Shows sample multilib (thumb/v6-m/nofp) contents
+- Shows both newlib (arm-none-eabi/lib/) and GCC (lib/gcc/) directories
+
+### Investigation Questions
+1. Are startup files being BUILT during make?
+2. Are they being INSTALLED by make install?
+3. Are they being DELETED accidentally during cleanup?
+4. Is there a configuration issue preventing their build?
+
+### Next Steps
+- CI build with enhanced debug output
+- Analyze debug logs to determine WHERE the startup files are failing
+- Based on findings, apply targeted fix
+
+### Status
+🔍 **INVESTIGATION ENHANCED** - Added comprehensive debug logging
+- Debug output captures state before cleanups
+- Will reveal if files are built, installed, or deleted
+- Next: CI build and log analysis

@@ -50,6 +50,19 @@ fi
 
 make -j"$JOBS"
 make install
+
+# DEBUG: Check if crt0.o was installed  
+echo "=== DEBUG: Checking for crt0.o after newlib install ==="
+echo "Searching for crt0.o and related files in install directory:"
+find "$INSTALLDIR_NATIVE/arm-none-eabi/lib" -name "*crt*.o" 2>/dev/null | head -20 || echo "No crt*.o files found"
+echo "Contents of root lib directory:"
+# shellcheck disable=SC2012
+ls -la "$INSTALLDIR_NATIVE/arm-none-eabi/lib/"*.o 2>/dev/null | head -10 || echo "No .o files in root lib"
+echo "Contents of thumb/v6-m/nofp multilib:"
+# shellcheck disable=SC2012
+ls -la "$INSTALLDIR_NATIVE/arm-none-eabi/lib/thumb/v6-m/nofp/"*.o 2>/dev/null | head -10 || echo "No .o files in thumb/v6-m/nofp"
+echo "=== END DEBUG ==="
+
 popd
 
 # Restore environment
