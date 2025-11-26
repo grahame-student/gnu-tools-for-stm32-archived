@@ -3,8 +3,9 @@
 #
 # Usage: ./extract-debug-output.sh <build-log-file>
 #
-# This script extracts all startup file debug information and toolchain
-# diagnostics from a build log file and saves them to separate files.
+# This script extracts all startup file debug information (including EXTRA_PARTS
+# diagnostics), multilib configuration decisions, and toolchain diagnostics
+# from a build log file and saves them to separate files.
 
 set -e
 set -u
@@ -16,9 +17,10 @@ if [ $# -eq 0 ]; then
     echo "  $0 workflow-build.log"
     echo ""
     echo "Output files:"
-    echo "  - startup_debug.txt     : Startup file installation tracking"
+    echo "  - startup_debug.txt     : Startup file installation tracking + EXTRA_PARTS diagnostics"
+    echo "  - multilib_debug.txt    : Multilib configuration decisions (ml_toplevel_p, MULTIDO)"
     echo "  - toolchain_diag.txt    : Toolchain configuration and final state"
-    echo "  - all_debug.txt         : Combined output from both"
+    echo "  - all_debug.txt         : Combined output from all sources"
     exit 1
 fi
 

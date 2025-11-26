@@ -60,12 +60,20 @@ grep "MULTILIB_DEBUG:" build.log | grep "ml_toplevel_p\|ml_do"
 - Multilib directories with libgcc.a (actually built)
 - MULTIDO value from generated Makefile
 - enable_multilib from config.status
+- **EXTRA_PARTS diagnostics** (NEW):
+  - EXTRA_PARTS variable in root and multilib Makefiles
+  - extra-parts (lowercase) variable
+  - tmake_file fragments included
+  - crti.o build rules existence
+  - crt*.S/crt*.c source files in libgcc source tree
+  - Actual .o files in sample build directories
 - crt*.o files in build and install directories
 - Sample multilib directory contents
 - **Answers**: 
   - Did GCC build and install startup files?
   - Why are only some multilibs being built?
   - Is MULTIDO set correctly?
+  - Why aren't EXTRA_PARTS being built?
 
 ### MULTILIB_DEBUG from config-ml.in
 - ml_toplevel_p value (yes/no)
