@@ -890,3 +890,114 @@ To pinpoint the exact cause of MULTIDO=true, added comprehensive debug output:
 
 One CI run should provide all answers needed to apply the correct fix.
 
+
+---
+
+## Issue #8: Multilibs Building But Missing Startup Files! 🎉🔍
+
+**Date**: 2025-11-26
+**Investigator**: @copilot
+
+### BREAKTHROUGH: Multilibs ARE Building!
+
+**Evidence from latest diagnostics.txt (commit 62f370c3e)**:
+
+✅ **ml_toplevel_p = yes** (confirmed by MULTILIB_DEBUG output)
+✅ **ml_do = MAKE** (multilibs ENABLED)
+✅ **libgcc.a found in ALL multilib directories**:
+- thumb/v6-m/nofp/libgcc.a ✓
+- thumb/v7-m/nofp/libgcc.a ✓
+- thumb/v8-m.main+fp/hard/libgcc.a ✓
+- ...and 20+ more variants
+
+**This confirms Issue #7 is SOLVED!** The sysroot fix and INHIBIT_LIBC_CFLAGS addition enabled proper multilib builds.
+
+### NEW Problem: Startup Files Missing Despite Multilib Success
+
+**What's working**:
+- Multilib configuration: ✅ All 39 variants configured
+- Multilib builds: ✅ libgcc.a built for all variants
+- config-ml.in: ✅ Correctly sets MULTIDO=$(MAKE)
+
+**What's NOT working**:
+- ❌ NO crti.o found in ANY multilib
+- ❌ NO crtn.o found in ANY multilib  
+- ❌ NO crtbegin.o found in ANY multilib
+- ❌ NO crtend.o found in ANY multilib
+- ❌ NO crt0.o found in ANY multilib
+- ❌ NO libc_nano.a found anywhere
+
+### Root Cause Analysis
+
+**From src/gcc/libgcc/config.host (ARM section)**:
+```bash
+arm*-*-eabi* | arm*-*-symbianelf* | arm*-*-rtems*)
+  tm_file="$tm_file arm/bpabi-lib.h"
+  tmake_file="${tmake_file} arm/t-arm arm/t-bpabi t-crtfm"
+  extra_parts="crtbegin.o crtend.o crti.o crtn.o"
+  ;;
+```
+
+**This shows libgcc SHOULD build these files as EXTRA_PARTS.**
+
+**Hypothesis**: The EXTRA_PARTS are defined but not being built because:
+1. Missing dependencies or build rules
+2. tmake_file fragments not being included properly
+3. INHIBIT_LIBC_CFLAGS may need to be passed differently
+4. Need additional configure flags for extra_parts
+
+**Key clue from src/gcc/libgcc/Makefile.in**:
+```makefile
+extra-parts = $(EXTRA_PARTS)
+all: $(extra-parts)
+
+install-leaf: $(install-shared) $(install-libunwind)
+$(mkinstalldirs) $(DESTDIR)$(inst_libdir)
+ifdef extra-parts
+$(INSTALL_DATA) $(extra-parts) $(DESTDIR)$(inst_libdir)/
+endif
+```
+
+The Makefile SHOULD build and install extra-parts if EXTRA_PARTS is set.
+
+### Investigation Questions
+
+1. **Are extra-parts being built but not installed?**
+   - Check build directories during make (before cleanup)
+   
+2. **Is EXTRA_PARTS variable empty?**
+   - Check generated Makefile for EXTRA_PARTS value
+   
+3. **Are tmake_file fragments being included?**
+   - Check if arm/t-arm, arm/t-bpabi, t-crtfm are included
+   
+4. **Is there a missing dependency?**
+   - crtbegin/crtend need crtstuff.c
+   - crti/crtn need their source files
+   
+5. **Is INHIBIT_LIBC_CFLAGS reaching the right targets?**
+   - May need to be set in Makefile, not just make command line
+
+### Next Actions
+
+**Option A**: Check generated Makefile for EXTRA_PARTS
+- Add debug output to show EXTRA_PARTS value
+- Verify tmake_file fragments are included
+
+**Option B**: Build extra-parts explicitly  
+- Try `make all extra-parts` or `make crti.o crtbegin.o` etc.
+
+**Option C**: Check if build rules exist
+- Look for crti.S, crtn.S source files
+- Check if crtstuff.c compilation rules are present
+
+**Option D**: Compare with monolithic script
+- See if there's a different way extra-parts are built
+- Check for missing make targets or variables
+
+### Status
+
+**Major Progress**: Multilibs are now building! 🎉
+**Remaining Issue**: extra_parts (startup files) not being built/installed
+**Next**: Add debug output to capture EXTRA_PARTS and tmake_file values
+

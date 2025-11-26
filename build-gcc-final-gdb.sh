@@ -134,6 +134,35 @@ grep "^MULTIDO" "$BUILDDIR_NATIVE/gcc-final/arm-none-eabi/libgcc/Makefile" 2>/de
 echo "STARTUP_DEBUG: enable_multilib value from config.status:"
 grep "enable_multilib" "$BUILDDIR_NATIVE/gcc-final/arm-none-eabi/libgcc/config.status" 2>/dev/null | head -3 | sed 's/^/STARTUP_DEBUG:   /' || echo "STARTUP_DEBUG:   config.status not found"
 
+# 4a. Check EXTRA_PARTS in root libgcc Makefile
+echo "STARTUP_DEBUG: EXTRA_PARTS in root libgcc Makefile:"
+grep "^EXTRA_PARTS" "$BUILDDIR_NATIVE/gcc-final/arm-none-eabi/libgcc/Makefile" 2>/dev/null | sed 's/^/STARTUP_DEBUG:   /' || echo "STARTUP_DEBUG:   Not found in Makefile"
+
+# 4b. Check extra-parts (lowercase) variable
+echo "STARTUP_DEBUG: extra-parts variable in root libgcc Makefile:"
+grep "^extra-parts" "$BUILDDIR_NATIVE/gcc-final/arm-none-eabi/libgcc/Makefile" 2>/dev/null | sed 's/^/STARTUP_DEBUG:   /' || echo "STARTUP_DEBUG:   Not found"
+
+# 4c. Check tmake_file in root libgcc Makefile (shows which fragment files included)
+echo "STARTUP_DEBUG: tmake_file fragments in root libgcc Makefile:"
+grep "# tmake_file" "$BUILDDIR_NATIVE/gcc-final/arm-none-eabi/libgcc/Makefile" 2>/dev/null | head -5 | sed 's/^/STARTUP_DEBUG:   /' || echo "STARTUP_DEBUG:   Not found"
+
+# 4d. Check if crti/crtn build rules exist
+echo "STARTUP_DEBUG: Build rules for crti.o in Makefile:"
+grep -E "crti\.o:|crti\.S" "$BUILDDIR_NATIVE/gcc-final/arm-none-eabi/libgcc/Makefile" 2>/dev/null | head -3 | sed 's/^/STARTUP_DEBUG:   /' || echo "STARTUP_DEBUG:   No crti.o rules found"
+
+# 4e. Check sample multilib Makefile for EXTRA_PARTS
+echo "STARTUP_DEBUG: EXTRA_PARTS in thumb/v6-m/nofp/libgcc Makefile:"
+grep "^EXTRA_PARTS" "$BUILDDIR_NATIVE/gcc-final/arm-none-eabi/thumb/v6-m/nofp/libgcc/Makefile" 2>/dev/null | sed 's/^/STARTUP_DEBUG:   /' || echo "STARTUP_DEBUG:   Makefile not found or no EXTRA_PARTS"
+
+# 4f. Check if source files for crt*.o exist
+echo "STARTUP_DEBUG: Checking for crt*.S source files in libgcc source:"
+find "$SRCDIR/$GCC/libgcc" -name "crt*.S" -o -name "crt*.c" 2>/dev/null | head -10 | sed 's/^/STARTUP_DEBUG:   /' || echo "STARTUP_DEBUG:   No source files found"
+
+# 4g. List actual .o files in a sample build directory (before cleanup)
+echo "STARTUP_DEBUG: Object files in thumb/v6-m/nofp/libgcc build dir:"
+# shellcheck disable=SC2012
+ls -1 "$BUILDDIR_NATIVE/gcc-final/arm-none-eabi/thumb/v6-m/nofp/libgcc/"*.o 2>/dev/null | head -15 | sed 's/^/STARTUP_DEBUG:   /' || echo "STARTUP_DEBUG:   No .o files or directory not found"
+
 # 5. Check if config-ml.in was invoked
 echo "STARTUP_DEBUG: Check if config-ml.in modified the Makefile:"
 grep -E "Adding multilib support|with_multisubdir" "$BUILDDIR_NATIVE/gcc-final/config.log" 2>/dev/null | tail -5 | sed 's/^/STARTUP_DEBUG:   /' || echo "STARTUP_DEBUG:   No evidence in config.log"
