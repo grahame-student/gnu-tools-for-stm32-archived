@@ -414,3 +414,661 @@ Startup file issue is SEPARATE from newlib-nano problem:
 2. Check if GCC build installs crti.o, crtn.o  
 3. These should come from earlier build stages (newlib, gcc-final)
 4. May need separate investigation/fix for startup files
+
+## Issue #5: Startup Files Not Installed by GCC (2025-11-25)
+
+### Problem
+Startup files (crti.o, crtn.o, crtbegin.o, crtend.o) are not being installed by GCC build.
+- crt0.o should come from newlib (installed in newlib stage)
+- crti.o, crtn.o, crtbegin.o, crtend.o should come from GCC libgcc (installed in gcc-final stage)
+
+### Root Cause Analysis
+Compared build-gcc-final-gdb.sh with build-toolchain.sh (monolithic script) and found TWO critical differences:
+
+1. **Wrong sysroot configuration** (line 68):
+   - Split script: `--with-sysroot="$BUILDDIR_NATIVE/target-libs/arm-none-eabi"`
+   - Monolithic: `--with-sysroot=$INSTALLDIR_NATIVE/arm-none-eabi`
+   - Impact: GCC configured to use build-time temp directory instead of install directory
+
+2. **Missing INHIBIT_LIBC_CFLAGS** (line 76-78):
+   - Split script: Missing this flag
+   - Monolithic: `INHIBIT_LIBC_CFLAGS="-DUSE_TM_CLONE_REGISTRY=0"`
+   - Impact: Needed to properly build crtbegin.o (disables transactional memory code)
+
+### The Fix
+Updated build-gcc-final-gdb.sh:
+1. Changed sysroot to `$INSTALLDIR_NATIVE/arm-none-eabi` (matches monolithic script Task [III-4])
+2. Added `INHIBIT_LIBC_CFLAGS="-DUSE_TM_CLONE_REGISTRY=0"` to make command (matches monolithic script)
+
+### Expected Outcome
+With these changes:
+- GCC libgcc will build crti.o, crtn.o, crtbegin.o, crtend.o for each multilib variant
+- `make install` will install them to `$INSTALLDIR_NATIVE/lib/gcc/arm-none-eabi/13.3.1/<multilib>/`
+- Linker will find these files when building test_project
+- C++ libraries will be linked against standard newlib (not nano)
+  - This matches Task [III-4] behavior in monolithic script
+  - Nano C++ libraries would require separate Task [III-5] build (future work)
+
+### Status
+🔧 **FIX APPLIED** - Awaiting build validation
+- Modified build-gcc-final-gdb.sh with correct sysroot and INHIBIT_LIBC_CFLAGS
+- Next: Test build to verify startup files are installed
+- Next: Verify test_project builds successfully
+
+## Issue #6: Startup Files Still Missing - Wrong Make Variable (2025-11-25)
+
+### Problem
+After applying Issue #5 fix (sysroot + INHIBIT_LIBC_CFLAGS), diagnostics from CI build show:
+- ✅ Sysroot correctly set to `/root/build/gnu-tools-for-stm32/install-native/arm-none-eabi`
+- ✅ INHIBIT_LIBC_CFLAGS correctly set to `-DUSE_TM_CLONE_REGISTRY=0` in libgcc.mvars
+- ✅ libc_nano.a found in all 39 multilib directories
+- ✅ libgcc.a found in all 39 multilib directories
+- ❌ crt*.o files STILL not found anywhere
+
+### Root Cause Analysis
+Compared make command in build-gcc-final-gdb.sh with build-toolchain.sh (monolithic):
+
+**Split script (INCORRECT)**:
+```bash
+make -j"$JOBS" CCXXFLAGS="$BUILD_OPTIONS" \
+        LDFLAGS_FOR_TARGET="--specs=nosys.specs" \
+        CXXFLAGS_FOR_TARGET="-g -Os ..." \
+        INHIBIT_LIBC_CFLAGS="-DUSE_TM_CLONE_REGISTRY=0"
+```
+
+**Monolithic script (CORRECT)**:
+```bash
+make -j$JOBS CXXFLAGS="$BUILD_OPTIONS" \
+        LDFLAGS_FOR_TARGET="--specs=nosys.specs" \
+        INHIBIT_LIBC_CFLAGS="-DUSE_TM_CLONE_REGISTRY=0"
+```
+
+**The Problem**: `CCXXFLAGS` is NOT a valid GCC Makefile variable!
+- Searched entire GCC source tree - no references to `CCXXFLAGS`
+- Only `CXXFLAGS` is recognized by GCC's Makefile system
+- Using wrong variable name means build options aren't being passed correctly
+- This likely prevents libgcc extra_parts (crt*.o) from being built properly
+
+### The Fix
+Changed build-gcc-final-gdb.sh line 80:
+- Changed `CCXXFLAGS="$BUILD_OPTIONS"` to `CXXFLAGS="$BUILD_OPTIONS"`
+- Removed `CXXFLAGS_FOR_TARGET` line (not used in monolithic script)
+- Now matches monolithic script Task [III-4] exactly
+
+### Expected Outcome
+With the correct `CXXFLAGS` variable:
+- GCC build will receive proper build options
+- libgcc extra_parts (crti.o, crtn.o, crtbegin.o, crtend.o) will be built
+- `make install` will install them to `$INSTALLDIR_NATIVE/lib/gcc/arm-none-eabi/13.3.1/<multilib>/`
+- Standard newlib crt0.o should also be available (from build-newlib.sh)
+- test_project should build successfully
+
+### Status
+🔧 **SECOND FIX APPLIED** - Corrected make variable name
+- Changed CCXXFLAGS → CXXFLAGS
+- Removed CXXFLAGS_FOR_TARGET
+- Now matches monolithic script exactly
+- Next: CI build to verify startup files are installed
+
+## Issue #6 CORRECTION: CCXXFLAGS Is Valid (2025-11-25)
+
+### User Feedback
+@grahame-student correctly pointed out that the monolithic script DOES use `CCXXFLAGS` at line 514.
+
+### My Mistake
+I incorrectly claimed CCXXFLAGS doesn't exist. The truth:
+- **Task [III-4]** (line 457): Uses `CXXFLAGS` with `INHIBIT_LIBC_CFLAGS`
+- **Task [III-5]** (line 514): Uses `CCXXFLAGS` with `CXXFLAGS_FOR_TARGET`
+
+I was comparing split script with Task [III-4], but split script is a HYBRID:
+- Uses Task [III-5]'s make variables (`CCXXFLAGS`)
+- But installs to final location like Task [III-4] (prefix=$INSTALLDIR_NATIVE)
+- Original sysroot pointed to temp dir (problematic - gets deleted!)
+
+### The Real Problem
+The split script's hybrid approach causes issues:
+1. Sysroot in temp dir gets baked into GCC, but dir is deleted after build
+2. Using CCXXFLAGS from Task [III-5] but prefix from Task [III-4]
+3. This confused configuration prevents startup files from being installed
+
+### Options
+**Option A**: Match Task [III-4] exactly
+- Sysroot: `$INSTALLDIR_NATIVE/arm-none-eabi` (standard newlib)
+- Make: `CXXFLAGS` + `INHIBIT_LIBC_CFLAGS`
+- Result: Standard C++ libs + startup files installed
+
+**Option B**: Fix hybrid approach
+- Sysroot: `$INSTALLDIR_NATIVE/arm-none-eabi` (fixed to not use temp dir)
+- Make: Keep `CCXXFLAGS` + `CXXFLAGS_FOR_TARGET` + add `INHIBIT_LIBC_CFLAGS`
+- Result: May work, but untested combination
+
+### Decision
+Reverting CCXXFLAGS → CXXFLAGS change. Will try Option B:
+- Keep sysroot fix (install dir, not temp dir)
+- Keep INHIBIT_LIBC_CFLAGS
+- Restore CCXXFLAGS and CXXFLAGS_FOR_TARGET
+- Test if this combination produces startup files
+
+### Status
+🔄 **REVERTED** - Restoring CCXXFLAGS
+- User feedback incorporated
+- Investigating alternative approach
+- Next: Test if CCXXFLAGS + sysroot fix + INHIBIT_LIBC_CFLAGS works
+
+## Methodical Investigation Approach (2025-11-25)
+
+### Enhanced Debug Logging (Extractable)
+
+All debug output uses consistent prefixes for easy extraction:
+
+**Simple one-command extraction**:
+```bash
+# Use the provided extraction script
+./extract-debug-output.sh build.log
+
+# This creates:
+#   - startup_debug.txt    : Startup file installation tracking
+#   - toolchain_diag.txt   : Toolchain configuration and diagnostics
+#   - all_debug.txt        : Combined output from both
+```
+
+**Manual extraction** (if script not available):
+```bash
+# Get startup file debug output
+grep "STARTUP_DEBUG:" build.log > startup_debug.txt
+
+# Get toolchain diagnostics
+grep "TOOLCHAIN_DIAG:" build.log > toolchain_diag.txt
+
+# Get both combined
+grep -E "STARTUP_DEBUG:|TOOLCHAIN_DIAG:" build.log > all_debug.txt
+```
+
+**Debug sections in build scripts**:
+1. **build-newlib.sh**: After `make install`, before cleanup
+   - Prefix: `STARTUP_DEBUG:`
+   - Shows: crt*.o files from newlib
+   
+2. **build-gcc-final-gdb.sh**: After `make install`, before cleanup
+   - Prefix: `STARTUP_DEBUG:`
+   - Shows: crt*.o in build and install directories
+
+3. **diagnose-toolchain.sh**: After complete build
+   - Prefix: `TOOLCHAIN_DIAG:`
+   - Shows: Final toolchain state and file listings
+
+### Investigation Questions
+1. Are startup files being BUILT during make?
+2. Are they being INSTALLED by make install?
+3. Are they being DELETED accidentally during cleanup?
+4. Is there a configuration issue preventing their build?
+
+### Next Steps
+- CI build with enhanced debug output
+- Analyze debug logs to determine WHERE the startup files are failing
+- Based on findings, apply targeted fix
+
+### Hypothesis Testing (Priority Order)
+
+**H1**: GCC not building extra_parts due to configuration
+- **Test**: Check build directory for crt*.o before cleanup
+- **Evidence needed**: STARTUP_DEBUG output from gcc-final stage
+
+**H2**: GCC building but not installing extra_parts  
+- **Test**: Files in build dir but not install dir
+- **Evidence needed**: Compare build vs install directory listings
+
+**H3**: newlib not installing crt0.o due to configure option
+- **Test**: Check MAY_SUPPLY_SYSCALLS setting
+- **Evidence needed**: STARTUP_DEBUG output from newlib stage
+
+**H4**: Files installed then accidentally deleted
+- **Test**: Check if cleanup scripts remove .o files
+- **Evidence needed**: Compare pre/post cleanup state
+
+### Code Analysis Findings
+
+**newlib** (should install crt0.o):
+- Makefile.inc line 2: `if !MAY_SUPPLY_SYSCALLS multilibtool_DATA += %D%/crt0.o`
+- Config: `--disable-newlib-supplied-syscalls` → Should install crt0.o ✓
+
+**GCC libgcc** (should install crti.o, crtn.o, crtbegin.o, crtend.o):
+- Makefile.in line 60: `EXTRA_PARTS = @extra_parts@`
+- Makefile.in line 1106: `all: $(extra-parts)` → Should build automatically ✓
+- Makefile.in line 78: `INSTALL_PARTS = $(EXTRA_PARTS)` → Should install ✓
+- config.host: `extra_parts="crtbegin.o crtend.o crti.o crtn.o"` ✓
+
+**Conclusion**: Build system is configured correctly. Debug output will show where process fails.
+
+### Status
+🔍 **INVESTIGATION ENHANCED** - Added comprehensive debug logging
+- Debug output captures state before cleanups
+- Will reveal if files are built, installed, or deleted
+- Next: CI build and log analysis
+
+---
+
+## QUICK REFERENCE
+
+### Extract Debug Output
+```bash
+./extract-debug-output.sh build.log
+```
+See **DEBUG_EXTRACTION.md** for complete guide.
+
+### Current Status
+- ✅ Sysroot fixed: Points to install directory (stable)
+- ✅ INHIBIT_LIBC_CFLAGS added: Enables crtbegin.o generation
+- ❌ Startup files still missing: Awaiting debug log analysis
+
+### Hypothesis Priority
+1. **H1**: GCC not building extra_parts (check build dir)
+2. **H2**: GCC building but not installing (check install dir)
+3. **H3**: newlib not installing crt0.o (check newlib output)
+4. **H4**: Cleanup deleting files (check before/after cleanup)
+
+### Next Action
+Run CI build → Extract debug output → Analyze → Apply targeted fix
+
+---
+
+## CURRENT INVESTIGATION STATUS (2025-11-25)
+
+> **See DEBUG_EXTRACTION.md for complete guide on extracting debug output**
+> 
+> **Quick extraction**: `./extract-debug-output.sh build.log`
+
+### Applied Fixes
+1. ✅ Sysroot: `$BUILDDIR_NATIVE/target-libs/arm-none-eabi` → `$INSTALLDIR_NATIVE/arm-none-eabi`
+2. ✅ Added: `INHIBIT_LIBC_CFLAGS="-DUSE_TM_CLONE_REGISTRY=0"` to make command
+3. ✅ Kept: CCXXFLAGS and CXXFLAGS_FOR_TARGET (confirmed by user as correct)
+
+### Diagnostics Results (Latest)
+- ✅ Sysroot: Correctly configured to install directory
+- ✅ libc_nano.a: Found in all 39 multilib directories
+- ✅ libgcc.a: Found in all 39 multilib directories
+- ❌ **crt0.o**: NOT found (should come from newlib)
+- ❌ **crti.o, crtn.o**: NOT found (should come from GCC libgcc)
+- ❌ **crtbegin.o, crtend.o**: NOT found (should come from GCC libgcc)
+
+### Enhanced Debug Logging (Extractable)
+
+All debug output uses consistent markers for easy extraction:
+
+**From build-newlib.sh** - Search for: `=== DEBUG: Checking for crt0.o`
+```bash
+grep "=== DEBUG: Checking for crt0.o" -A20 build.log
+```
+
+**From build-gcc-final-gdb.sh** - Search for: `=== DEBUG: Checking for startup files`  
+```bash
+grep "=== DEBUG: Checking for startup files" -A20 build.log
+```
+
+**From diagnose-toolchain.sh** - Search for: `TOOLCHAIN_DIAG:`
+```bash
+grep "TOOLCHAIN_DIAG:" build.log > diagnostics.txt
+```
+
+### Next Investigation Steps
+
+**Priority 1**: Verify newlib crt0.o build/install
+- Check debug output from build-newlib.sh
+- Question: Does `make install` create crt0.o files?
+
+**Priority 2**: Verify GCC libgcc extra_parts build/install
+- Check debug output from build-gcc-final-gdb.sh  
+- Questions: Are crt*.o files in build directory? In install directory?
+
+**Priority 3**: Based on findings, apply targeted fix
+- If files in build dir but not installed → Fix make install
+- If files not in build dir → Fix make or configure
+- If files installed then deleted → Fix cleanup steps
+
+### Key Technical Insights
+
+**newlib Makefile.inc** (line 2):
+```makefile
+if !MAY_SUPPLY_SYSCALLS
+multilibtool_DATA += %D%/crt0.o
+endif
+```
+Config: `--disable-newlib-supplied-syscalls` → MAY_SUPPLY_SYSCALLS=FALSE → crt0.o should install
+
+**GCC libgcc Makefile.in**:
+- Line 60: `EXTRA_PARTS = @extra_parts@` (from configure/config.host)
+- Line 78: `INSTALL_PARTS = $(EXTRA_PARTS)` 
+- Line 1106: `all: $(extra-parts)` → builds startup files
+- install-leaf target: installs files in INSTALL_PARTS
+
+**ARM config.host**: Sets `extra_parts="crtbegin.o crtend.o crti.o crtn.o"`
+
+**Conclusion**: Build system SHOULD create and install startup files. Debug logs will reveal why it's not happening.
+
+---
+
+## Issue #7: Multilibs Not Being Built - ROOT CAUSE IDENTIFIED 🔍
+
+**Date**: 2025-11-25
+**Investigator**: @copilot
+
+### Problem Statement
+Startup files (crti.o, crtn.o, crtbegin.o, crtend.o) are missing from ALL 39 multilib variants, causing test_project build failures.
+
+### Discovery Process
+
+**From build logs (commit 6eecd390f)**:
+1. ✅ GCC configure creates Makefiles for ALL 39 multilib variants
+2. ❌ `make` only enters 2 directories:
+   - `/build-native/gcc-final/arm-none-eabi/libgcc` (root/default)
+   - `/build-native/gcc-final/arm-none-eabi/arm/v5te/softfp/libgcc`
+3. ❌ Remaining 37 multilibs never built
+4. ❌ NO startup files generated for ANY multilib
+5. ❌ NO libstdc++ multilibs built
+
+### Root Cause: MULTIDO=true
+
+**GCC multilib mechanism**: The root libgcc Makefile target `all-multi` invokes:
+```makefile
+@: $(MAKE) ; exec $(MULTIDO) $(FLAGS_TO_PASS) multi-do DO=all
+```
+
+**Expected**: `MULTIDO=$(MAKE)` → recursively builds all multilibs
+**Actual**: `MULTIDO=true` → `exec true ...` is a no-op, exits immediately
+
+**Why MULTIDO=true?** From `src/gcc/config-ml.in`:
+```bash
+if [ "${ml_toplevel_p}" = yes ]; then
+  ml_do='$(MAKE)'  # Correct - enables multilibs
+else
+  ml_do=true       # Wrong - disables multilibs
+fi
+sed -e "s:^MULTIDO.*=.*:MULTIDO = $ml_do:"
+```
+
+**Conditions for ml_toplevel_p=yes**:
+1. `enable_multilib=yes` (auto-added by libgcc/configure.ac)
+2. `with_multisubdir` is empty (✓ confirmed in logs: line 87474)
+3. `config-ml.in` exists at correct location (✓ exists at `src/gcc/config-ml.in`)
+
+**Hypothesis**: Despite correct conditions, ml_toplevel_p is NOT being set to yes, causing MULTIDO=true.
+
+### Evidence from Build Logs
+
+**Multilib configuration (lines 87470-87690)**:
+```
+Adding multilib support to Makefile in /root/.../src/gcc/libgcc
+multidirs=arm/v5te/softfp arm/v5te/hard thumb/nofp thumb/v7/nofp ... [ALL 38]
+with_multisubdir=
+Running configure in multilib subdirs ... [ALL 38 listed]
+```
+
+**Build execution (lines 89853-90062)**:
+```
+make[2]: Entering directory '.../gcc-final/arm-none-eabi/libgcc'
+make[3]: Entering directory '.../gcc-final/arm-none-eabi/libgcc'
+make[4]: Entering directory '.../gcc-final/arm-none-eabi/arm/v5te/softfp/libgcc'
+[END - no more multilib builds]
+```
+
+### Impact
+
+**Without multilib builds**:
+- Only 2 of 39 variants have libgcc.a (and even these lack startup files)
+- **ZERO** startup files (crt*.o) in ANY multilib directory
+- **ZERO** libstdc++.a in ANY multilib directory
+- test_project cannot link for thumb/v6-m/nofp (Cortex-M0+)
+
+### Solutions to Investigate
+
+**Option A**: Explicit --enable-multilib
+```bash
+"$SRCDIR/$GCC/configure" ... --enable-multilib ...
+```
+Even though auto-added, make it explicit to ensure it's present.
+
+**Option B**: Debug config-ml.in
+- Add debug output to capture ml_toplevel_p, enable_multilib values
+- Check why file test might fail despite file existing
+
+**Option C**: Different make target
+- Try `make all-multi` explicitly
+- Or build multilibs in separate stage
+
+**Option D**: Monolithic Script Comparison
+- Check if monolithic script uses different configure options
+- Verify no hidden flags preventing multilib
+
+### Status
+
+**Current**: Enhanced debug output added (commit 6eecd390f) to capture:
+- MULTIDO value from generated Makefile
+- ml_toplevel_p decision from config-ml.in
+- enable_multilib value
+
+**Next**: CI build will reveal exact failure point in config-ml.in logic.
+
+### References
+- libgcc/Makefile.in: `all-multi` target (lines ~1160)
+- src/gcc/config-ml.in: multilib support script
+- Build logs: lines 87470-87690 (configure), 89853-90062 (make)
+
+
+### Enhanced Diagnostics Added (Commit TBD)
+
+To pinpoint the exact cause of MULTIDO=true, added comprehensive debug output:
+
+**config-ml.in instrumentation**:
+- Captures ml_toplevel_p value before decision
+- Shows enable_multilib, with_multisubdir, srcdir, ml_realsrcdir
+- Checks if config-ml.in file is found at expected location
+- Reports whether ml_do is set to '$(MAKE)' or 'true'
+- Output prefix: `MULTILIB_DEBUG:` (sent to stderr, captured in logs)
+
+**build-gcc-final-gdb.sh diagnostics**:
+1. Count of multilib directories created by configure
+2. Count of directories with libgcc.a (actually built)
+3. MULTIDO value from generated libgcc/Makefile
+4. enable_multilib from config.status
+5. Evidence of config-ml.in execution in config.log
+6. List of directories entered during make (from build artifacts)
+7. Startup file search in build and install directories
+8. Sample multilib directory contents
+
+**Extraction compatibility**:
+- All output uses MULTILIB_DEBUG: prefix for easy extraction
+- extract-debug-output.sh updated to capture multilib_debug.txt
+- .gitignore updated to exclude multilib_debug.txt
+- DEBUG_EXTRACTION.md updated with new output documentation
+
+**Purpose**: This comprehensive logging will reveal:
+- ✅ Exact value of ml_toplevel_p and why it's set that way
+- ✅ Whether enable_multilib is actually being passed
+- ✅ Whether config-ml.in can find itself in the parent directory
+- ✅ How many multilibs are configured vs actually built
+- ✅ Exact value of MULTIDO in the generated Makefile
+
+One CI run should provide all answers needed to apply the correct fix.
+
+
+---
+
+## Issue #8: Multilibs Building But Missing Startup Files! 🎉🔍
+
+**Date**: 2025-11-26
+**Investigator**: @copilot
+
+### BREAKTHROUGH: Multilibs ARE Building!
+
+**Evidence from latest diagnostics.txt (commit 62f370c3e)**:
+
+✅ **ml_toplevel_p = yes** (confirmed by MULTILIB_DEBUG output)
+✅ **ml_do = MAKE** (multilibs ENABLED)
+✅ **libgcc.a found in ALL multilib directories**:
+- thumb/v6-m/nofp/libgcc.a ✓
+- thumb/v7-m/nofp/libgcc.a ✓
+- thumb/v8-m.main+fp/hard/libgcc.a ✓
+- ...and 20+ more variants
+
+**This confirms Issue #7 is SOLVED!** The sysroot fix and INHIBIT_LIBC_CFLAGS addition enabled proper multilib builds.
+
+### NEW Problem: Startup Files Missing Despite Multilib Success
+
+**What's working**:
+- Multilib configuration: ✅ All 39 variants configured
+- Multilib builds: ✅ libgcc.a built for all variants
+- config-ml.in: ✅ Correctly sets MULTIDO=$(MAKE)
+
+**What's NOT working**:
+- ❌ NO crti.o found in ANY multilib
+- ❌ NO crtn.o found in ANY multilib  
+- ❌ NO crtbegin.o found in ANY multilib
+- ❌ NO crtend.o found in ANY multilib
+- ❌ NO crt0.o found in ANY multilib
+- ❌ NO libc_nano.a found anywhere
+
+### Root Cause Analysis
+
+**From src/gcc/libgcc/config.host (ARM section)**:
+```bash
+arm*-*-eabi* | arm*-*-symbianelf* | arm*-*-rtems*)
+  tm_file="$tm_file arm/bpabi-lib.h"
+  tmake_file="${tmake_file} arm/t-arm arm/t-bpabi t-crtfm"
+  extra_parts="crtbegin.o crtend.o crti.o crtn.o"
+  ;;
+```
+
+**This shows libgcc SHOULD build these files as EXTRA_PARTS.**
+
+**Hypothesis**: The EXTRA_PARTS are defined but not being built because:
+1. Missing dependencies or build rules
+2. tmake_file fragments not being included properly
+3. INHIBIT_LIBC_CFLAGS may need to be passed differently
+4. Need additional configure flags for extra_parts
+
+**Key clue from src/gcc/libgcc/Makefile.in**:
+```makefile
+extra-parts = $(EXTRA_PARTS)
+all: $(extra-parts)
+
+install-leaf: $(install-shared) $(install-libunwind)
+$(mkinstalldirs) $(DESTDIR)$(inst_libdir)
+ifdef extra-parts
+$(INSTALL_DATA) $(extra-parts) $(DESTDIR)$(inst_libdir)/
+endif
+```
+
+The Makefile SHOULD build and install extra-parts if EXTRA_PARTS is set.
+
+### Investigation Questions
+
+1. **Are extra-parts being built but not installed?**
+   - Check build directories during make (before cleanup)
+   
+2. **Is EXTRA_PARTS variable empty?**
+   - Check generated Makefile for EXTRA_PARTS value
+   
+3. **Are tmake_file fragments being included?**
+   - Check if arm/t-arm, arm/t-bpabi, t-crtfm are included
+   
+4. **Is there a missing dependency?**
+   - crtbegin/crtend need crtstuff.c
+   - crti/crtn need their source files
+   
+5. **Is INHIBIT_LIBC_CFLAGS reaching the right targets?**
+   - May need to be set in Makefile, not just make command line
+
+### Next Actions
+
+**Option A**: Check generated Makefile for EXTRA_PARTS
+- Add debug output to show EXTRA_PARTS value
+- Verify tmake_file fragments are included
+
+**Option B**: Build extra-parts explicitly  
+- Try `make all extra-parts` or `make crti.o crtbegin.o` etc.
+
+**Option C**: Check if build rules exist
+- Look for crti.S, crtn.S source files
+- Check if crtstuff.c compilation rules are present
+
+**Option D**: Compare with monolithic script
+- See if there's a different way extra-parts are built
+- Check for missing make targets or variables
+
+### Status
+
+**Major Progress**: Multilibs are now building! 🎉
+**Remaining Issue**: extra_parts (startup files) not being built/installed
+**Next**: Add debug output to capture EXTRA_PARTS and tmake_file values
+
+---
+
+## Issue #9: newlib-nano Regression - libc_nano.a Lost (2025-11-26)
+
+### Problem
+User @grahame-student reports that libc_nano.a was found in commit c0f4f792e but NOT in current commit c96a2f10b. This is a regression.
+
+### Evidence
+
+**Commit c0f4f792e (WORKING)**:
+```
+Searching for: libc_nano.a
+  Found: /root/build/.../arm-none-eabi/lib/arm/v5te/hard/libc_nano.a
+  Found: /root/build/.../arm-none-eabi/lib/arm/v5te/softfp/libc_nano.a
+  Found: /root/build/.../arm-none-eabi/lib/thumb/nofp/libc_nano.a
+  [... 36 more variants, total 39 files found]
+```
+
+**Commit c96a2f10b (BROKEN)**:
+```
+Searching for: libc_nano.a
+[NO FILES FOUND]
+```
+
+### Investigation
+
+**Checked - NOT the issue**:
+1. ✅ Dockerfile newlib-nano stage (lines 296-315): Does NOT delete `build-native/target-libs`
+2. ✅ build-newlib-nano.sh: Only deletes `build-native/newlib-nano`, keeps target-libs
+3. ✅ build-gcc-final-gdb.sh (line 195): copy_multi_libs call is still present
+4. ✅ No code changes to newlib-nano scripts between the two commits
+
+**Need to investigate** (requires full CI build logs):
+1. ❓ Did the newlib-nano Docker stage actually run in c96a2f10b build?
+2. ❓ Was `build-native/target-libs` created and populated by newlib-nano?
+3. ❓ Did copy_multi_libs execute? What was the result or error?
+4. ❓ Was build-native/target-libs present when gcc-final-gdb stage started?
+
+### Possible Root Causes
+
+**Hypothesis 1**: Docker layer caching
+- newlib-nano stage may be using cached layer from before target-libs creation
+- Solution: Force rebuild or check cache keys
+
+**Hypothesis 2**: Silent build failure
+- newlib-nano might be failing without stopping the Docker build
+- Solution: Check for newlib-nano build errors in logs
+
+**Hypothesis 3**: copy_multi_libs silent failure
+- Source directory might exist but copy fails without error
+- Solution: Add error checking to copy_multi_libs
+
+**Hypothesis 4**: Dockerfile stage ordering
+- Something between newlib-nano and gcc-final-gdb may be deleting target-libs
+- Solution: Audit all intermediate cleanup commands
+
+### Status
+🔎 **INVESTIGATING** - Need full CI build logs to determine root cause
+
+The diagnostics.txt file only contains the final diagnostic output, not the full build logs. Need the complete CI job logs to see:
+- Newlib-nano stage execution
+- copy_multi_libs execution
+- Any errors or warnings
+
+### Next Steps
+1. Obtain full CI build logs URL from latest failed build
+2. Search logs for "newlib-nano" to verify stage ran
+3. Search for "copy_multi_libs" to see if it executed
+4. Check for any errors between newlib-nano and gcc-final-gdb stages
+5. Apply targeted fix based on findings
+

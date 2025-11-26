@@ -57,7 +57,7 @@ echo ""
 
 # 6. Find critical runtime libraries
 echo "${DIAG_PREFIX} --- Locating Runtime Libraries ---"
-for lib in crti.o crtbegin.o crt0.o libc_nano.a libgcc.a; do
+for lib in crti.o crtn.o crtbegin.o crtend.o crt0.o libc_nano.a libgcc.a; do
     echo "${DIAG_PREFIX} Searching for: $lib"
     find /root/build/gnu-tools-for-stm32/install-native -name "$lib" 2>/dev/null | while IFS= read -r path; do
         echo "${DIAG_PREFIX}   Found: $path"
@@ -65,7 +65,7 @@ for lib in crti.o crtbegin.o crt0.o libc_nano.a libgcc.a; do
 done
 echo ""
 
-# 7. Directory structure
+# 7. Directory structure and sample file listings
 echo "${DIAG_PREFIX} --- arm-none-eabi Directory Structure ---"
 if [ -d "/root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib" ]; then
     find /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib -type d 2>/dev/null | head -20 | while IFS= read -r dir; do
@@ -76,10 +76,47 @@ else
 fi
 echo ""
 
+# 8. List actual files in key directories to verify installation
+echo "${DIAG_PREFIX} --- Sample File Listings (First Multilib) ---"
+# Check root lib directory
+if [ -d "/root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib" ]; then
+    echo "${DIAG_PREFIX} Files in arm-none-eabi/lib/ (root):"
+    # shellcheck disable=SC2012
+    ls -1 /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/*.o 2>/dev/null | head -10 | while IFS= read -r file; do
+        echo "${DIAG_PREFIX}   $(basename "$file")"
+    done || echo "${DIAG_PREFIX}   No .o files in root lib directory"
+fi
+
+# Check one specific multilib directory (thumb/v6-m/nofp for Cortex-M0+)
+if [ -d "/root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v6-m/nofp" ]; then
+    echo "${DIAG_PREFIX} Files in thumb/v6-m/nofp/:"
+    # shellcheck disable=SC2012
+    ls -1 /root/build/gnu-tools-for-stm32/install-native/arm-none-eabi/lib/thumb/v6-m/nofp/ 2>/dev/null | head -20 | while IFS= read -r file; do
+        echo "${DIAG_PREFIX}   $file"
+    done
+fi
+
+# Check GCC libgcc directory for startup files
+if [ -d "/root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1" ]; then
+    echo "${DIAG_PREFIX} Files in lib/gcc/arm-none-eabi/13.3.1/ (root):"
+    # shellcheck disable=SC2012
+    ls -1 /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/*.o 2>/dev/null | head -10 | while IFS= read -r file; do
+        echo "${DIAG_PREFIX}   $(basename "$file")"
+    done || echo "${DIAG_PREFIX}   No .o files in root GCC lib directory"
+    
+    echo "${DIAG_PREFIX} Files in lib/gcc/arm-none-eabi/13.3.1/thumb/v6-m/nofp/:"
+    # shellcheck disable=SC2012
+    ls -1 /root/build/gnu-tools-for-stm32/install-native/lib/gcc/arm-none-eabi/13.3.1/thumb/v6-m/nofp/ 2>/dev/null | head -20 | while IFS= read -r file; do
+        echo "${DIAG_PREFIX}   $file"
+    done || echo "${DIAG_PREFIX}   Directory not found"
+fi
+echo ""
+
 # 8. Check if sysroot exists and list contents
 echo "${DIAG_PREFIX} --- Sysroot Directory Contents ---"
 if [ -d "$SYSROOT" ]; then
     echo "${DIAG_PREFIX} Sysroot exists: $SYSROOT"
+    # shellcheck disable=SC2012
     ls -la "$SYSROOT" 2>/dev/null | while IFS= read -r line; do
         echo "${DIAG_PREFIX}   $line"
     done
