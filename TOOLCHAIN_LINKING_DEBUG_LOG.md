@@ -1001,3 +1001,74 @@ The Makefile SHOULD build and install extra-parts if EXTRA_PARTS is set.
 **Remaining Issue**: extra_parts (startup files) not being built/installed
 **Next**: Add debug output to capture EXTRA_PARTS and tmake_file values
 
+---
+
+## Issue #9: newlib-nano Regression - libc_nano.a Lost (2025-11-26)
+
+### Problem
+User @grahame-student reports that libc_nano.a was found in commit c0f4f792e but NOT in current commit c96a2f10b. This is a regression.
+
+### Evidence
+
+**Commit c0f4f792e (WORKING)**:
+```
+Searching for: libc_nano.a
+  Found: /root/build/.../arm-none-eabi/lib/arm/v5te/hard/libc_nano.a
+  Found: /root/build/.../arm-none-eabi/lib/arm/v5te/softfp/libc_nano.a
+  Found: /root/build/.../arm-none-eabi/lib/thumb/nofp/libc_nano.a
+  [... 36 more variants, total 39 files found]
+```
+
+**Commit c96a2f10b (BROKEN)**:
+```
+Searching for: libc_nano.a
+[NO FILES FOUND]
+```
+
+### Investigation
+
+**Checked - NOT the issue**:
+1. ✅ Dockerfile newlib-nano stage (lines 296-315): Does NOT delete `build-native/target-libs`
+2. ✅ build-newlib-nano.sh: Only deletes `build-native/newlib-nano`, keeps target-libs
+3. ✅ build-gcc-final-gdb.sh (line 195): copy_multi_libs call is still present
+4. ✅ No code changes to newlib-nano scripts between the two commits
+
+**Need to investigate** (requires full CI build logs):
+1. ❓ Did the newlib-nano Docker stage actually run in c96a2f10b build?
+2. ❓ Was `build-native/target-libs` created and populated by newlib-nano?
+3. ❓ Did copy_multi_libs execute? What was the result or error?
+4. ❓ Was build-native/target-libs present when gcc-final-gdb stage started?
+
+### Possible Root Causes
+
+**Hypothesis 1**: Docker layer caching
+- newlib-nano stage may be using cached layer from before target-libs creation
+- Solution: Force rebuild or check cache keys
+
+**Hypothesis 2**: Silent build failure
+- newlib-nano might be failing without stopping the Docker build
+- Solution: Check for newlib-nano build errors in logs
+
+**Hypothesis 3**: copy_multi_libs silent failure
+- Source directory might exist but copy fails without error
+- Solution: Add error checking to copy_multi_libs
+
+**Hypothesis 4**: Dockerfile stage ordering
+- Something between newlib-nano and gcc-final-gdb may be deleting target-libs
+- Solution: Audit all intermediate cleanup commands
+
+### Status
+🔎 **INVESTIGATING** - Need full CI build logs to determine root cause
+
+The diagnostics.txt file only contains the final diagnostic output, not the full build logs. Need the complete CI job logs to see:
+- Newlib-nano stage execution
+- copy_multi_libs execution
+- Any errors or warnings
+
+### Next Steps
+1. Obtain full CI build logs URL from latest failed build
+2. Search logs for "newlib-nano" to verify stage ran
+3. Search for "copy_multi_libs" to see if it executed
+4. Check for any errors between newlib-nano and gcc-final-gdb stages
+5. Apply targeted fix based on findings
+
