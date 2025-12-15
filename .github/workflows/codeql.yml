@@ -135,7 +135,7 @@ jobs:
         # Upload results even if some checks failed
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@v5.0.0
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: shellcheck-results
           path: shellcheck-results/
