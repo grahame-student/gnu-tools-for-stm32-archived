@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v6.0.2
 
       - name: Install linting tools
         shell: bash
@@ -114,7 +114,7 @@ jobs:
 
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v6.0.2
 
       - name: Install build dependencies
         shell: bash
